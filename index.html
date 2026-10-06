@@ -490,70 +490,60 @@ const FOOD_OTHER = [
   ['acidFat', '酸度與油脂感', ['酸高', '油脂高', '兩者皆高', '兩者皆低']]
 ];
 
-/* 產區簡表（agent 依公開知識整理，請以課本為準） */
+/* 產區簡表（agent 依公開知識整理，請以課本為準）。
+   n＝台灣常用中文名、en＝英文、a＝輸入別名（大陸譯名、舊名、原文；只用來辨識，不顯示）。顯示一律「中文（English）」。 */
 const REGIONS = [
-  { c: '法國', n: '波爾多', a: ['Bordeaux'], g: '紅：赤霞珠、梅洛、品麗珠。白：白蘇維濃、榭密雍', s: '紅酒多為中高酸、中高單寧、黑色水果與雪松；左岸以赤霞珠為主，右岸以梅洛為主。蘇玳是貴腐甜白。', e: '梅多克、聖愛美濃、波美侯、格拉夫、蘇玳' },
-  { c: '法國', n: '勃艮第', a: ['Burgundy', 'Bourgogne'], g: '黑皮諾、霞多麗', s: '紅酒酒體輕至中、高酸、低至中單寧、紅色水果；白酒從夏布利（高酸、少橡木）到伯恩丘（橡木、較飽滿）。', e: '夏布利、夜丘、伯恩丘、馬貢' },
-  { c: '法國', n: '薄酒萊', a: ['Beaujolais'], g: '加美', s: '酒體輕、低單寧、高酸，紅色水果與糖果香，常用二氧化碳浸漬法，適合年輕時飲用。', e: '薄酒萊新酒、薄酒萊村莊級、克魯級（如 Morgon）' },
-  { c: '法國', n: '羅訥河谷', a: ['Rhone', 'Rhône'], g: '北：希哈（紅）、維歐尼（白）。南：歌海娜、希哈、慕合懷特', s: '北部紅酒偏黑色水果與黑胡椒；南部多為調配，酒精較高、酒體飽滿。', e: '羅第丘、艾米達吉、教皇新堡、羅訥河谷丘' },
-  { c: '法國', n: '羅亞爾河', a: ['Loire'], g: '白蘇維濃、白詩南、慕斯卡德（Melon de Bourgogne）、品麗珠', s: '偏涼爽氣候，白酒高酸、酒體輕至中；也產氣泡酒與甜白（白詩南）。', e: '松塞爾、普依芙美、梧雷、慕斯卡德、希濃' },
-  { c: '法國', n: '阿爾薩斯', a: ['Alsace'], g: '麗絲玲、格烏茲塔明那、灰皮諾、蜜思嘉', s: '以品種名標示；多為乾型但也有甜型，格烏茲塔明那香氣濃郁、帶荔枝與玫瑰。', e: 'Alsace AOC、Alsace Grand Cru' },
-  { c: '法國', n: '香檳', a: ['Champagne'], g: '黑皮諾、莫尼耶皮諾、霞多麗', s: '傳統法（瓶中二次發酵）氣泡酒，高酸；酵母自溶帶來餅乾、烤麵包香。', e: '無年份香檳、年份香檳、白中白、粉紅香檳' },
-  { c: '法國', n: '朗格多克-胡西雍', a: ['Languedoc', 'Roussillon', "Pays d'Oc"], g: '歌海娜、希哈、慕合懷特、卡利濃、梅洛、霞多麗', s: '地中海氣候、產量大，常見品種標示的平價酒款。', e: "Pays d'Oc IGP、Languedoc AOC" },
-  { c: '義大利', n: '皮埃蒙特', a: ['Piedmont', 'Piemonte'], g: '內比歐露、巴貝拉、多切托、蜜思嘉', s: '內比歐露：高酸、高單寧、玫瑰與焦油香；蜜思嘉為微甜低酒精微泡酒。', e: '巴羅洛、巴巴瑞斯科、阿斯蒂蜜思嘉' },
-  { c: '義大利', n: '托斯卡納', a: ['Tuscany', 'Toscana'], g: '山吉歐維榭', s: '紅酒高酸、中高單寧，紅櫻桃與乾燥香草，常經橡木與瓶中陳年。', e: '經典奇揚替、蒙塔奇諾布魯奈羅' },
-  { c: '義大利', n: '威尼托', a: ['Veneto'], g: '葛雷拉、葛佳內加、科維納', s: '普賽克氣泡酒（槽式法，清新果香）；Soave 白酒；Amarone 以風乾葡萄釀造，酒精高、濃縮。', e: '普賽克、索阿維、瓦波利切拉、阿瑪羅內' },
-  { c: '義大利', n: '西西里', a: ['Sicily', 'Sicilia'], g: '黑珍珠（Nero d\'Avola）、格里羅、馬沙拉', s: '溫暖氣候，紅酒果味成熟、酒精中高；也產加強酒馬沙拉。', e: 'Sicilia DOC、馬沙拉' },
-  { c: '義大利', n: '普利亞', a: ['Puglia', 'Apulia'], g: '普米提沃、內格羅阿馬羅', s: '炎熱產區，紅酒成熟果味、酒體飽滿、價格親民。', e: 'Salice Salentino、Primitivo di Manduria' },
-  { c: '西班牙', n: '里奧哈', a: ['Rioja'], g: '丹魄、歌海娜', s: '以橡木陳年時間分級（Crianza、Reserva、Gran Reserva）；常見草莓、香草、椰子與皮革。', e: 'Rioja Crianza / Reserva / Gran Reserva' },
-  { c: '西班牙', n: '里亞斯巴斯', a: ['Rias Baixas', 'Rías Baixas'], g: '阿爾巴利諾', s: '大西洋涼爽氣候，白酒高酸、柑橘與桃子，適合搭海鮮。', e: 'Rías Baixas DO' },
-  { c: '西班牙', n: '卡瓦', a: ['Cava'], g: '馬卡貝歐、沙雷洛、帕雷亞達', s: '傳統法氣泡酒，風格接近簡化版香檳，價格親民。', e: 'Cava Brut' },
-  { c: '西班牙', n: '赫雷斯', a: ['Jerez', 'Sherry'], g: '帕洛米諾', s: '加強酒；Fino 為生物式陳年（酒花），Oloroso 為氧化式陳年。', e: 'Fino、Manzanilla、Oloroso' },
-  { c: '德國', n: '德國', a: ['Germany', 'Mosel', 'Rheingau', '摩澤爾'], g: '麗絲玲、米勒圖高、黑皮諾（Spätburgunder）', s: '涼爽氣候，麗絲玲高酸、低酒精、花與青蘋果香；以成熟度分級（Kabinett、Spätlese、Auslese…）。', e: '摩澤爾、萊茵高、法爾茲' },
-  { c: '奧地利', n: '奧地利', a: ['Austria'], g: '綠維特利納、茨威格', s: '綠維特利納乾型白酒，帶白胡椒與柑橘，中高酸。', e: 'Niederösterreich、Wachau' },
-  { c: '葡萄牙', n: '葡萄牙', a: ['Portugal', 'Douro', 'Port', '波特', 'Vinho Verde', '綠酒'], g: '杜奧：國產多瑞加、紅巴羅卡。綠酒：阿爾巴利諾等', s: '杜奧河谷產紅酒與波特酒；綠酒（Vinho Verde）清爽微泡、低酒精。', e: '波特酒（Ruby、Tawny）、杜奧 DOC、綠酒' },
-  { c: '美國', n: '美國加州', a: ['California', 'Napa', 'Sonoma', '納帕', '加州'], g: '赤霞珠、梅洛、金芬黛、黑皮諾、霞多麗、白蘇維濃', s: '陽光充足，成熟果味明顯；納帕赤霞珠飽滿、單寧豐厚，常用橡木。', e: '納帕谷、索諾瑪、中央海岸' },
-  { c: '智利', n: '智利', a: ['Chile', 'Maipo', 'Casablanca'], g: '赤霞珠、卡門內爾、梅洛、白蘇維濃、霞多麗', s: '氣候穩定、產區由北到南狹長；平價優質，赤霞珠與卡門內爾為代表。', e: '邁坡谷、卡薩布蘭加谷、中央山谷' },
-  { c: '阿根廷', n: '阿根廷', a: ['Argentina', 'Mendoza', '門多薩'], g: '馬爾貝克、特濃情（白）', s: '高海拔、乾燥日照；馬爾貝克色深、黑色水果、柔和單寧。', e: '門多薩、盧漢德庫約' },
-  { c: '澳洲', n: '澳洲', a: ['Australia', 'Barossa', 'Barossa Valley', '巴羅莎'], g: '希哈（Shiraz）、赤霞珠、霞多麗、麗絲玲、榭密雍', s: '風格多元；巴羅莎希哈飽滿、成熟黑色水果與胡椒；克雷爾谷麗絲玲乾型高酸。', e: '巴羅莎谷、庫納瓦拉、克雷爾谷、獵人谷' },
-  { c: '紐西蘭', n: '紐西蘭', a: ['New Zealand', 'Marlborough', '馬爾堡'], g: '白蘇維濃、黑皮諾、霞多麗', s: '馬爾堡白蘇維濃：高酸、強烈的醋栗、青草與熱帶水果；中奧塔哥黑皮諾。', e: '馬爾堡、霍克斯灣、中奧塔哥' },
-  { c: '南非', n: '南非', a: ['South Africa', 'Stellenbosch', 'Swartland'], g: '白詩南、皮諾塔吉、希哈、赤霞珠', s: '白詩南（當地稱 Steen）為特色；皮諾塔吉為本地特有品種，帶煙燻與黑色水果。', e: '斯泰倫博斯、帕爾、斯瓦特蘭' }
+  { c: '法國', n: '波爾多', en: 'Bordeaux', a: ['波尔多'], g: '紅：卡本內蘇維濃、梅洛、卡本內弗朗。白：白蘇維濃、榭密雍', s: '紅酒多為中高酸、中高單寧、黑色水果與雪松；左岸以卡本內蘇維濃為主，右岸以梅洛為主。蘇玳是貴腐甜白。', e: '梅多克（Médoc）、聖愛美濃（Saint-Émilion）、波美侯（Pomerol）、格拉夫（Graves）、蘇玳（Sauternes）' },
+  { c: '法國', n: '勃根地', en: 'Burgundy', a: ['Bourgogne', '勃艮第', '勃根第', '勃艮地', '布根地'], g: '黑皮諾、夏多內', s: '紅酒酒體輕至中、高酸、低至中單寧、紅色水果；白酒從夏布利（高酸、少橡木）到伯恩丘（橡木、較飽滿）。', e: '夏布利（Chablis）、夜丘（Côte de Nuits）、伯恩丘（Côte de Beaune）、馬貢（Mâconnais）' },
+  { c: '法國', n: '薄酒萊', en: 'Beaujolais', a: ['薄酒來', '薄酒莱'], g: '加美', s: '酒體輕、低單寧、高酸，紅色水果與糖果香，常用二氧化碳浸漬法，適合年輕時飲用。', e: '薄酒萊新酒（Beaujolais Nouveau）、薄酒萊村莊級（Beaujolais-Villages）、克魯級（Cru，如 Morgon）' },
+  { c: '法國', n: '隆河', en: 'Rhône', a: ['Rhone', '羅訥河谷', '羅訥河', '罗讷河谷', '隆河谷', '羅納河谷', 'Cotes du Rhone', 'Côtes du Rhône'], g: '北：希哈（紅）、維歐尼（白）。南：格那希、希哈、慕維得爾', s: '北部紅酒偏黑色水果與黑胡椒；南部多為調配，酒精較高、酒體飽滿。', e: '羅第丘（Côte-Rôtie）、艾米達吉（Hermitage）、教皇新堡（Châteauneuf-du-Pape）、隆河丘（Côtes du Rhône）' },
+  { c: '法國', n: '羅亞爾河', en: 'Loire', a: ['羅瓦爾河', '卢瓦尔河', '羅亞爾河谷', '羅瓦爾河谷', 'Val de Loire'], g: '白蘇維濃、白詩南、慕斯卡德（Melon de Bourgogne）、卡本內弗朗', s: '偏涼爽氣候，白酒高酸、酒體輕至中；也產氣泡酒與甜白（白詩南）。', e: '松塞爾（Sancerre）、普依芙美（Pouilly-Fumé）、梧雷（Vouvray）、慕斯卡德（Muscadet）、希濃（Chinon）' },
+  { c: '法國', n: '阿爾薩斯', en: 'Alsace', a: ['亞爾薩斯', '阿尔萨斯'], g: '麗絲玲、格烏茲塔明那、灰皮諾、蜜思嘉', s: '以品種名標示；多為乾型但也有甜型，格烏茲塔明那香氣濃郁、帶荔枝與玫瑰。', e: 'Alsace AOC、Alsace Grand Cru' },
+  { c: '法國', n: '香檳', en: 'Champagne', a: ['香槟', '香檳區'], g: '黑皮諾、莫尼耶皮諾、夏多內', s: '傳統法（瓶中二次發酵）氣泡酒，高酸；酵母自溶帶來餅乾、烤麵包香。', e: '無年份香檳（Non-Vintage）、年份香檳（Vintage）、白中白（Blanc de Blancs）、粉紅香檳（Rosé）' },
+  { c: '法國', n: '普羅旺斯', en: 'Provence', a: ['普罗旺斯', 'Côtes de Provence', 'Cotes de Provence', 'Bandol'], g: '格那希、仙梭（Cinsault）、慕維得爾、希哈', s: '地中海氣候，以淡雅的乾型粉紅酒聞名；也產紅酒與白酒。', e: '普羅旺斯丘（Côtes de Provence）、邦多爾（Bandol）' },
+  { c: '法國', n: '朗格多克-胡西雍', en: 'Languedoc-Roussillon', a: ['Languedoc', 'Roussillon', "Pays d'Oc", '朗格多克', '隆格多克', '胡西雍', '魯西雍'], g: '格那希、希哈、慕維得爾、卡利濃、梅洛、夏多內', s: '地中海氣候、產量大，常見品種標示的平價酒款。', e: "Pays d'Oc IGP、Languedoc AOC" },
+  { c: '義大利', n: '皮蒙特', en: 'Piedmont', a: ['Piemonte', '皮埃蒙特', '皮耶蒙特'], g: '內比歐露、巴貝拉、多切托、蜜思嘉', s: '內比歐露：高酸、高單寧、玫瑰與焦油香；蜜思嘉為微甜低酒精微泡酒。', e: '巴羅洛（Barolo）、巴巴瑞斯科（Barbaresco）、阿斯蒂蜜思嘉（Moscato d\'Asti）' },
+  { c: '義大利', n: '托斯卡尼', en: 'Tuscany', a: ['Toscana', '托斯卡納', '托斯卡那'], g: '山吉歐維榭', s: '紅酒高酸、中高單寧，紅櫻桃與乾燥香草，常經橡木與瓶中陳年。', e: '經典奇揚替（Chianti Classico）、蒙塔奇諾布魯奈羅（Brunello di Montalcino）' },
+  { c: '義大利', n: '威尼托', en: 'Veneto', a: ['威內托', '威尼多'], g: '葛雷拉、葛佳內加（Garganega）、科維納（Corvina）', s: '普賽克氣泡酒（槽式法，清新果香）；索阿維白酒；阿瑪羅內以風乾葡萄釀造，酒精高、濃縮。', e: '普賽克（Prosecco）、索阿維（Soave）、瓦波利切拉（Valpolicella）、阿瑪羅內（Amarone）' },
+  { c: '義大利', n: '西西里', en: 'Sicily', a: ['Sicilia', '西西里島'], g: '黑珍珠（Nero d\'Avola）、格里羅（Grillo）', s: '溫暖氣候，紅酒果味成熟、酒精中高；也產加強酒馬沙拉。', e: 'Sicilia DOC、馬沙拉（Marsala）' },
+  { c: '義大利', n: '普利亞', en: 'Puglia', a: ['Apulia', '阿普里亞', '普里亞'], g: '普米提沃（Primitivo）、內格羅阿馬羅（Negroamaro）', s: '炎熱產區，紅酒成熟果味、酒體飽滿、價格親民。', e: 'Salice Salentino、Primitivo di Manduria' },
+  { c: '西班牙', n: '里奧哈', en: 'Rioja', a: ['利奧哈', '里歐哈'], g: '田帕尼優、格那希', s: '以橡木陳年時間分級（Crianza、Reserva、Gran Reserva）；常見草莓、香草、椰子與皮革。', e: 'Rioja Crianza / Reserva / Gran Reserva' },
+  { c: '西班牙', n: '里亞斯巴斯', en: 'Rías Baixas', a: ['Rias Baixas'], g: '阿爾巴利諾', s: '大西洋涼爽氣候，白酒高酸、柑橘與桃子，適合搭海鮮。', e: 'Rías Baixas DO' },
+  { c: '西班牙', n: '卡瓦', en: 'Cava', a: [], g: '馬卡貝歐（Macabeo）、沙雷洛（Xarel·lo）、帕雷亞達（Parellada）', s: '傳統法氣泡酒，風格接近簡化版香檳，價格親民。', e: 'Cava Brut' },
+  { c: '西班牙', n: '赫雷斯', en: 'Jerez', a: ['Sherry', '雪莉'], g: '帕洛米諾（Palomino）', s: '加強酒；Fino 為生物式陳年（酒花），Oloroso 為氧化式陳年。', e: 'Fino、Manzanilla、Oloroso' },
+  { c: '德國', n: '德國', en: 'Germany', a: ['Mosel', 'Rheingau', '摩澤爾', '德国', 'Deutschland'], g: '麗絲玲、米勒圖高、黑皮諾（Spätburgunder）', s: '涼爽氣候，麗絲玲高酸、低酒精、花與青蘋果香；以成熟度分級（Kabinett、Spätlese、Auslese…）。', e: '摩澤爾（Mosel）、萊茵高（Rheingau）、法爾茲（Pfalz）' },
+  { c: '奧地利', n: '奧地利', en: 'Austria', a: ['奥地利', 'Österreich'], g: '綠維特利納、茨威格（Zweigelt）', s: '綠維特利納乾型白酒，帶白胡椒與柑橘，中高酸。', e: 'Niederösterreich、Wachau' },
+  { c: '葡萄牙', n: '葡萄牙', en: 'Portugal', a: ['Douro', 'Port', '波特', 'Vinho Verde', '綠酒', '杜奧'], g: '杜羅河谷：國產多瑞加（Touriga Nacional）、紅巴羅卡（Tinta Barroca）。綠酒：阿爾巴利諾等', s: '杜羅河谷產紅酒與波特酒；綠酒（Vinho Verde）清爽微泡、低酒精。', e: '波特酒（Port：Ruby、Tawny）、杜羅河谷（Douro DOC）、綠酒（Vinho Verde）' },
+  { c: '美國', n: '加州', en: 'California', a: ['美國加州', 'Napa', 'Napa Valley', 'Sonoma', '納帕', '納帕谷', '索諾瑪', '加利福尼亞'], g: '卡本內蘇維濃、梅洛、金芬黛、黑皮諾、夏多內、白蘇維濃', s: '陽光充足，成熟果味明顯；納帕谷卡本內蘇維濃飽滿、單寧豐厚，常用橡木。', e: '納帕谷（Napa Valley）、索諾瑪（Sonoma）、中央海岸（Central Coast）' },
+  { c: '智利', n: '智利', en: 'Chile', a: ['Maipo', 'Casablanca'], g: '卡本內蘇維濃、卡門內爾、梅洛、白蘇維濃、夏多內', s: '氣候穩定、產區由北到南狹長；平價優質，卡本內蘇維濃與卡門內爾為代表。', e: '邁坡谷（Maipo Valley）、卡薩布蘭加谷（Casablanca Valley）、中央山谷（Central Valley）' },
+  { c: '阿根廷', n: '阿根廷', en: 'Argentina', a: ['Mendoza', '門多薩'], g: '馬爾貝克、特濃情（Torrontés，白）', s: '高海拔、乾燥日照；馬爾貝克色深、黑色水果、柔和單寧。', e: '門多薩（Mendoza）、盧漢德庫約（Luján de Cuyo）' },
+  { c: '澳洲', n: '澳洲', en: 'Australia', a: ['Barossa', 'Barossa Valley', '巴羅莎', '澳大利亞', '澳大利亚'], g: '希哈（Shiraz）、卡本內蘇維濃、夏多內、麗絲玲、榭密雍', s: '風格多元；巴羅莎谷希哈飽滿、成熟黑色水果與胡椒；克雷爾谷麗絲玲乾型高酸。', e: '巴羅莎谷（Barossa Valley）、庫納瓦拉（Coonawarra）、克雷爾谷（Clare Valley）、獵人谷（Hunter Valley）' },
+  { c: '紐西蘭', n: '紐西蘭', en: 'New Zealand', a: ['Marlborough', '馬爾堡', '新西蘭', '新西兰'], g: '白蘇維濃、黑皮諾、夏多內', s: '馬爾堡白蘇維濃：高酸、強烈的醋栗、青草與熱帶水果；中奧塔哥黑皮諾。', e: '馬爾堡（Marlborough）、霍克斯灣（Hawke\'s Bay）、中奧塔哥（Central Otago）' },
+  { c: '南非', n: '南非', en: 'South Africa', a: ['Stellenbosch', 'Swartland'], g: '白詩南、皮諾塔吉、希哈、卡本內蘇維濃', s: '白詩南（當地稱 Steen）為特色；皮諾塔吉為本地特有品種，帶煙燻與黑色水果。', e: '斯泰倫博斯（Stellenbosch）、帕爾（Paarl）、斯瓦特蘭（Swartland）' }
 ];
-/* 產區別名（繁簡／譯名／原文），讓「勃根地（Bourgogne）」「隆河」「羅瓦爾河」連到簡表 */
-const REGION_EXTRA = {
-  '波爾多': ['波尔多', 'Bordeaux'], '勃艮第': ['勃根地', '勃根第', '勃艮地', '布根地', 'Bourgogne', 'Burgundy'], '薄酒萊': ['薄酒來', '薄酒莱', 'Beaujolais'],
-  '羅訥河谷': ['隆河', '隆河谷', '羅納河谷', '罗讷河谷', '羅訥河', 'Rhone', 'Cotes du Rhone'], '羅亞爾河': ['羅瓦爾河', '卢瓦尔河', '羅亞爾河谷', '羅瓦爾河谷', '羅亞爾', 'Loire', 'Val de Loire'],
-  '阿爾薩斯': ['亞爾薩斯', '阿尔萨斯', 'Alsace'], '香檳': ['香槟', '香檳區', 'Champagne'], '朗格多克-胡西雍': ['朗格多克', '隆格多克', '胡西雍', '魯西雍', 'Languedoc-Roussillon'],
-  '皮埃蒙特': ['皮蒙特', '皮耶蒙特', 'Piemonte', 'Piedmont'], '托斯卡納': ['托斯卡尼', '托斯卡那', 'Toscana', 'Tuscany'], '威尼托': ['威內托', '威尼多', 'Veneto'],
-  '西西里': ['西西里島', 'Sicilia', 'Sicily'], '普利亞': ['阿普里亞', '普里亞', 'Puglia', 'Apulia'], '里奧哈': ['利奧哈', '里歐哈', 'Rioja'], '里亞斯巴斯': ['Rias Baixas'], '卡瓦': ['Cava'],
-  '赫雷斯': ['雪莉', 'Jerez', 'Sherry'], '德國': ['德国', 'Deutschland', 'Germany'], '奧地利': ['奥地利', 'Austria'], '葡萄牙': ['Portugal'],
-  '美國加州': ['加州', '加利福尼亞', '納帕谷', '納帕', '索諾瑪', 'California', 'Napa Valley'], '智利': ['Chile'], '阿根廷': ['Argentina'], '澳洲': ['澳大利亞', '澳大利亚', 'Australia'],
-  '紐西蘭': ['新西蘭', '新西兰', 'New Zealand'], '南非': ['South Africa']
-};
-REGIONS.forEach(r => { r.a = r.a.concat((REGION_EXTRA[r.n] || []).filter(x => !r.a.includes(x))); });
-const GRAPES = ['赤霞珠', '梅洛', '品麗珠', '黑皮諾', '希哈／Shiraz', '歌海娜', '慕合懷特', '丹魄', '山吉歐維榭', '內比歐露', '巴貝拉', '馬爾貝克', '卡門內爾', '金芬黛', '加美', '皮諾塔吉',
-  '霞多麗', '白蘇維濃', '麗絲玲', '白詩南', '榭密雍', '灰皮諾', '格烏茲塔明那', '維歐尼', '阿爾巴利諾', '綠維特利納', '蜜思嘉', '葛雷拉', '米勒圖高', '莫尼耶皮諾', '多切托'];
+const GRAPES = ['卡本內蘇維濃', '梅洛', '卡本內弗朗', '黑皮諾', '希哈／Shiraz', '格那希', '慕維得爾', '田帕尼優', '山吉歐維榭', '內比歐露', '巴貝拉', '馬爾貝克', '卡門內爾', '金芬黛', '加美', '皮諾塔吉',
+  '夏多內', '白蘇維濃', '麗絲玲', '白詩南', '榭密雍', '灰皮諾', '格烏茲塔明那', '維歐尼', '阿爾巴利諾', '綠維特利納', '蜜思嘉', '葛雷拉', '米勒圖高', '莫尼耶皮諾', '多切托'];
 
 /* 品種：中英別名對照，把 Gemini 回的「黑皮諾 (Pinot Noir)」「Pinot Noir」都正規化成清單內的中文常用名；對不到就保留原字串 */
 const gKey = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[\s.\-_'’・·]/g, '');
 const GRAPE_ALIAS = {
-  '赤霞珠': ['cabernet sauvignon', 'cab sauv', '卡本內蘇維濃', '卡本內蘇維翁', '卡本內・蘇維濃', '卡貝纳苏维翁'],
+  '卡本內蘇維濃': ['cabernet sauvignon', 'cab sauv', '赤霞珠', '卡本內蘇維翁', '卡本內・蘇維濃', '卡貝纳苏维翁', '卡本內蘇維濃'],
   '梅洛': ['merlot', '美樂', '梅鹿輒', '梅鹿辄'],
-  '品麗珠': ['cabernet franc', '卡本內弗朗', '品丽珠', '卡本內佛朗'],
+  '卡本內弗朗': ['cabernet franc', '品麗珠', '品丽珠', '卡本內佛朗', '卡本內弗朗'],
   '黑皮諾': ['pinot noir', 'pinot nero', 'spatburgunder', 'blauburgunder', '黑皮诺', '黑比諾'],
   '希哈／Shiraz': ['syrah', 'shiraz', '希哈', '西拉', '席哈', '希拉'],
-  '歌海娜': ['grenache', 'garnacha', 'grenache noir', '格那希', '格那許'],
-  '慕合懷特': ['mourvedre', 'monastrell', 'mataro', '慕維得爾', '慕合怀特'],
-  '丹魄': ['tempranillo', 'tinta roriz', 'tinto fino', '田帕尼優', '添帕尼優', '坦普拉尼優'],
-  '山吉歐維榭': ['sangiovese', '桑嬌維塞', '山吉歐維塞', '桑嬌維賽', '山吉維榭'],
+  '格那希': ['grenache', 'garnacha', 'grenache noir', '歌海娜', '格那許', '格納希'],
+  '慕維得爾': ['mourvedre', 'monastrell', 'mataro', '慕合懷特', '慕合怀特', '慕維得爾', '慕爾維得爾'],
+  '田帕尼優': ['tempranillo', 'tinta roriz', 'tinto fino', '丹魄', '添帕尼優', '坦普拉尼優', '田帕尼優'],
+  '山吉歐維榭': ['sangiovese', '桑嬌維塞', '山吉歐維塞', '桑嬌維賽', '山吉維榭', '山嬌維塞'],
   '內比歐露': ['nebbiolo', '內比奧羅', '內比歐羅'],
   '巴貝拉': ['barbera'],
   '馬爾貝克': ['malbec', 'cot', '馬貝克'],
-  '卡門內爾': ['carmenere', '卡門耐', '卡門尼爾'],
+  '卡門內爾': ['carmenere', '卡門耐', '卡門尼爾', '卡門內'],
   '金芬黛': ['zinfandel', '仙芬黛', '金粉黛'],
   '加美': ['gamay', 'gamay noir', '嘉美'],
   '皮諾塔吉': ['pinotage', '皮諾塔奇'],
-  '霞多麗': ['chardonnay', '夏多內', '霞多丽', '莎當妮'],
+  '夏多內': ['chardonnay', '霞多麗', '霞多丽', '莎當妮', '夏多內'],
   '白蘇維濃': ['sauvignon blanc', '長相思', '白蘇維翁', '白索維濃'],
   '麗絲玲': ['riesling', '雷司令', '麗斯玲'],
   '白詩南': ['chenin blanc', 'steen', '白梢楠', '白諗'],
@@ -769,7 +759,7 @@ function buildBrand() {
 
 /* ========= 酒標辨識：貼上填入（不串 API、不放金鑰；Gemini 讀酒標 → 貼回來 → 解析 → 預覽 → 套用） ========= */
 const LABEL_PROMPT = "你是葡萄酒酒標「抄錄」助手。我會附上一張或多張葡萄酒的酒標、背標或酒瓶照片，你的唯一工作，是把照片上「印出來的文字」整理成下面固定的 JSON。全程使用繁體中文（台灣用語），原文名稱（酒名、酒莊）保留原文拼寫。\n\n【輸出格式】\n只輸出一個 JSON 區塊（用 ```json 包起來），不要加任何其他文字：\n{\"酒名\":\"\",\"酒莊\":\"\",\"國家\":\"\",\"產區\":\"\",\"品種\":[\"\",\"\"],\"年份\":\"\",\"酒精度\":\"\",\"備註\":\"\",\"不確定\":[\"欄位名\"]}\n\n【欄位說明】\n- 酒名：酒標上的酒款名稱（cuvée 或系列名）。沒有獨立酒名時，填酒標上最醒目的名稱。保留原文。\n- 酒莊：生產者或酒廠名稱，保留原文。\n- 國家：繁體中文，例如「法國」「義大利」。\n- 產區：標籤上印的產區或法定產區（AOC、DOC、DO 等），可寫成「中文（原文）」。\n- 品種：陣列，只填標籤上有印的品種，用繁體中文常用譯名。標籤沒印就給空陣列 []。\n- 年份：四位數西元年份；標示 NV 或沒有年份，填 \"NV\"。\n- 酒精度：例如 \"13.5%\"。\n- 備註：只放標籤上印的其他資訊（等級、裝瓶方式、容量、認證），一兩句；沒有就留空字串。\n- 不確定：把「看不太清楚、可能讀錯」的欄位名稱放進這個陣列；都清楚就給空陣列 []。\n\n【規則】\n1. 只抄標籤上看得到的字。看不清楚或標籤上沒有寫的欄位，一律留空（品種留空陣列），絕對不要猜、不要用你的知識補、不要依產區推測品種或年份。\n2. 絕對不要寫任何香氣、風味、口感、顏色描述、評價、評分、適飲期、價格、搭餐建議，也不要介紹酒莊或產區。備註裡也不行。\n3. 欄位名稱固定使用上面的中文，不要改名，也不要增減欄位。\n4. 多張照片視為同一支酒，合併資訊；彼此矛盾時以背標為準，並把該欄位放進「不確定」。\n5. 只回傳 JSON 區塊，不要開場白，也不要結語。";
-const LABEL_SAMPLE = "```json\n{\"酒名\":\"Vieilles Vignes\",\"酒莊\":\"Domaine Exemple\",\"國家\":\"法國\",\"產區\":\"勃艮第（Gevrey-Chambertin）\",\"品種\":[],\"年份\":\"2019\",\"酒精度\":\"13%\",\"備註\":\"標籤印有 Vieilles Vignes（老藤）。\",\"不確定\":[]}\n```";
+const LABEL_SAMPLE = "```json\n{\"酒名\":\"Vieilles Vignes\",\"酒莊\":\"Domaine Exemple\",\"國家\":\"法國\",\"產區\":\"勃根地（Gevrey-Chambertin）\",\"品種\":[],\"年份\":\"2019\",\"酒精度\":\"13%\",\"備註\":\"標籤印有 Vieilles Vignes（老藤）。\",\"不確定\":[]}\n```";
 /* [代號, 顯示名, 可接受的欄位名別名] */
 const LF = [
   ['name', '酒名', ['酒名', '名稱', '酒款', '酒款名稱', 'name', 'winename', 'wine', 'cuvee', 'cuvée']],
@@ -878,16 +868,20 @@ function parseLabelReply(text) {
   if (!Object.keys(raw).length) throw new Error('讀不到任何欄位。請確認回覆裡有「酒名」「酒莊」「產區」…這些欄位名稱；你貼的內容還在，改好再按一次。');
   return { d: normLabel(raw), mode };
 }
-const regionLabel = r => r.c === r.n ? r.n : r.c + '・' + r.n;
+const regionLabel = r => (r.c === r.n ? '' : r.c + '・') + r.n + '（' + r.en + '）';
+/* 把任何寫法的產區（含大陸譯名、只有英文、帶括號）統一成台灣名＋英文；括號內簡表沒有的細產區留在後面 */
+function normRegionStr(reg, ctry) {
+  reg = reg || ''; ctry = ctry || '';
+  const r = (reg && findRegion(reg)) || (!reg && ctry && findRegion(ctry)) || null;
+  if (!r) return { r: null, value: ctry && reg ? (reg.includes(ctry) ? reg : ctry + '・' + reg) : (reg || ctry) };
+  const rest = regParts(reg).filter(p => !regSyn(r).includes(gKey(p)) && p !== ctry && p !== r.c);
+  return { r, value: regionLabel(r) + (rest.length ? '／' + rest.join('、') : '') };
+}
+const displayRegion = s => { s = String(s || '').trim(); if (!s) return s; const n = normRegionStr(s, ''); return n.r ? n.value : s; };
 function regionValue(d) {
-  const reg = d.region, ctry = d.country;
-  if (!reg && !ctry) return { value: '', hint: '' };
-  const r = (reg && findRegion(reg)) || (!reg && findRegion(ctry)) || null;
-  if (r) {
-    const plain = !reg || regParts(reg).every(p => regNames(r).includes(gKey(p)) || p === ctry);
-    return { value: plain ? regionLabel(r) : (r.c === r.n ? reg : r.c + '・' + reg), hint: '已對應內建產區簡表：' + regionLabel(r) };
-  }
-  return { value: ctry && reg ? (reg.includes(ctry) ? reg : ctry + '・' + reg) : (reg || ctry), hint: '內建簡表沒有這個產區，當自由文字填入' };
+  if (!d.region && !d.country) return { value: '', hint: '' };
+  const n = normRegionStr(d.region, d.country);
+  return { value: n.value, hint: n.r ? '已對應內建產區簡表：' + regionLabel(n.r) : '內建簡表沒有這個產區，當自由文字填入' };
 }
 const AI_ROWS = [['name', '酒名'], ['producer', '酒莊'], ['region', '產區'], ['grape', '品種'], ['vintage', '年份'], ['abv', '酒精度'], ['note', '備註']];
 function aiPlan(w, d) {
@@ -1109,7 +1103,7 @@ function viewHome(app) {
     d.append(body); frag.append(d);
   }
   /* 篩選 */
-  const regions = [...new Set(wines.map(w => w.basic.region).filter(Boolean))];
+  const regions = [...new Set(wines.map(w => displayRegion(w.basic.region)).filter(Boolean))];
   const nAct = ['type', 'occ', 'region', 'stars', 'from', 'to'].filter(k => filt[k]).length;
   const search = h('input', { type: 'search', id: 'fq', placeholder: '搜尋酒名／酒莊／產區／品種', value: filt.q, 'aria-label': '搜尋', style: 'margin-bottom:10px', oninput: e => { filt.q = e.target.value; renderList(); } });
   const f = h('div', { class: 'filters' },
@@ -1127,15 +1121,17 @@ function viewHome(app) {
   app.append(frag);
   renderList();
 }
+function regSearch(s) { const r = s && findRegion(s); return r ? [r.n, r.en].concat(r.a).join(' ') : ''; }
+function grapeSearch(s) { return String(s || '').split(/[、,，;；]+/).map(x => { const c = normGrape(x.trim()); return c && GRAPE_ALIAS[c] ? [c].concat(GRAPE_ALIAS[c]).join(' ') : ''; }).join(' '); }
 function renderList() {
   const list = $('#wlist'); if (!list) return;
   const q = filt.q.trim().toLowerCase();
   const rows = wines.filter(w => {
     const b = w.basic;
-    if (q && ![b.name, b.producer, b.region, b.grape].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![b.name, b.producer, b.region, b.grape, regSearch(b.region), grapeSearch(b.grape)].join(' ').toLowerCase().includes(q)) return false;
     if (filt.type && w.type !== filt.type) return false;
     if (filt.occ && b.occasion !== filt.occ) return false;
-    if (filt.region && b.region !== filt.region) return false;
+    if (filt.region && displayRegion(b.region) !== filt.region) return false;
     if (filt.stars && (w.stars || 0) < +filt.stars) return false;
     if (filt.from && b.date < filt.from) return false;
     if (filt.to && b.date > filt.to) return false;
@@ -1155,7 +1151,7 @@ function wineCard(w) {
   return h('button', { type: 'button', class: 'wcard' + (w.type ? ' t-' + w.type : ''), onclick: () => go('/wine/' + w.id) }, th,
     h('div', { class: 'info' },
       h('div', { class: 'nm' }, b.name || '（未命名）'),
-      h('div', { class: 'meta' }, [b.producer, b.region, b.vintage].filter(Boolean).join('・') || '—'),
+      h('div', { class: 'meta' }, [b.producer, displayRegion(b.region), b.vintage].filter(Boolean).join('・') || '—'),
       h('div', { class: 'meta' }, [b.date, b.occasion, b.lessonNo ? '第 ' + b.lessonNo + ' 支' : ''].filter(Boolean).join('・')),
       h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, starsRO(w.stars), w.type ? h('span', { class: 'pill ' + (w.type === 'red' ? 'wine' : 'gray') }, TYPE_NAME[w.type]) : null, hit && hit.pct != null ? h('span', { class: 'pill ' + (hit.pct >= 70 ? 'ok' : 'warn') }, '命中 ' + hit.pct + '%') : null),
       h('div', { class: 'bar', title: '完整度 ' + d + '/' + tot }, h('i', { style: 'width:' + Math.round(d / tot * 100) + '%' }))));
@@ -1319,8 +1315,13 @@ function lightbox(pid) {
   const img = h('img', { alt: '放大照片' }); loadImg(img, pid);
   ov.append(h('div', { class: 'lightbox', onclick: () => { ov.innerHTML = ''; } }, img, h('button', { type: 'button', 'aria-label': '關閉', onclick: () => { ov.innerHTML = ''; } }, '×')));
 }
-const regParts = s => String(s || '').split(/[()（）\[\]［］／\/,，、]/).map(x => x.trim()).filter(Boolean);
-const regNames = r => [r.n].concat(r.a).map(gKey);
+const regParts = s => String(s || '').split(/[()（）\[\]［］／\/,，、・]/).map(x => x.trim()).filter(Boolean);
+const regNames = r => [r.n, r.en].concat(r.a).map(gKey);
+/* 次級產區／法定產區的寫法：能對到所屬產區，但不是同義詞，統一名稱時要保留在後面 */
+const REGION_SUB = { '隆河': ['Cotes du Rhone', 'Côtes du Rhône'], '普羅旺斯': ['Côtes de Provence', 'Cotes de Provence', 'Bandol'], '朗格多克-胡西雍': ['Languedoc', 'Roussillon', "Pays d'Oc"],
+  '德國': ['Mosel', 'Rheingau', '摩澤爾'], '葡萄牙': ['Douro', 'Port', '波特', 'Vinho Verde', '綠酒', '杜奧'], '加州': ['Napa', 'Napa Valley', 'Sonoma', '納帕', '納帕谷', '索諾瑪'],
+  '智利': ['Maipo', 'Casablanca'], '阿根廷': ['Mendoza', '門多薩'], '澳洲': ['Barossa', 'Barossa Valley', '巴羅莎'], '紐西蘭': ['Marlborough', '馬爾堡'], '南非': ['Stellenbosch', 'Swartland'] };
+const regSyn = r => [r.n, r.en].concat(r.a.filter(x => !(REGION_SUB[r.n] || []).includes(x))).map(gKey);
 function findRegion(s) {
   s = String(s || '').trim(); if (!s) return null;
   for (const p of regParts(s).map(gKey)) { const r = REGIONS.find(r => regNames(r).includes(p)); if (r) return r; }   /* 精確：某一段等於某個名稱或別名 */
@@ -1328,7 +1329,7 @@ function findRegion(s) {
   return REGIONS.find(r => regNames(r).some(a => a.length >= 2 && k.includes(a))) || null;                         /* 退回：字串包含 */
 }
 function regionBox(r) {
-  return h('div', { class: 'regioncard' }, h('b', null, r.c + '・' + r.n), h('div', null, h('span', { class: 'muted' }, '品種：'), r.g), h('div', null, h('span', { class: 'muted' }, '風格：'), r.s), h('div', null, h('span', { class: 'muted' }, '代表：'), r.e),
+  return h('div', { class: 'regioncard' }, h('b', null, regionLabel(r)), h('div', null, h('span', { class: 'muted' }, '品種：'), r.g), h('div', null, h('span', { class: 'muted' }, '風格：'), r.s), h('div', null, h('span', { class: 'muted' }, '代表：'), r.e),
     h('div', { class: 'small muted' }, '簡表，請以課本為準'));
 }
 
@@ -1363,7 +1364,7 @@ function viewDetail(app, id) {
   const heroImgs = h('div', { class: 'photos' }, w.photos.map(p => { const img = h('img', { alt: p.kind || '照片' }); loadImg(img, p.id); return h('div', { class: 'ph' }, h('button', { type: 'button', class: 'im', 'aria-label': '放大', onclick: () => lightbox(p.id) }, img), h('div', { class: 'small muted' }, p.kind || '')); }));
   const head = h('section', { class: 'sec' },
     h('h2', { style: 'font-size:1.5625rem' }, b.name || '（未命名）'),
-    h('div', { class: 'muted' }, [b.producer, b.region, b.vintage].filter(Boolean).join('・')),
+    h('div', { class: 'muted' }, [b.producer, displayRegion(b.region), b.vintage].filter(Boolean).join('・')),
     h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;align-items:center' }, starsRO(w.stars), w.type ? h('span', { class: 'pill gray' }, TYPE_NAME[w.type]) : null, h('span', { class: 'pill' }, '完整度 ' + d + '/' + tot)),
     w.photos.length ? heroImgs : null,
     h('dl', { class: 'kv' },
@@ -1472,12 +1473,12 @@ function viewRef(app, tab) {
   const hd = { region: ['grapes', '產區簡表', '二十多個產區的品種與風格，一頁看完'], aroma: ['glass', '香氣詞彙', '一類、二類、三類，照第二級詞彙表'], food: ['decanter', '食物原理', '食物如何改變杯裡的酒'], frame: ['cork', '品鑑架構', '視覺、嗅覺、味覺、結論'] }[tab];
   if (hd) app.append(h('div', { class: 'refhd' }, art(hd[0], 44), h('div', { class: 'tx' }, h('b', null, hd[1]), h('span', { class: 'small muted' }, hd[2]))));
   if (tab === 'region') {
-    const q = h('input', { type: 'search', id: 'rq', placeholder: '搜尋產區、品種、代表酒款', 'aria-label': '搜尋產區', style: 'margin-bottom:12px' });
+    const q = h('input', { type: 'search', id: 'rq', placeholder: '搜尋產區、品種、代表酒款（中英文都可以）', 'aria-label': '搜尋產區', style: 'margin-bottom:12px' });
     const g = h('div', { class: 'rgrid' });
     const draw = () => {
       g.innerHTML = ''; const s = q.value.trim().toLowerCase();
-      REGIONS.filter(r => !s || [r.c, r.n, r.g, r.s, r.e, ...r.a].join(' ').toLowerCase().includes(s)).forEach(r =>
-        g.append(h('div', { class: 'rcard' }, h('span', { class: 'c' }, r.c), h('b', null, r.n), h('dl', null, h('dt', null, '品種'), h('dd', null, r.g), h('dt', null, '風格'), h('dd', null, r.s), h('dt', null, '代表'), h('dd', null, r.e)))));
+      REGIONS.filter(r => !s || [r.c, r.n, r.en, r.g, r.s, r.e, ...r.a].join(' ').toLowerCase().includes(s)).forEach(r =>
+        g.append(h('div', { class: 'rcard' }, h('span', { class: 'c' }, r.c), h('b', null, r.n + '（' + r.en + '）'), h('dl', null, h('dt', null, '品種'), h('dd', null, r.g), h('dt', null, '風格'), h('dd', null, r.s), h('dt', null, '代表'), h('dd', null, r.e)))));
     };
     q.addEventListener('input', draw); draw();
     app.append(h('div', { class: 'note' }, '簡表，請以課本為準。這份是依公開知識整理的，不是教材原文。'), h('div', { style: 'height:12px' }), q, g);
@@ -1527,7 +1528,7 @@ function viewSettings(app) {
   st.append(h('section', { class: 'sec', id: 'geminiHelp' }, h('h2', null, '怎麼用 Gemini 辨識酒標', h('small', null, '不串 API，不放金鑰')),
     h('ol', { class: 'steps' },
       h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '複製指令，貼到 Gemini'), h('div', { class: 'prose small muted' }, '在「新增」頁的基本資料，打開「酒標辨識」按「複製辨識指令」；到 Gemini 貼上，並附上酒標（背標更好）照片。也可以把同一份指令存成 Gemini 的 Gem，之後只要丟照片。'))),
-      h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '把回覆貼回來，按「解析並預覽」'), h('div', { class: 'prose small muted' }, 'Gemini 會回一段 JSON，整段複製貼進文字框就好；有多餘文字、圍欄、全形標點都能讀。'))),
+      h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '把回覆貼回來，按「解析並預覽」'), h('div', { class: 'prose small muted' }, 'Gemini 會回一段 JSON，整段複製貼進文字方塊就好；有多餘文字、圍欄、全形標點都能讀。'))),
       h('li', null, h('span', { class: 'n' }, '3'), h('div', { class: 't' }, h('div', { class: 'h' }, '核對後套用'), h('div', { class: 'prose small muted' }, '預覽會列出每個欄位。已有內容的欄位預設不覆蓋；標「AI 不確定」的請對照酒標再決定。看不清楚的欄位會留空，不會亂猜。')))),
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '範例回覆（試用）'), sampleBox),
     h('div', { class: 'btnrow' },
@@ -1578,7 +1579,7 @@ function viewSettings(app) {
 async function loadSamples() {
   const mk = (fn) => { const w = newWine(); fn(w); w.extra.sample = true; return w; };
   const a = mk(w => {
-    Object.assign(w.basic, { name: '範例・勃艮第黑皮諾', producer: '範例酒莊', region: '法國・勃艮第', grape: '黑皮諾', vintage: '2019', price: '1,200', shop: '課堂提供', occasion: '上課', lessonNo: '第 3 堂・第 2 支', date: today() });
+    Object.assign(w.basic, { name: '範例・勃根地黑皮諾', producer: '範例酒莊', region: '法國・勃根地（Burgundy）', grape: '黑皮諾', vintage: '2019', price: '1,200', shop: '課堂提供', occasion: '上課', lessonNo: '第 3 堂・第 2 支', date: today() });
     w.type = 'red'; w.stars = 4;
     w.t = { clarity: '清澈', depth: '淡', colour: '紅寶石色', clean: '純淨', nInt: '中', aroma1: ['紅色水果|草莓', '紅色水果|紅櫻桃', '花香|玫瑰'], aroma3: ['紅酒|蘑菇'],
       sweet: '干', acid: '高', tannin: '中', alc: '中', body: '中', fInt: '中', flav1: ['紅色水果|紅櫻桃'], finish: '長', quality: '很好',
@@ -1587,13 +1588,13 @@ async function loadSamples() {
     w.teacher = [{ id: uid('t'), by: '範例老師', createdAt: Date.now(), t: { clarity: '清澈', depth: '淡', colour: '石榴紅色', clean: '純淨', nInt: '中', aroma1: ['紅色水果|草莓', '紅色水果|覆盆子'], sweet: '干', acid: '高', tannin: '低', alc: '中', body: '輕盈', fInt: '中', finish: '長', quality: '好', qr: { balance: { on: true, note: '' } } } }];
   });
   const b = mk(w => {
-    Object.assign(w.basic, { name: '範例・馬爾堡白蘇維濃', producer: '範例酒莊', region: '紐西蘭', grape: '白蘇維濃', vintage: '2023', price: '620', shop: '超市', occasion: '自己喝', date: today() });
+    Object.assign(w.basic, { name: '範例・馬爾堡白蘇維濃', producer: '範例酒莊', region: '紐西蘭（New Zealand）', grape: '白蘇維濃', vintage: '2023', price: '620', shop: '超市', occasion: '自己喝', date: today() });
     w.type = 'white'; w.stars = 3;
     w.t = { clarity: '清澈', depth: '淡', colour: '檸檬綠色', clean: '純淨', nInt: '濃', aroma1: ['綠色水果|醋栗', '草本植物|青草', '熱帶水果|百香果'], sweet: '干', acid: '高', alc: '中', body: '輕盈', fInt: '濃', finish: '中', quality: '好' };
     w.food = { text: '檸檬烤魚', comp: ['sour', 'salty'], feel: ['更少酸', '果味更明顯'], spice: '', foodInt: '淡', acidFat: '' };
   });
   const c = mk(w => {
-    Object.assign(w.basic, { name: '範例・無年份香檳', producer: '範例酒莊', region: '法國・香檳', grape: '霞多麗、黑皮諾、莫尼耶皮諾', vintage: 'NV', price: '1,800', shop: '課堂提供', occasion: '聚餐', date: today() });
+    Object.assign(w.basic, { name: '範例・無年份香檳', producer: '範例酒莊', region: '法國・香檳（Champagne）', grape: '夏多內、黑皮諾、莫尼耶皮諾', vintage: 'NV', price: '1,800', shop: '課堂提供', occasion: '聚餐', date: today() });
     w.type = 'sparkling'; w.stars = 5;
     w.t = { clarity: '清澈', depth: '淡', colour: '檸檬色', mousse: '泡沫細緻、持續久', clean: '純淨', nInt: '中', aroma1: ['柑橘類水果|檸檬', '綠色水果|蘋果'], aroma2: ['酵母（酒渣、酵母自溶、酒花）|餅乾', '酵母（酒渣、酵母自溶、酒花）|烤麵包'], sweet: '干', acid: '高', alc: '中', body: '輕盈', fInt: '中', flav1: ['柑橘類水果|檸檬'], finish: '長', quality: '很好' };
     w.food = { text: '炸物與生蠔', comp: ['salty', 'sour'], feel: ['果味更明顯'], spice: '', foodInt: '淡', acidFat: '' };
