@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@200;300;400;500&display=swap">
 <title>WSET 品飲筆記</title>
 <style>
-/* ON Design Lab 品牌套用（v2，2026-10-06）
+/* 視覺規格（v2，2026-10-06；獨立 App，不掛任何公司標示）
    字型：Noto Sans TC 單一家族（中英共用，離線退回系統字型）；字級走 12.8 / 16 / 20 / 25 級數；字重依字級（<20px Regular、20px+ Light、強調 Medium），不用 Bold、不用 Thin。
    色彩：黑底 #0A0A0A／主字 #F3F0EA／副字 #9E9B96／金線 #BEA578（只做細線與小標記）；淺色模式主字 #1A1A1A。
    功能色：莫蘭迪四色，各自只對應一種功能——灰綠＝相同／完成、土黃＝提醒／不同／不確定、灰藍＝說明、磚紅＝刪除／警告。
@@ -76,16 +76,11 @@ a{color:var(--accent)}
 .small{font-size:.8rem}
 .prose,.note,.regioncard,.rcard dl{line-height:1.85}
 
-/* logo：深色用 White、淺色用 Black（內嵌 base64，離線可用） */
-.logo-d{display:none}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .logo-d{display:block}:root:not([data-theme="light"]) .logo-l{display:none}}
-:root[data-theme="dark"] .logo-d{display:block}:root[data-theme="dark"] .logo-l{display:none}
-
 /* header + nav */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);margin-inline:-16px;padding:8px 16px;border-bottom:1px solid var(--gold)}
 .top .row{display:flex;align-items:center;gap:12px;max-width:1100px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:12px;white-space:nowrap;min-width:0}
-.brand img{height:32px;width:auto}
+.brand .art{color:var(--gold)}
 .brand .ttl{font-size:1rem;letter-spacing:.15em;padding-left:12px;border-left:1px solid var(--gold);line-height:1.2}
 .top .sp{flex:1}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--surface);border-top:1px solid var(--line);
@@ -225,7 +220,6 @@ details.fl .filters{margin:10px 0 0}
 .wcard.t-white{border-left-color:#BFAF5E}.wcard.t-rose{border-left-color:#E2A58A}.wcard.t-red{border-left-color:#8E1B33}
 .wcard.t-sparkling{border-left:4px dotted #D8C49A}
 .empty{text-align:center;padding:36px 16px;display:flex;flex-direction:column;gap:12px;align-items:center}
-.empty .logo-wrap img{height:56px;width:auto}
 
 /* photos */
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
@@ -310,7 +304,7 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 </head>
 <body>
 <header class="top"><div class="row">
-  <div class="brand" id="brand"><span class="ttl">WSET 品飲筆記</span></div>
+  <div class="brand" id="brand"><span class="ttl">我的品飲手冊</span></div>
   <div class="sp"></div>
   <nav class="tabs" id="tabs" aria-label="主選單"></nav>
 </div></header>
@@ -745,16 +739,10 @@ function renderPath(path) {
   window.scrollTo(0, 0);
 }
 
-/* ========= 品牌標誌（內嵌 base64；深色用 White、淺色用 Black） ========= */
-const LOGO_W = 'data:image/png;base64,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';
-const LOGO_B = 'data:image/png;base64,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';
-function logoPair(height) {
-  const st = 'height:' + height + 'px;width:auto';
-  return [h('img', { class: 'logo-d', src: LOGO_W, alt: 'ON Design Lab', style: st }), h('img', { class: 'logo-l', src: LOGO_B, alt: 'ON Design Lab', style: st })];
-}
+/* ========= 頁首識別：葡萄串單線插畫＋文字標題 ========= */
 function buildBrand() {
   const b = $('#brand'); if (!b) return; b.innerHTML = '';
-  b.append(...logoPair(32), h('span', { class: 'ttl' }, '品飲筆記'));
+  b.append(art('grapes', 30), h('span', { class: 'ttl' }, '我的品飲手冊'));
 }
 
 /* ========= 酒標辨識：貼上填入（不串 API、不放金鑰；Gemini 讀酒標 → 貼回來 → 解析 → 預覽 → 套用） ========= */
@@ -1079,7 +1067,6 @@ function buildSheet(ctx, w, mode) {
 let filt = { q: '', type: '', occ: '', region: '', stars: '', from: '', to: '' };
 function viewHome(app) {
   const frag = h('div', { class: 'stack' });
-  frag.append(h('div', { class: 'pagehd' }, h('h2', null, '我的品飲手冊')));
   if (Store.mode === 'mem') frag.append(h('div', { class: 'banner' }, h('div', { class: 'sp' }, '這個環境無法永久儲存（' + (Store.err && Store.err.message || '未知原因') + '）。目前的筆記只存在這個分頁，關掉就沒了。請常用「設定 → 匯出備份」。')));
   const base = S.lastBackup || S.firstUse;
   if (wines.length && Date.now() - base > 30 * 864e5)
@@ -1522,8 +1509,8 @@ async function doImport(text) {
 }
 function viewSettings(app) {
   const st = h('div', { class: 'stack' });
-  st.append(h('section', { class: 'sec' }, h('div', { style: 'display:flex;align-items:center;gap:16px;flex-wrap:wrap' }, h('div', null, ...logoPair(72)), h('span', { style: 'margin-left:auto' }, art('grapes', 56)),
-    h('div', { class: 'prose' }, h('div', { style: 'font-size:1.25rem;font-weight:300;letter-spacing:.06em' }, 'WSET 品飲筆記'), h('div', { class: 'small muted' }, '個人學習工具・套用 ON Design Lab 品牌樣式')))));
+  st.append(h('section', { class: 'sec' }, h('div', { style: 'display:flex;align-items:center;gap:16px' }, art('grapes', 64),
+    h('div', { class: 'prose' }, h('div', { style: 'font-size:1.25rem;font-weight:300;letter-spacing:.06em' }, '我的品飲手冊'), h('div', { class: 'small muted' }, 'WSET 第二級葡萄酒・個人學習筆記')))));
   const sampleBox = h('textarea', { class: 'mono', readonly: true, rows: 6, 'aria-label': '範例回覆' }, LABEL_SAMPLE);
   st.append(h('section', { class: 'sec', id: 'geminiHelp' }, h('h2', null, '怎麼用 Gemini 辨識酒標', h('small', null, '不串 API，不放金鑰')),
     h('ol', { class: 'steps' },
