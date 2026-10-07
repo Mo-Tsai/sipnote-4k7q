@@ -131,7 +131,7 @@ main{padding-block:18px;max-width:1100px;margin-inline:auto}
 .sub .art{color:inherit}
 .sub.s-vis{color:var(--c-vis);background:var(--c-vis-soft)}.sub.s-nose{color:var(--c-nose);background:var(--c-nose-soft)}
 .sub.s-taste{color:var(--c-taste);background:var(--c-taste-soft)}.sub.s-end{color:var(--c-end);background:var(--c-end-soft)}
-.fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,138px),1fr))}
 .fields .full{grid-column:1/-1}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);font-weight:500;letter-spacing:.04em;min-width:0}
 input[type=text],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--ctl);border-radius:var(--r);background:var(--bg);color:var(--fg);font-weight:400}
@@ -639,7 +639,7 @@ let wines = [];
 function newWine() {
   const n = Date.now();
   return { id: uid('w'), schemaVersion: SCHEMA, createdAt: n, updatedAt: n,
-    basic: { date: today(), name: '', producer: '', region: '', grape: '', vintage: '', abv: '', price: '', shop: '', occasion: '上課', lessonNo: '' },
+    basic: { date: today(), name: '', producer: '', region: '', grape: '', vintage: '', abv: '', price: '', shop: '', lessonNo: '' },
     photos: [], type: '', t: {}, mood: { occ: [], with: [], note: '' }, food: { text: '', comp: [], feel: [], spice: '', foodInt: '', acidFat: '' },
     stars: 0, note: '', teacher: [], extra: {} };
 }
@@ -649,6 +649,12 @@ function normalizeWine(w) {
   w.basic = Object.assign(d.basic, w.basic || {});
   w.food = Object.assign(d.food, w.food || {});
   w.mood = Object.assign({ occ: [], with: [], note: '' }, w.mood || {}); w.mood.occ = arr(w.mood.occ); w.mood.with = arr(w.mood.with);
+  if ('occasion' in w.basic) {   /* 舊欄位「場合」：上課→上課品飲、聚餐→聚會、自己喝→獨酌、其他→不選 */
+    const old = w.basic.occasion; delete w.basic.occasion;
+    if (old && w.extra.legacyOccasion == null) w.extra.legacyOccasion = old;
+    const to = { '上課': '上課品飲', '聚餐': '聚會', '自己喝': '獨酌' }[old];
+    if (to && !w.mood.occ.length) w.mood.occ = [to];
+  }
   w.t = w.t || {}; w.teacher = arr(w.teacher); w.photos = arr(w.photos); w.extra = w.extra || {};
   return w;
 }
@@ -1131,7 +1137,7 @@ function buildSheet(ctx, w, mode) {
 }
 
 /* ========= 首頁（手冊） ========= */
-let filt = { q: '', type: '', mocc: '', mwith: '', occ: '', region: '', stars: '', from: '', to: '' };
+let filt = { q: '', type: '', mocc: '', mwith: '', region: '', stars: '', from: '', to: '' };
 function viewHome(app) {
   const frag = h('div', { class: 'stack' });
   if (Store.mode === 'mem') frag.append(h('div', { class: 'banner' }, h('div', { class: 'sp' }, '這個環境無法永久儲存（' + (Store.err && Store.err.message || '未知原因') + '）。目前的筆記只存在這個分頁，關掉就沒了。請常用「設定 → 匯出備份」。')));
@@ -1158,13 +1164,12 @@ function viewHome(app) {
   }
   /* 篩選 */
   const regions = [...new Set(wines.map(w => displayRegion(w.basic.region)).filter(Boolean))];
-  const nAct = ['type', 'mocc', 'mwith', 'occ', 'region', 'stars', 'from', 'to'].filter(k => filt[k]).length;
+  const nAct = ['type', 'mocc', 'mwith', 'region', 'stars', 'from', 'to'].filter(k => filt[k]).length;
   const search = h('input', { type: 'search', id: 'fq', placeholder: '搜尋酒名／酒莊／產區／品種', value: filt.q, 'aria-label': '搜尋', style: 'margin-bottom:10px', oninput: e => { filt.q = e.target.value; renderList(); } });
   const f = h('div', { class: 'filters' },
     h('select', { id: 'ftype', 'aria-label': '酒種', onchange: e => { filt.type = e.target.value; renderList(); } }, h('option', { value: '' }, '全部酒種'), TYPES.map(([k, l]) => h('option', { value: k, selected: filt.type === k }, l))),
-    h('select', { id: 'fmocc', 'aria-label': '這杯的場合', onchange: e => { filt.mocc = e.target.value; renderList(); } }, h('option', { value: '' }, '全部心情場合'), MOOD_OCC.map(o => h('option', { value: o, selected: filt.mocc === o }, o))),
+    h('select', { id: 'fmocc', 'aria-label': '場合', onchange: e => { filt.mocc = e.target.value; renderList(); } }, h('option', { value: '' }, '全部場合'), MOOD_OCC.map(o => h('option', { value: o, selected: filt.mocc === o }, o))),
     h('select', { id: 'fmwith', 'aria-label': '和誰喝', onchange: e => { filt.mwith = e.target.value; renderList(); } }, h('option', { value: '' }, '不限和誰喝'), MOOD_WITH.map(o => h('option', { value: o, selected: filt.mwith === o }, o))),
-    h('select', { id: 'focc', 'aria-label': '場合', onchange: e => { filt.occ = e.target.value; renderList(); } }, h('option', { value: '' }, '全部場合'), ['上課', '聚餐', '自己喝', '其他'].map(o => h('option', { value: o, selected: filt.occ === o }, o))),
     h('select', { id: 'freg', 'aria-label': '產區', onchange: e => { filt.region = e.target.value; renderList(); } }, h('option', { value: '' }, '全部產區'), regions.map(o => h('option', { value: o, selected: filt.region === o }, o))),
     h('select', { id: 'fst', 'aria-label': '星數', onchange: e => { filt.stars = e.target.value; renderList(); } }, h('option', { value: '' }, '不限星數'), [5, 4, 3, 2, 1].map(n => h('option', { value: n, selected: String(filt.stars) === String(n) }, n + ' 星以上'))),
     h('div', { class: 'dates' },
@@ -1189,7 +1194,6 @@ function renderList() {
     const md = w.mood || {};
     if (filt.mocc && !arr(md.occ).includes(filt.mocc)) return false;
     if (filt.mwith && !arr(md.with).includes(filt.mwith)) return false;
-    if (filt.occ && b.occasion !== filt.occ) return false;
     if (filt.region && displayRegion(b.region) !== filt.region) return false;
     if (filt.stars && (w.stars || 0) < +filt.stars) return false;
     if (filt.from && b.date < filt.from) return false;
@@ -1211,7 +1215,7 @@ function wineCard(w) {
     h('div', { class: 'info' },
       h('div', { class: 'nm' }, b.name || '（未命名）'),
       h('div', { class: 'meta' }, [b.producer, displayRegion(b.region), b.vintage].filter(Boolean).join('・') || '—'),
-      h('div', { class: 'meta' }, [b.date, b.occasion, b.lessonNo ? '第 ' + b.lessonNo + ' 支' : ''].filter(Boolean).join('・')),
+      h('div', { class: 'meta' }, [b.date, arr((w.mood || {}).occ).join('、'), b.lessonNo].filter(Boolean).join('・')),
       h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, starsRO(w.stars), w.type ? h('span', { class: 'pill ' + (w.type === 'red' ? 'wine' : 'gray') }, TYPE_NAME[w.type]) : null, hit && hit.pct != null ? h('span', { class: 'pill ' + (hit.pct >= 70 ? 'ok' : 'warn') }, '命中 ' + hit.pct + '%') : null),
       h('div', { class: 'bar', title: '完整度 ' + d + '/' + tot }, h('i', { style: 'width:' + Math.round(d / tot * 100) + '%' }))));
 }
@@ -1243,7 +1247,7 @@ function viewForm(app, id) {
     h('span', { class: 'ttl' }, isNew ? '記下一杯' : '編輯這杯'), prog, h('span', { class: 'sp' }), h('span', { class: 'saved', id: 'savedLabel' }, isNew ? '尚未記下' : ''),
     modeSeg,
     h('button', { class: 'btn primary', type: 'button', onclick: () => { if (!wines.includes(w)) touch(w); go('/wine/' + w.id); } }, '完成'));
-  const set = (obj, k) => e => { obj[k] = e.target.value; touch(w); updProg(); if (k === 'occasion') {} };
+  const set = (obj, k) => e => { obj[k] = e.target.value; touch(w); updProg(); };
   const fin = (label, k, type = 'text', extra = {}) => h('label', { class: 'f' + (extra.full ? ' full' : ''), for: 'b_' + k }, label,
     h('input', Object.assign({ type, id: 'b_' + k, value: w.basic[k] || '', oninput: set(w.basic, k) }, extra.attrs || {})));
 
@@ -1251,9 +1255,8 @@ function viewForm(app, id) {
   const regionList = h('datalist', { id: 'dl_region' }, REGIONS.map(r => h('option', { value: regionLabel(r) })));
   const grapeList = h('datalist', { id: 'dl_grape' }, GRAPES.map(g => h('option', { value: g })));
   const lessonBox = h('div', { class: 'full' });
-  const buildLesson = () => { lessonBox.innerHTML = ''; if (w.basic.occasion === '上課') lessonBox.append(h('label', { class: 'f', for: 'b_lessonNo' }, '課堂編號／第幾支', h('input', { type: 'text', id: 'b_lessonNo', placeholder: '例：第 3 堂・第 2 支', value: w.basic.lessonNo || '', oninput: set(w.basic, 'lessonNo') }))); };
+  const buildLesson = () => { lessonBox.innerHTML = ''; if (arr(w.mood.occ).includes('上課品飲') || w.basic.lessonNo) lessonBox.append(h('label', { class: 'f', for: 'b_lessonNo' }, '課堂編號／第幾支', h('input', { type: 'text', id: 'b_lessonNo', placeholder: '例：第 3 堂・第 2 支', value: w.basic.lessonNo || '', oninput: set(w.basic, 'lessonNo') }))); };
   buildLesson();
-  const occSeg = h('div', { class: 'seg', role: 'group' }, ['上課', '聚餐', '自己喝', '其他'].map(o => h('button', { type: 'button', class: w.basic.occasion === o ? 'on' : '', onclick: e => { w.basic.occasion = o; [...e.currentTarget.parentNode.children].forEach(c => c.classList.toggle('on', c === e.currentTarget)); buildLesson(); touch(w); } }, o)));
   const regionCard = h('div');
   const showRegion = () => {
     regionCard.innerHTML = '';
@@ -1291,7 +1294,7 @@ function viewForm(app, id) {
     toast('已填入 ' + keys.length + ' 個欄位');
   };
   const prefill = window._prefillReply || ''; window._prefillReply = '';
-  const secA = h('section', { class: 'sec area-a' },
+  const secA = h('section', { class: 'sec' },
     h('h2', null, '基本資料'),
     buildAiPanel(w, aiApplied, prefill),
     h('div', { class: 'fields' },
@@ -1305,7 +1308,6 @@ function viewForm(app, id) {
       fin('酒精度', 'abv', 'text', { attrs: { placeholder: '例：13.5%' } }),
       fin('價格', 'price', 'text', { attrs: { inputmode: 'decimal', placeholder: 'NT$' } }),
       fin('購買處', 'shop', 'text'),
-      h('div', { class: 'grp full' }, h('div', { class: 'lbl' }, '場合'), occSeg),
       lessonBox),
     regionList, grapeList,
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '照片（酒標、酒瓶、當天菜色）'),
@@ -1330,15 +1332,15 @@ function viewForm(app, id) {
 
   /* C 食物 + 喜好 */
   const moodSec = h('section', { class: 'sec', id: 'moodSec' }, h('h2', null, '這杯的心情', h('small', null, '日常記錄用，不列入完整度與老師版對照')),
-    grp('這杯的場合', stampPicker(w.mood, 'occ', MOOD_OCC, '這杯的場合', () => touch(w))),
+    grp('這杯的場合', stampPicker(w.mood, 'occ', MOOD_OCC, '這杯的場合', () => { touch(w); buildLesson(); })),
     grp('和誰喝', stampPicker(w.mood, 'with', MOOD_WITH, '和誰喝', () => touch(w))),
     h('label', { class: 'f', for: 'moodNote' }, '一句心情', h('input', { type: 'text', id: 'moodNote', placeholder: '例：下雨的晚上，配了一碗熱湯麵', value: w.mood.note || '', oninput: e => { w.mood.note = e.target.value; touch(w); } })));
-  const secC = h('div', { class: 'stack area-c' }, moodSec, buildFoodSection(w, mode(), () => { touch(w); }),
+  const secC = h('div', { class: 'stack area-c' }, buildFoodSection(w, mode(), () => { touch(w); }),
     h('section', { class: 'sec' }, h('h2', null, '個人喜好', h('small', null, '與上面的品質水平分開：品質不等於我喜不喜歡')),
       starPicker(w, () => touch(w)),
       h('label', { class: 'f', for: 'note' }, '備註', h('textarea', { id: 'note', placeholder: '想記的任何事', oninput: e => { w.note = e.target.value; touch(w); } }, w.note || ''))));
 
-  app.append(top, h('div', { class: 'grid2f' }, secA, secB, secC));
+  app.append(top, h('div', { class: 'grid2f' }, h('div', { class: 'stack area-a' }, secA, moodSec), secB, secC));
   updProg();
 }
 function starPicker(w, cb) {
@@ -1431,7 +1433,7 @@ function viewDetail(app, id) {
     h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;align-items:center' }, starsRO(w.stars), w.type ? h('span', { class: 'pill gray' }, TYPE_NAME[w.type]) : null, h('span', { class: 'pill' }, '完整度 ' + d + '/' + tot)),
     w.photos.length ? heroImgs : null,
     h('dl', { class: 'kv' },
-      [['日期', b.date], ['場合', b.occasion + (b.lessonNo ? '・' + b.lessonNo : '')], ['品種', b.grape], ['酒精度', b.abv], ['價格', b.price], ['購買處', b.shop]].filter(x => x[1]).map(([k, v]) => [h('dt', null, k), h('dd', null, v)])));
+      [['日期', b.date], ['課堂', b.lessonNo], ['品種', b.grape], ['酒精度', b.abv], ['價格', b.price], ['購買處', b.shop]].filter(x => x[1]).map(([k, v]) => [h('dt', null, k), h('dd', null, v)])));
   const two = h('div', { class: 'grid2f' });
   /* 品鑑摘要 */
   const sum = h('section', { class: 'sec area-b' }, h('h2', null, 'WSET 品鑑'));
@@ -1650,7 +1652,8 @@ function viewSettings(app) {
 async function loadSamples() {
   const mk = (fn) => { const w = newWine(); fn(w); w.extra.sample = true; return w; };
   const a = mk(w => {
-    Object.assign(w.basic, { name: '範例・勃根地黑皮諾', producer: '範例酒莊', region: '法國・勃根地（Burgundy）', grape: '黑皮諾', vintage: '2019', price: '1,200', shop: '課堂提供', occasion: '上課', lessonNo: '第 3 堂・第 2 支', date: today() });
+    Object.assign(w.basic, { name: '範例・勃根地黑皮諾', producer: '範例酒莊', region: '法國・勃根地（Burgundy）', grape: '黑皮諾', vintage: '2019', price: '1,200', shop: '課堂提供', lessonNo: '第 3 堂・第 2 支', date: today() });
+    w.mood = { occ: ['上課品飲'], with: ['同學老師'], note: '' };
     w.type = 'red'; w.stars = 4;
     w.t = { clarity: '清澈', depth: '淡', colour: '紅寶石色', clean: '純淨', nInt: '中', aroma1: ['紅色水果|草莓', '紅色水果|紅櫻桃', '花香|玫瑰'], aroma3: ['紅酒|蘑菇'],
       sweet: '干', acid: '高', tannin: '中', alc: '中', body: '中', fInt: '中', flav1: ['紅色水果|紅櫻桃'], finish: '長', quality: '很好',
@@ -1659,13 +1662,15 @@ async function loadSamples() {
     w.teacher = [{ id: uid('t'), by: '範例老師', createdAt: Date.now(), t: { clarity: '清澈', depth: '淡', colour: '石榴紅色', clean: '純淨', nInt: '中', aroma1: ['紅色水果|草莓', '紅色水果|覆盆子'], sweet: '干', acid: '高', tannin: '低', alc: '中', body: '輕盈', fInt: '中', finish: '長', quality: '好', qr: { balance: { on: true, note: '' } } } }];
   });
   const b = mk(w => {
-    Object.assign(w.basic, { name: '範例・馬爾堡白蘇維濃', producer: '範例酒莊', region: '紐西蘭（New Zealand）', grape: '白蘇維濃', vintage: '2023', price: '620', shop: '超市', occasion: '自己喝', date: today() });
+    Object.assign(w.basic, { name: '範例・馬爾堡白蘇維濃', producer: '範例酒莊', region: '紐西蘭（New Zealand）', grape: '白蘇維濃', vintage: '2023', price: '620', shop: '超市', date: today() });
+    w.mood = { occ: ['獨酌'], with: ['自己'], note: '' };
     w.type = 'white'; w.stars = 3;
     w.t = { clarity: '清澈', depth: '淡', colour: '檸檬綠色', clean: '純淨', nInt: '濃', aroma1: ['綠色水果|醋栗', '草本植物|青草', '熱帶水果|百香果'], sweet: '干', acid: '高', alc: '中', body: '輕盈', fInt: '濃', finish: '中', quality: '好' };
     w.food = { text: '檸檬烤魚', comp: ['sour', 'salty'], feel: ['更少酸', '果味更明顯'], spice: '', foodInt: '淡', acidFat: '' };
   });
   const c = mk(w => {
-    Object.assign(w.basic, { name: '範例・無年份香檳', producer: '範例酒莊', region: '法國・香檳（Champagne）', grape: '夏多內、黑皮諾、莫尼耶皮諾', vintage: 'NV', price: '1,800', shop: '課堂提供', occasion: '聚餐', date: today() });
+    Object.assign(w.basic, { name: '範例・無年份香檳', producer: '範例酒莊', region: '法國・香檳（Champagne）', grape: '夏多內、黑皮諾、莫尼耶皮諾', vintage: 'NV', price: '1,800', shop: '課堂提供', date: today() });
+    w.mood = { occ: ['聚會', '慶祝'], with: ['朋友'], note: '' };
     w.type = 'sparkling'; w.stars = 5;
     w.t = { clarity: '清澈', depth: '淡', colour: '檸檬色', mousse: '泡沫細緻、持續久', clean: '純淨', nInt: '中', aroma1: ['柑橘類水果|檸檬', '綠色水果|蘋果'], aroma2: ['酵母（酒渣、酵母自溶、酒花）|餅乾', '酵母（酒渣、酵母自溶、酒花）|烤麵包'], sweet: '干', acid: '高', alc: '中', body: '輕盈', fInt: '中', flav1: ['柑橘類水果|檸檬'], finish: '長', quality: '很好' };
     w.food = { text: '炸物與生蠔', comp: ['salty', 'sour'], feel: ['果味更明顯'], spice: '', foodInt: '淡', acidFat: '' };
