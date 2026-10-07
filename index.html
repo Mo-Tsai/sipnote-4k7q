@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#F5F3EF" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F0E1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1A0F12" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="品飲筆記">
@@ -17,47 +17,52 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@200;300;400;500&display=swap">
 <title>WSET 品飲筆記</title>
 <style>
-/* 視覺規格（v2，2026-10-06；獨立 App，不掛任何公司標示）
+/* 酒莊紙感風（v3，2026-10-07；獨立 App，不掛任何公司標示）
    字型：Noto Sans TC 單一家族（中英共用，離線退回系統字型）；字級走 12.8 / 16 / 20 / 25 級數；字重依字級（<20px Regular、20px+ Light、強調 Medium），不用 Bold、不用 Thin。
-   色彩：黑底 #0A0A0A／主字 #F3F0EA／副字 #9E9B96／金線 #BEA578（只做細線與小標記）；淺色模式主字 #1A1A1A。
+   色彩：淺色＝奶油白紙底 #F6F0E1、深酒紅 #5A1F2B、葡萄葉綠、細金線；深色＝深酒紅黑 #1A0F12 搭暖白字 #F1E8D8。
    功能色：莫蘭迪四色，各自只對應一種功能——灰綠＝相同／完成、土黃＝提醒／不同／不確定、灰藍＝說明、磚紅＝刪除／警告。
    版面：手機單欄，桌面（>=900px）表單雙欄；底部分頁列（桌面移到頂端）。 */
 :root{
-  --bg:#F5F3EF; --surface:#FFFFFF; --surface2:#ECE9E3; --fg:#1A1A1A; --muted:#6B6864; --line:#DAD6CE; --ctl:#8A857B;
-  --gold:#BEA578; --accent:#7D6840; --sel:#F0DDDF; --accent-fg:#F3F0EA; --btn:#1A1A1A;
-  --wine:#5A1F2B; --wine-bd:#5A1F2B; --wine-tx:#5A1F2B; --wine-bar:#7A2E3C; --wine-soft:#F0DDDF; --wine-fill:#E8CDD1;
-  --ok:#8D9B8B; --ok-soft:#F1F4F0; --ok-fg:#4E5C4D;
-  --warn:#B3A084; --warn-soft:#F9F6F0; --warn-fg:#6F5F3F;
-  --info:#8A97A6; --info-soft:#F0F3F6; --info-fg:#4F5C6B;
-  --danger:#A8756C; --danger-soft:#F7F2F0; --danger-fg:#8A5249;
-  --gray-soft:#ECE9E3; --gray:#6B6864;
+  /* 酒莊紙感（淺色）：奶油白紙底、深酒紅、葡萄葉綠、細金線 */
+  --bg:#F6F0E1; --surface:#FBF7EC; --surface2:#EDE4CE; --fg:#2A2118; --muted:#66594A; --line:#D8CCAE; --ctl:#857760;
+  --gold:#BEA578; --gold-ink:#8A733F; --star:#A9741A; --accent:#5A1F2B; --sel:#EED8D2; --accent-fg:#F6EFE2; --btn:#5A1F2B;
+  --wine:#5A1F2B; --wine-bd:#5A1F2B; --wine-tx:#5A1F2B; --wine-bar:#7A2E3C; --wine-soft:#EED8D2; --wine-fill:#E5C6C4;
+  --ok:#6F7D4A; --ok-soft:#E8EBD6; --ok-fg:#46532A;
+  --warn:#B08A3E; --warn-soft:#F5ECD2; --warn-fg:#6B4F12;
+  --info:#6F8196; --info-soft:#E6ECF1; --info-fg:#3F5266;
+  --danger:#A8574C; --danger-soft:#F4E1DC; --danger-fg:#7F362D;
+  --gray-soft:#EDE4CE; --gray:#66594A;
+  --c-vis:#7C5416; --c-vis-soft:#F3E7C8; --c-nose:#46532A; --c-nose-soft:#E8EBD6; --c-taste:#6E1F30; --c-taste-soft:#F2DDDD; --c-end:#3F5266; --c-end-soft:#E4EAF0;
   --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,-apple-system,"Segoe UI",sans-serif;
   --r:10px;
-  --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .2 0 0 0 .10 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='a'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .18 0 0 0 .08 0'/></filter><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='.012 .35' numOctaves='3' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .38 0 0 0 0 .2 0 0 0 .09 0'/></filter><rect width='200' height='200' filter='url(%23a)'/><rect width='200' height='200' filter='url(%23b)'/></svg>");
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0A0A0A; --surface:#141413; --surface2:#1D1C1A; --fg:#F3F0EA; --muted:#9E9B96; --line:#262421; --ctl:#6B675F;
-    --gold:#BEA578; --accent:#BEA578; --sel:#2B1218; --accent-fg:#0A0A0A; --btn:#F3F0EA;
-    --wine:#5A1F2B; --wine-bd:#A24B5E; --wine-tx:#D9A3AE; --wine-bar:#B0566A; --wine-soft:#2B1218; --wine-fill:#4A1A25;
-    --ok:#8D9B8B; --ok-soft:#1A1F1A; --ok-fg:#B3C1B1;
-    --warn:#B3A084; --warn-soft:#221F18; --warn-fg:#D3C4A5;
-    --info:#8A97A6; --info-soft:#181C20; --info-fg:#AEBBCA;
-    --danger:#A8756C; --danger-soft:#231A19; --danger-fg:#D9A9A1;
-    --gray-soft:#1D1C1A; --gray:#9E9B96; color-scheme:dark;
-    --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .75 0 0 0 0 .65 0 0 0 0 .47 0 0 0 .10 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+    /* 深酒紅黑：不是純黑，帶一點酒紅的暗色底，搭暖白字 */
+    --bg:#1A0F12; --surface:#241519; --surface2:#2F1C21; --fg:#F1E8D8; --muted:#B8A794; --line:#46292F; --ctl:#947680;
+    --gold:#C8AE7C; --gold-ink:#C8AE7C; --star:#D9B25A; --accent:#E8B0B8; --sel:#3C1B24; --accent-fg:#F6EFE2; --btn:#6B2433;
+    --wine:#6B2433; --wine-bd:#B5627A; --wine-tx:#EDB8C0; --wine-bar:#C9708A; --wine-soft:#3C1B24; --wine-fill:#5C2333;
+    --ok:#8E9F62; --ok-soft:#1F2415; --ok-fg:#BCCB92;
+    --warn:#B8964A; --warn-soft:#2A2214; --warn-fg:#E2C27A;
+    --info:#7F95AB; --info-soft:#18222C; --info-fg:#A9BCD0;
+    --danger:#C2685B; --danger-soft:#3A1C1A; --danger-fg:#EBA79C;
+    --gray-soft:#2F1C21; --gray:#B8A794; color-scheme:dark;
+    --c-vis:#E2C27A; --c-vis-soft:#2A2214; --c-nose:#BCCB92; --c-nose-soft:#1F2415; --c-taste:#EDB8C0; --c-taste-soft:#3C1B24; --c-end:#A9BCD0; --c-end-soft:#18222C;
+    --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='a'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .85 0 0 0 0 .7 0 0 0 0 .55 0 0 0 .06 0'/></filter><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='.012 .35' numOctaves='3' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .9 0 0 0 0 .75 0 0 0 0 .6 0 0 0 .07 0'/></filter><rect width='200' height='200' filter='url(%23a)'/><rect width='200' height='200' filter='url(%23b)'/></svg>");
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0A0A0A; --surface:#141413; --surface2:#1D1C1A; --fg:#F3F0EA; --muted:#9E9B96; --line:#262421; --ctl:#6B675F;
-  --gold:#BEA578; --accent:#BEA578; --sel:#2B1218; --accent-fg:#0A0A0A; --btn:#F3F0EA;
-    --wine:#5A1F2B; --wine-bd:#A24B5E; --wine-tx:#D9A3AE; --wine-bar:#B0566A; --wine-soft:#2B1218; --wine-fill:#4A1A25;
-  --ok:#8D9B8B; --ok-soft:#1A1F1A; --ok-fg:#B3C1B1;
-  --warn:#B3A084; --warn-soft:#221F18; --warn-fg:#D3C4A5;
-  --info:#8A97A6; --info-soft:#181C20; --info-fg:#AEBBCA;
-  --danger:#A8756C; --danger-soft:#231A19; --danger-fg:#D9A9A1;
-  --gray-soft:#1D1C1A; --gray:#9E9B96; color-scheme:dark;
-  --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .75 0 0 0 0 .65 0 0 0 0 .47 0 0 0 .10 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  --bg:#1A0F12; --surface:#241519; --surface2:#2F1C21; --fg:#F1E8D8; --muted:#B8A794; --line:#46292F; --ctl:#947680;
+  --gold:#C8AE7C; --gold-ink:#C8AE7C; --star:#D9B25A; --accent:#E8B0B8; --sel:#3C1B24; --accent-fg:#F6EFE2; --btn:#6B2433;
+  --wine:#6B2433; --wine-bd:#B5627A; --wine-tx:#EDB8C0; --wine-bar:#C9708A; --wine-soft:#3C1B24; --wine-fill:#5C2333;
+  --ok:#8E9F62; --ok-soft:#1F2415; --ok-fg:#BCCB92;
+  --warn:#B8964A; --warn-soft:#2A2214; --warn-fg:#E2C27A;
+  --info:#7F95AB; --info-soft:#18222C; --info-fg:#A9BCD0;
+  --danger:#C2685B; --danger-soft:#3A1C1A; --danger-fg:#EBA79C;
+  --gray-soft:#2F1C21; --gray:#B8A794; color-scheme:dark;
+  --c-vis:#E2C27A; --c-vis-soft:#2A2214; --c-nose:#BCCB92; --c-nose-soft:#1F2415; --c-taste:#EDB8C0; --c-taste-soft:#3C1B24; --c-end:#A9BCD0; --c-end-soft:#18222C;
+  --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='a'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .85 0 0 0 0 .7 0 0 0 0 .55 0 0 0 .06 0'/></filter><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='.012 .35' numOctaves='3' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .9 0 0 0 0 .75 0 0 0 0 .6 0 0 0 .07 0'/></filter><rect width='200' height='200' filter='url(%23a)'/><rect width='200' height='200' filter='url(%23b)'/></svg>");
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -122,7 +127,10 @@ main{padding-block:18px;max-width:1100px;margin-inline:auto}
 }
 .grp{display:flex;flex-direction:column;gap:6px;min-width:0}
 .grp > .lbl{font-size:.8rem;color:var(--muted);font-weight:500;letter-spacing:.08em}
-.sub{font-size:.8rem;letter-spacing:.18em;color:var(--accent);font-weight:500;border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:4px}
+.sub{display:flex;align-items:center;gap:8px;font-size:1rem;letter-spacing:.2em;font-weight:500;padding:6px 10px;margin-top:6px;border-radius:var(--r);border-left:3px solid currentColor}
+.sub .art{color:inherit}
+.sub.s-vis{color:var(--c-vis);background:var(--c-vis-soft)}.sub.s-nose{color:var(--c-nose);background:var(--c-nose-soft)}
+.sub.s-taste{color:var(--c-taste);background:var(--c-taste-soft)}.sub.s-end{color:var(--c-end);background:var(--c-end-soft)}
 .fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
 .fields .full{grid-column:1/-1}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);font-weight:500;letter-spacing:.04em;min-width:0}
@@ -156,7 +164,10 @@ details.lay > summary::before{content:"▸";color:var(--muted);transition:transf
 details.lay[open] > summary::before{transform:rotate(90deg)}
 details.lay .body{padding:4px 12px 12px;display:flex;flex-direction:column;gap:10px}
 .badge{background:var(--sel);color:var(--wine-tx);border:1px solid var(--gold);border-radius:999px;font-size:.8rem;padding:0 8px;min-width:24px;text-align:center;font-weight:500}
-.gl{font-size:.8rem;color:var(--muted);font-weight:500;margin-bottom:4px;letter-spacing:.04em}
+.gl{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);font-weight:500;margin-bottom:4px;letter-spacing:.04em}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
+.chip .dot{margin-right:2px}
+.chip.on .dot{display:none}
 .pill{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:999px;background:var(--surface2);color:var(--fg);font-weight:500;font-size:.8rem;font-variant-numeric:tabular-nums;border:1px solid var(--line)}
 .pill.wine{background:var(--wine-soft);color:var(--wine-tx);border-color:var(--wine-bd)}
 .pill.prog{background:linear-gradient(90deg,var(--wine-fill) var(--p,0%),var(--surface2) var(--p,0%))}
@@ -168,8 +179,8 @@ details.lay .body{padding:4px 12px 12px;display:flex;flex-direction:column;gap:1
 .reason .chip{min-width:110px;justify-content:center}
 .stars{display:flex;gap:2px}
 .stars button{width:44px;height:44px;border:0;background:none;font-size:1.5625rem;cursor:pointer;color:var(--ctl);line-height:1;padding:0}
-.stars button.on{color:var(--gold)}
-.starsro{color:var(--gold);letter-spacing:2px;white-space:nowrap}
+.stars button.on{color:var(--star)}
+.starsro{color:var(--star);letter-spacing:2px;white-space:nowrap}
 .starsro .off{color:var(--line)}
 .note{border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--fg);padding:8px 12px;border-radius:0 var(--r) var(--r) 0;font-size:1rem}
 .note.info{border-color:var(--info);background:var(--info-soft)}
@@ -209,7 +220,7 @@ details.fl .filters{margin:10px 0 0}
 .wcard .meta{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
 .bar{height:4px;border-radius:2px;background:var(--surface2);overflow:hidden}
 .bar > i{display:block;height:100%;background:var(--wine-bar)}
-.art{display:inline-flex;color:var(--gold);line-height:0}
+.art{display:inline-flex;color:var(--gold-ink);line-height:0;flex:none}
 .art.mute{color:var(--muted)}
 .art svg{display:block}
 .pagehd{display:flex;align-items:center;gap:10px;margin-bottom:2px}
@@ -274,6 +285,14 @@ details.fl .filters{margin:10px 0 0}
 .toast.mini{pointer-events:none;font-size:.8rem;padding:4px 14px;bottom:calc(72px + env(safe-area-inset-bottom,0px));opacity:0;animation:minifade 1.5s ease-out}
 @keyframes minifade{0%{opacity:0}12%{opacity:.92}70%{opacity:.92}100%{opacity:0}}
 textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;min-height:120px;line-height:1.6}
+
+/* 圖章式標籤（這杯的心情） */
+.stamps{display:flex;flex-wrap:wrap;gap:8px}
+.stamp{min-height:44px;padding:6px 14px;border:1.5px dashed var(--ctl);border-radius:8px;background:var(--bg);cursor:pointer;color:var(--fg);letter-spacing:.12em;display:inline-flex;align-items:center;gap:6px;transition:transform .12s}
+.stamp.on{border:1.5px solid var(--wine-bd);background:var(--wine-soft);color:var(--wine-tx);font-weight:500;transform:rotate(-1.2deg);box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3px var(--wine-bd)}
+.stamp.on::before{content:"✓";font-size:.8rem}
+.stamp.static{min-height:30px;padding:2px 10px;font-size:.8rem;cursor:default;transform:none}
+.stamp.static::before{content:none}
 
 /* AI 酒標辨識 */
 .ai{border:1px solid var(--gold);border-radius:var(--r);background:var(--bg)}
@@ -386,7 +405,7 @@ const Store = {
   async put(store, v) {
     if (this.mode === 'mem') { this.mem[store].set(this._key(v), v); return; }
     try { await this._tx(store, 'readwrite', os => os.put(v)); }
-    catch (e) { this.failed = true; this.err = e; this.mem[store].set(this._key(v), v); toast('儲存失敗，請先匯出備份'); }
+    catch (e) { this.failed = true; this.err = e; this.mem[store].set(this._key(v), v); toast('沒能寫進手冊（儲存失敗），請先匯出備份'); }
   },
   async get(store, k) {
     if (this.mode === 'mem') return this.mem[store].get(k);
@@ -621,7 +640,7 @@ function newWine() {
   const n = Date.now();
   return { id: uid('w'), schemaVersion: SCHEMA, createdAt: n, updatedAt: n,
     basic: { date: today(), name: '', producer: '', region: '', grape: '', vintage: '', abv: '', price: '', shop: '', occasion: '上課', lessonNo: '' },
-    photos: [], type: '', t: {}, food: { text: '', comp: [], feel: [], spice: '', foodInt: '', acidFat: '' },
+    photos: [], type: '', t: {}, mood: { occ: [], with: [], note: '' }, food: { text: '', comp: [], feel: [], spice: '', foodInt: '', acidFat: '' },
     stars: 0, note: '', teacher: [], extra: {} };
 }
 function normalizeWine(w) {
@@ -629,6 +648,7 @@ function normalizeWine(w) {
   w = Object.assign(d, w);
   w.basic = Object.assign(d.basic, w.basic || {});
   w.food = Object.assign(d.food, w.food || {});
+  w.mood = Object.assign({ occ: [], with: [], note: '' }, w.mood || {}); w.mood.occ = arr(w.mood.occ); w.mood.with = arr(w.mood.with);
   w.t = w.t || {}; w.teacher = arr(w.teacher); w.photos = arr(w.photos); w.extra = w.extra || {};
   return w;
 }
@@ -637,7 +657,7 @@ function touch(w) {
   w.updatedAt = Date.now();
   if (!wines.includes(w)) wines.unshift(w);
   if (curPath === '/new') { curPath = '/edit/' + w.id; safe(() => history.replaceState(null, '', '#' + curPath)); }
-  pendingWine = w; setSavedLabel('儲存中…');
+  pendingWine = w; setSavedLabel('記錄中…');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flushSave, 400);
 }
@@ -646,14 +666,14 @@ async function flushSave() {
   const w = pendingWine; if (!w) return;
   pendingWine = null;
   await Store.put('wines', JSON.parse(JSON.stringify(w)));
-  setSavedLabel('已儲存 ' + hhmm());
+  setSavedLabel('已收進手冊 ' + hhmm());
 }
 function setSavedLabel(t) {
   const e = $('#savedLabel'); if (e) e.textContent = t;
   /* 手機（<600px）頂列藏起「已儲存」，改成存檔當下閃一下小提示，約 1.5 秒淡出，不占位、不擋點擊 */
-  if (e && t.startsWith('已儲存') && safe(() => matchMedia('(max-width:599px)').matches, false)) {
+  if (e && t.startsWith('已收進手冊') && safe(() => matchMedia('(max-width:599px)').matches, false)) {
     const old = $('.toast.mini'); if (old) old.remove();
-    const m = h('div', { class: 'toast mini', role: 'status' }, '已儲存');
+    const m = h('div', { class: 'toast mini', role: 'status' }, '已收進手冊');
     document.body.append(m); setTimeout(() => m.remove(), 1500);
   }
 }
@@ -733,7 +753,7 @@ function renderPath(path) {
       default: viewHome(app);
     }
   } catch (e) {
-    app.append(h('div', { class: 'card' }, h('h2', null, '頁面發生錯誤'), h('p', { class: 'muted' }, String(e && e.message || e)), h('button', { class: 'btn primary', onclick: () => go('/') }, '回手冊')));
+    app.append(h('div', { class: 'card' }, h('h2', null, '這一頁翻不開了'), h('p', { class: 'muted' }, String(e && e.message || e)), h('button', { class: 'btn primary', onclick: () => go('/') }, '回手冊')));
     console.error(e);
   }
   window.scrollTo(0, 0);
@@ -949,11 +969,58 @@ const ART = {
   glass: '<path d="M21 8h22c1 15-3 26-11 27C24 34 20 23 21 8z"/><path d="M32 35v19M23 56h18"/><path d="M21.5 20c3.500 2.500 6.500-2 10.500 0s7 1.500 10 0"/>',
   decanter: '<path d="M28 6h8M29 6v15c0 5-14 10-14 24 0 8 6 12 17 12s17-4 17-12c0-14-14-19-14-24V6"/><path d="M17.500 41c9 3.500 20 3.500 29 0"/>',
   grapes: '<path d="M32 4v8"/><path d="M32 9c5-5 11-4 14 0-5 3-10 3-14 0z"/><circle cx="23" cy="22" r="4.500"/><circle cx="32" cy="22" r="4.500"/><circle cx="41" cy="22" r="4.500"/><circle cx="27.500" cy="31" r="4.500"/><circle cx="36.500" cy="31" r="4.500"/><circle cx="32" cy="40" r="4.500"/>',
+  surface: '<circle cx="32" cy="32" r="21"/><path d="M14 31c6 4 11-2 18 0s11 3 18-1"/><path d="M24 44c5 3 11 3 16 0"/>',
+  flower: '<circle cx="32" cy="30" r="5"/><circle cx="32" cy="16" r="7"/><circle cx="45" cy="25" r="7"/><circle cx="40" cy="40" r="7"/><circle cx="24" cy="40" r="7"/><circle cx="19" cy="25" r="7"/><path d="M32 52v8"/>',
+  drop: '<path d="M32 6c9 13 16 20 16 31a16 16 0 0 1-32 0c0-11 7-18 16-31z"/><path d="M23 38a9 9 0 0 0 8 9"/>',
+  seal: '<circle cx="32" cy="27" r="19"/><circle cx="32" cy="27" r="13"/><path d="M25 27l5 5 9-10"/><path d="M23 44l-4 15 13-5 13 5-4-15"/>',
+  apple: '<path d="M32 20c-6-5-18-2-18 12 0 12 8 22 14 22 3 0 3-1 4-1s1 1 4 1c6 0 14-10 14-22 0-14-12-17-18-12z"/><path d="M32 20c0-6 3-10 8-12"/>',
+  citrus: '<circle cx="32" cy="32" r="22"/><circle cx="32" cy="32" r="15"/><path d="M32 10v44M10 32h44M16 16l32 32M48 16L16 48"/>',
+  peach: '<circle cx="32" cy="36" r="20"/><path d="M32 16c-5 12-5 28 0 40"/><path d="M32 16c2-6 7-9 13-9-1 6-5 9-13 9z"/>',
+  pineapple: '<ellipse cx="32" cy="40" rx="15" ry="19"/><path d="M21 30l22 22M43 30L21 50M32 21V6M32 21c-6-5-10-8-13-14M32 21c6-5 10-8 13-14"/>',
+  strawberry: '<path d="M32 56C15 44 13 28 21 22c4-3 9-2 11 0 2-2 7-3 11 0 8 6 6 22-11 34z"/><path d="M26 23l6-8 6 8"/><path d="M26 33h.01M34 39h.01M39 31h.01M28 45h.01M33 29h.01"/>',
+  berries: '<circle cx="22" cy="40" r="9"/><circle cx="42" cy="40" r="9"/><circle cx="32" cy="24" r="9"/><path d="M32 15c0-5 3-8 8-9"/>',
+  leaf: '<path d="M12 52C12 26 28 12 54 12c0 26-14 40-42 40z"/><path d="M12 52L40 24"/>',
+  sprig: '<path d="M32 58V10"/><path d="M32 22c-8 0-13-4-13-11 8 0 13 4 13 11zM32 22c8 0 13-4 13-11-8 0-13 4-13 11zM32 40c-8 0-13-4-13-11 8 0 13 4 13 11zM32 40c8 0 13-4 13-11-8 0-13 4-13 11z"/>',
+  anise: '<path d="M32 6l6 15 16-5-9 14 14 9-17 2 3 16-13-11-13 11 3-16-17-2 14-9-9-14 16 5z"/><circle cx="32" cy="32" r="5"/>',
+  dried: '<circle cx="32" cy="32" r="21"/><path d="M18 26c5 4 9 4 14 0s9-4 14 0M18 38c5 4 9 4 14 0s9-4 14 0"/>',
+  candy: '<ellipse cx="32" cy="32" rx="13" ry="11"/><path d="M19 32L6 23v18zM45 32l13-9v18z"/><path d="M26 28l12 8"/>',
+  bread: '<path d="M8 40c0-16 11-26 24-26s24 10 24 26v8H8z"/><path d="M20 30l5 8M31 26l5 8M42 30l5 8"/>',
+  cheese: '<path d="M6 42L58 30v20H6z"/><path d="M6 42L26 18l32 12"/><path d="M20 47h.01M33 44h.01M46 40h.01"/>',
+  barrel: '<path d="M18 8h28c9 11 9 37 0 48H18C9 45 9 19 18 8z"/><path d="M12 22h40M12 42h40"/>',
+  mushroom: '<path d="M8 32c0-14 11-22 24-22s24 8 24 22z"/><path d="M26 32v18c0 6 12 6 12 0V32"/>',
+  honey: '<path d="M32 8l20 11v22L32 52 12 41V19z"/><path d="M32 21l9 5v10l-9 5-9-5V26z"/>',
+  walnut: '<ellipse cx="32" cy="32" rx="22" ry="19"/><path d="M32 13c-7 9-7 29 0 38M23 17c-4 9-4 21 0 30M41 17c4 9 4 21 0 30"/>',
   cork: '<path d="M25 14h14l-1.500 36h-11z"/><ellipse cx="32" cy="14" rx="7" ry="2.500"/><path d="M28.500 24h.01M35 30h.01M29.500 38h.01M34.500 43h.01"/>'
 };
-function art(name, size, cls) {
-  return h('span', { class: 'art' + (cls ? ' ' + cls : ''), 'aria-hidden': 'true', html: '<svg viewBox="0 0 64 64" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' + ART[name] + '</svg>' });
+function art(name, size, cls, color) {
+  const sw = size >= 40 ? 1.3 : (1.2 * 64 / size).toFixed(2);
+  return h('span', { class: 'art' + (cls ? ' ' + cls : ''), style: color ? 'color:' + color : null, 'aria-hidden': 'true', html: '<svg viewBox="0 0 64 64" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="' + sw + '" stroke-linecap="round" stroke-linejoin="round">' + ART[name] + '</svg>' });
 }
+/* 香氣詞彙分組：單線圖示＋專屬色（只加圖示與色點，不改課本詞彙、順序與分類） */
+const GROUP_ART = {
+  '花香': ['flower', '#C0607A'], '綠色水果': ['apple', '#7C9A3A'], '柑橘類水果': ['citrus', '#D09A14'], '帶核水果': ['peach', '#E0875A'], '熱帶水果': ['pineapple', '#C99A1C'],
+  '紅色水果': ['strawberry', '#C8404E'], '黑色水果': ['berries', '#7A4673'], '草本植物': ['leaf', '#5E8A4A'], '香草植物': ['sprig', '#6B9A6B'], '香料': ['anise', '#A0643A'],
+  '水果成熟度': ['dried', '#A07A3C'], '其他': ['candy', '#8A8A92'], '酵母（酒渣、酵母自溶、酒花）': ['bread', '#C19A5B'], '蘋果酸乳酸轉化': ['cheese', '#D2B45A'], '橡木': ['barrel', '#8A5A32'],
+  '紅酒': ['mushroom', '#8E4A3A'], '白酒': ['honey', '#B8903A'], '刻意氧化的葡萄酒': ['walnut', '#7A5A44']
+};
+const groupIcon = g => GROUP_ART[g] ? art(GROUP_ART[g][0], 20, '', GROUP_ART[g][1]) : null;
+const groupDot = g => GROUP_ART[g] ? h('i', { class: 'dot', style: 'background:' + GROUP_ART[g][1] }) : null;
+const MOOD_OCC = ['獨酌', '聚會', '約會', '慶祝', '料理搭配', '上課品飲', '送禮'];
+const MOOD_WITH = ['自己', '伴侶', '朋友', '家人', '同事', '同學老師'];
+function stampPicker(arrOwner, key, items, label, cb) {
+  const wrap = h('div', { class: 'stamps', role: 'group', 'aria-label': label });
+  items.forEach(it => {
+    const on = arr(arrOwner[key]).includes(it);
+    const b = h('button', { type: 'button', class: 'stamp' + (on ? ' on' : ''), 'aria-pressed': on, onclick: () => {
+      const a = arr(arrOwner[key]).slice(); const i = a.indexOf(it); if (i >= 0) a.splice(i, 1); else a.push(it);
+      arrOwner[key] = a; b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', i < 0); cb && cb();
+    } }, it);
+    wrap.append(b);
+  });
+  return wrap;
+}
+const SUB_ART = { '視覺': ['surface', 'vis'], '嗅覺': ['flower', 'nose'], '味覺': ['drop', 'taste'], '結論': ['seal', 'end'] };
+function subHead(t) { const x = SUB_ART[t] || ['glass', 'vis']; return h('div', { class: 'sub s-' + x[1] }, art(x[0], 22), t); }
 function colourDot(type, name) {
   const c = (type && COLOURS[type] || [].concat(...Object.values(COLOURS))).find(x => x[0] === name);
   return c ? h('span', { class: 'sw', style: 'background-color:' + c[1] }) : null;
@@ -973,7 +1040,7 @@ function seg(ctx, key, opts, extra = {}) {
   });
   return wrap;
 }
-function chipsMulti(ctx, key, items, keyFn) {
+function chipsMulti(ctx, key, items, keyFn, gname) {
   const wrap = h('div', { class: 'chips' });
   items.forEach(it => {
     const v = keyFn ? keyFn(it) : it;
@@ -984,7 +1051,7 @@ function chipsMulti(ctx, key, items, keyFn) {
       ctx.t[key] = a; b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', i < 0);
       const bd = wrap.closest('details.lay'); if (bd) bd._upd && bd._upd();
       ctx.onChange(key);
-    } }, it);
+    } }, groupDot(gname), it);
     wrap.append(b);
   });
   return wrap;
@@ -1001,7 +1068,7 @@ function lay(ctx, keyPrefix, layer, type) {
   if (arr(ctx.t[key]).length) d.open = true;
   d.append(h('summary', null, LAYER_TITLE[layer], badge));
   const body = h('div', { class: 'body' });
-  groups.forEach(([g, items]) => body.append(h('div', null, h('div', { class: 'gl' }, g), chipsMulti(ctx, key, items, it => g + '|' + it))));
+  groups.forEach(([g, items]) => body.append(h('div', null, h('div', { class: 'gl' }, groupIcon(g), g), chipsMulti(ctx, key, items, it => g + '|' + it, g))));
   d.append(body); return d;
 }
 const vlabel = v => String(v).split('|').pop();
@@ -1012,7 +1079,7 @@ function buildSheet(ctx, w, mode) {
   const root = h('div', { class: 'stack' });
   const type = w.type;
   const colOpts = type ? COLOURS[type] : null;
-  const subs = (t) => h('div', { class: 'sub' }, t);
+  const subs = subHead;
   /* 視覺 */
   root.append(subs('視覺'));
   if (full) root.append(grp('澄清度', seg(ctx, 'clarity', OPT.clarity)));
@@ -1064,7 +1131,7 @@ function buildSheet(ctx, w, mode) {
 }
 
 /* ========= 首頁（手冊） ========= */
-let filt = { q: '', type: '', occ: '', region: '', stars: '', from: '', to: '' };
+let filt = { q: '', type: '', mocc: '', mwith: '', occ: '', region: '', stars: '', from: '', to: '' };
 function viewHome(app) {
   const frag = h('div', { class: 'stack' });
   if (Store.mode === 'mem') frag.append(h('div', { class: 'banner' }, h('div', { class: 'sp' }, '這個環境無法永久儲存（' + (Store.err && Store.err.message || '未知原因') + '）。目前的筆記只存在這個分頁，關掉就沒了。請常用「設定 → 匯出備份」。')));
@@ -1075,7 +1142,7 @@ function viewHome(app) {
     frag.append(h('div', { class: 'card empty' },
       art('glass', 72),
       h('h2', null, '還沒有開瓶的紀錄'),
-      h('p', { class: 'muted prose' }, '上課或喝酒時按「記一杯」，用勾選記下每一支酒。想先看看長什麼樣子，可以載入兩支範例。'),
+      h('p', { class: 'muted prose' }, '翻開第一頁吧。上課或小酌時按「記一杯」，用勾選記下酒色、香氣與餘韻。想先翻翻看，也可以載入範例。'),
       h('div', { class: 'btnrow' }, h('button', { class: 'btn primary', onclick: () => go('/new') }, '記下第一杯'), h('button', { class: 'btn', onclick: async () => { await loadSamples(); go('/'); } }, '載入範例'))));
     app.append(frag); return;
   }
@@ -1091,17 +1158,19 @@ function viewHome(app) {
   }
   /* 篩選 */
   const regions = [...new Set(wines.map(w => displayRegion(w.basic.region)).filter(Boolean))];
-  const nAct = ['type', 'occ', 'region', 'stars', 'from', 'to'].filter(k => filt[k]).length;
+  const nAct = ['type', 'mocc', 'mwith', 'occ', 'region', 'stars', 'from', 'to'].filter(k => filt[k]).length;
   const search = h('input', { type: 'search', id: 'fq', placeholder: '搜尋酒名／酒莊／產區／品種', value: filt.q, 'aria-label': '搜尋', style: 'margin-bottom:10px', oninput: e => { filt.q = e.target.value; renderList(); } });
   const f = h('div', { class: 'filters' },
     h('select', { id: 'ftype', 'aria-label': '酒種', onchange: e => { filt.type = e.target.value; renderList(); } }, h('option', { value: '' }, '全部酒種'), TYPES.map(([k, l]) => h('option', { value: k, selected: filt.type === k }, l))),
+    h('select', { id: 'fmocc', 'aria-label': '這杯的場合', onchange: e => { filt.mocc = e.target.value; renderList(); } }, h('option', { value: '' }, '全部心情場合'), MOOD_OCC.map(o => h('option', { value: o, selected: filt.mocc === o }, o))),
+    h('select', { id: 'fmwith', 'aria-label': '和誰喝', onchange: e => { filt.mwith = e.target.value; renderList(); } }, h('option', { value: '' }, '不限和誰喝'), MOOD_WITH.map(o => h('option', { value: o, selected: filt.mwith === o }, o))),
     h('select', { id: 'focc', 'aria-label': '場合', onchange: e => { filt.occ = e.target.value; renderList(); } }, h('option', { value: '' }, '全部場合'), ['上課', '聚餐', '自己喝', '其他'].map(o => h('option', { value: o, selected: filt.occ === o }, o))),
     h('select', { id: 'freg', 'aria-label': '產區', onchange: e => { filt.region = e.target.value; renderList(); } }, h('option', { value: '' }, '全部產區'), regions.map(o => h('option', { value: o, selected: filt.region === o }, o))),
     h('select', { id: 'fst', 'aria-label': '星數', onchange: e => { filt.stars = e.target.value; renderList(); } }, h('option', { value: '' }, '不限星數'), [5, 4, 3, 2, 1].map(n => h('option', { value: n, selected: String(filt.stars) === String(n) }, n + ' 星以上'))),
     h('div', { class: 'dates' },
       h('label', { class: 'f' }, '從', h('input', { type: 'date', id: 'ffrom', value: filt.from, onchange: e => { filt.from = e.target.value; renderList(); } })),
       h('label', { class: 'f' }, '到', h('input', { type: 'date', id: 'fto', value: filt.to, onchange: e => { filt.to = e.target.value; renderList(); } }))));
-  frag.append(search, h('details', { class: 'fl', open: nAct > 0 }, h('summary', null, '篩選（酒種、場合、產區、星數、日期）', nAct ? h('span', { class: 'badge' }, nAct + ' 項') : null), f));
+  frag.append(search, h('details', { class: 'fl', open: nAct > 0 }, h('summary', null, '篩選（酒種、場合、和誰喝、產區、星數、日期）', nAct ? h('span', { class: 'badge' }, nAct + ' 項') : null), f));
   const info = h('div', { class: 'small muted', id: 'listinfo' });
   const list = h('div', { class: 'list', id: 'wlist' });
   frag.append(info, list);
@@ -1115,8 +1184,11 @@ function renderList() {
   const q = filt.q.trim().toLowerCase();
   const rows = wines.filter(w => {
     const b = w.basic;
-    if (q && ![b.name, b.producer, b.region, b.grape, regSearch(b.region), grapeSearch(b.grape)].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![b.name, b.producer, b.region, b.grape, regSearch(b.region), grapeSearch(b.grape), arr((w.mood || {}).occ).join(' '), arr((w.mood || {}).with).join(' '), (w.mood || {}).note || ''].join(' ').toLowerCase().includes(q)) return false;
     if (filt.type && w.type !== filt.type) return false;
+    const md = w.mood || {};
+    if (filt.mocc && !arr(md.occ).includes(filt.mocc)) return false;
+    if (filt.mwith && !arr(md.with).includes(filt.mwith)) return false;
     if (filt.occ && b.occasion !== filt.occ) return false;
     if (filt.region && displayRegion(b.region) !== filt.region) return false;
     if (filt.stars && (w.stars || 0) < +filt.stars) return false;
@@ -1127,7 +1199,7 @@ function renderList() {
   list.innerHTML = '';
   $('#listinfo').textContent = `共 ${rows.length} 支` + (rows.length !== wines.length ? `（全部 ${wines.length} 支）` : '');
   rows.forEach(w => list.append(wineCard(w)));
-  if (!rows.length) list.append(h('div', { class: 'muted' }, '沒有符合的酒。'));
+  if (!rows.length) list.append(h('div', { class: 'muted' }, '這一頁沒有符合的酒，換個條件翻翻看。'));
 }
 function starsRO(n) { return h('span', { class: 'starsro', 'aria-label': n + ' 星' }, '★'.repeat(n || 0), h('span', { class: 'off' }, '★'.repeat(5 - (n || 0)))); }
 function wineCard(w) {
@@ -1158,7 +1230,7 @@ function hitStats() {
 /* ========= 表單 ========= */
 function viewForm(app, id) {
   let w;
-  if (id) { w = wines.find(x => x.id === id); if (!w) { app.append(h('div', { class: 'card' }, '找不到這支酒。', h('button', { class: 'btn', onclick: () => go('/') }, '回手冊'))); return; } }
+  if (id) { w = wines.find(x => x.id === id); if (!w) { app.append(h('div', { class: 'card' }, '手冊裡找不到這杯酒。', h('button', { class: 'btn', onclick: () => go('/') }, '回手冊'))); return; } }
   else w = newWine();
   const isNew = !id;
   const mode = () => S.mode;
@@ -1168,7 +1240,7 @@ function viewForm(app, id) {
   const modeSeg = h('div', { class: 'seg mode', role: 'group', 'aria-label': '顯示模式' },
     ['simple', 'full'].map(m => h('button', { type: 'button', class: S.mode === m ? 'on' : '', onclick: () => { S.mode = m; saveSettings(); renderPath(curPath); } }, m === 'simple' ? '簡易' : '完整')));
   const top = h('div', { class: 'formtop' },
-    h('span', { class: 'ttl' }, isNew ? '記下一杯' : '編輯這杯'), prog, h('span', { class: 'sp' }), h('span', { class: 'saved', id: 'savedLabel' }, isNew ? '尚未儲存' : ''),
+    h('span', { class: 'ttl' }, isNew ? '記下一杯' : '編輯這杯'), prog, h('span', { class: 'sp' }), h('span', { class: 'saved', id: 'savedLabel' }, isNew ? '尚未記下' : ''),
     modeSeg,
     h('button', { class: 'btn primary', type: 'button', onclick: () => { if (!wines.includes(w)) touch(w); go('/wine/' + w.id); } }, '完成'));
   const set = (obj, k) => e => { obj[k] = e.target.value; touch(w); updProg(); if (k === 'occasion') {} };
@@ -1257,7 +1329,11 @@ function viewForm(app, id) {
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '酒種'), typeSeg), sheetHolder);
 
   /* C 食物 + 喜好 */
-  const secC = h('div', { class: 'stack area-c' }, buildFoodSection(w, mode(), () => { touch(w); }),
+  const moodSec = h('section', { class: 'sec', id: 'moodSec' }, h('h2', null, '這杯的心情', h('small', null, '日常記錄用，不列入完整度與老師版對照')),
+    grp('這杯的場合', stampPicker(w.mood, 'occ', MOOD_OCC, '這杯的場合', () => touch(w))),
+    grp('和誰喝', stampPicker(w.mood, 'with', MOOD_WITH, '和誰喝', () => touch(w))),
+    h('label', { class: 'f', for: 'moodNote' }, '一句心情', h('input', { type: 'text', id: 'moodNote', placeholder: '例：下雨的晚上，配了一碗熱湯麵', value: w.mood.note || '', oninput: e => { w.mood.note = e.target.value; touch(w); } })));
+  const secC = h('div', { class: 'stack area-c' }, moodSec, buildFoodSection(w, mode(), () => { touch(w); }),
     h('section', { class: 'sec' }, h('h2', null, '個人喜好', h('small', null, '與上面的品質水平分開：品質不等於我喜不喜歡')),
       starPicker(w, () => touch(w)),
       h('label', { class: 'f', for: 'note' }, '備註', h('textarea', { id: 'note', placeholder: '想記的任何事', oninput: e => { w.note = e.target.value; touch(w); } }, w.note || ''))));
@@ -1330,10 +1406,10 @@ function lookupLinks(w) {
     ['Vivino', 'https://www.vivino.com/search/wines?q=' + enc(q)],
     ['酒莊官網', 'https://www.google.com/search?q=' + enc((b.producer || b.name) + ' 官方網站 winery')]];
 }
-function chipsRO(items, cls) { return h('div', { class: 'chips' }, arr(items).map(x => h('span', { class: 'chip static ' + (cls || '') }, vlabel(x)))); }
+function chipsRO(items, cls) { return h('div', { class: 'chips' }, arr(items).map(x => h('span', { class: 'chip static ' + (cls || '') }, groupDot(String(x).split('|')[0]), vlabel(x)))); }
 function viewDetail(app, id) {
   const w = wines.find(x => x.id === id);
-  if (!w) { app.append(h('div', { class: 'card' }, '找不到這支酒。', h('button', { class: 'btn', onclick: () => go('/') }, '回手冊'))); return; }
+  if (!w) { app.append(h('div', { class: 'card' }, '手冊裡找不到這杯酒。', h('button', { class: 'btn', onclick: () => go('/') }, '回手冊'))); return; }
   const b = w.basic, t = w.t || {}; const [d, tot] = completeness(w);
   const stack = h('div', { class: 'stack' });
   /* 標題列 */
@@ -1341,7 +1417,7 @@ function viewDetail(app, id) {
   const delBtn = h('button', { class: 'btn danger', type: 'button', onclick: () => {
     delBox.innerHTML = '';
     delBox.append(h('span', { class: 'small' }, '確定刪除？照片與老師版也會刪掉。'),
-      h('button', { class: 'btn danger', type: 'button', onclick: async () => { for (const p of w.photos) await Store.del('photos', p.id); await Store.del('wines', w.id); wines = wines.filter(x => x !== w); go('/'); toast('已刪除'); } }, '確定刪除'),
+      h('button', { class: 'btn danger', type: 'button', onclick: async () => { for (const p of w.photos) await Store.del('photos', p.id); await Store.del('wines', w.id); wines = wines.filter(x => x !== w); go('/'); toast('已從手冊移除'); } }, '確定刪除'),
       h('button', { class: 'btn', type: 'button', onclick: () => { delBox.innerHTML = ''; delBox.append(delBtn); } }, '取消'));
   } }, '刪除');
   delBox.append(delBtn);
@@ -1368,9 +1444,9 @@ function viewDetail(app, id) {
     if (g === '嗅覺' && t.aromaNote) items.push(h('dt', null, '其他香氣'), h('dd', null, t.aromaNote));
     if (g === '味覺' && t.flavNote) items.push(h('dt', null, '其他風味'), h('dd', null, t.flavNote));
     if (g === '結論') REASONS.forEach(([k, label]) => { const q = t.qr && t.qr[k]; if (q && (q.on || q.note)) items.push(h('dt', null, label), h('dd', null, (q.on ? '✓ ' : '') + (q.note || ''))); });
-    if (items.length) sum.append(h('div', { class: 'sub' }, g), h('dl', { class: 'kv' }, items));
+    if (items.length) sum.append(subHead(g), h('dl', { class: 'kv' }, items));
   });
-  if (sum.children.length === 1) sum.append(h('div', { class: 'muted' }, '還沒有勾選。按「編輯」開始。'));
+  if (sum.children.length === 1) sum.append(h('div', { class: 'muted' }, '這杯還沒有品飲紀錄，按「編輯」補上。'));
   /* 左欄：查詢、食物 */
   const left = h('div', { class: 'stack area-a' });
   const lk = lookupLinks(w);
@@ -1391,6 +1467,14 @@ function viewDetail(app, id) {
     if (oth) fs.append(h('div', { class: 'small' }, oth));
     left.append(fs);
   }
+  const md = w.mood || { occ: [], with: [], note: '' };
+  if (arr(md.occ).length || arr(md.with).length || md.note) {
+    const ms = h('section', { class: 'sec' }, h('h2', null, '這杯的心情'));
+    if (arr(md.occ).length) ms.append(grp('場合', h('div', { class: 'stamps' }, md.occ.map(x => h('span', { class: 'stamp on static' }, x)))));
+    if (arr(md.with).length) ms.append(grp('和誰喝', h('div', { class: 'stamps' }, md.with.map(x => h('span', { class: 'stamp on static' }, x)))));
+    if (md.note) ms.append(h('div', null, md.note));
+    left.append(ms);
+  }
   if (w.note) left.append(h('section', { class: 'sec' }, h('h2', null, '備註'), h('div', { style: 'white-space:pre-wrap' }, w.note)));
   two.append(left, sum);
   stack.append(two);
@@ -1404,7 +1488,7 @@ function reviewSection(w) {
   sec.append(h('div', { class: 'btnrow' }, h('button', { class: 'btn primary', type: 'button', onclick: () => {
     const tt = { id: uid('t'), by: '', createdAt: Date.now(), t: {} }; w.teacher.push(tt); touch(w); flushSave().then(() => go('/teacher/' + w.id + '/' + tt.id));
   } }, '新增老師版')));
-  if (!tl.length) { sec.append(h('div', { class: 'muted' }, '存檔後，可用同一份勾選表再勾一次老師說的，系統會並排對照。')); return sec; }
+  if (!tl.length) { sec.append(h('div', { class: 'muted' }, '這杯記下後，可以用同一份勾選表再勾一次老師說的，兩邊並排對照。')); return sec; }
   let cur = tl[0];
   const holder = h('div', { class: 'stack' });
   const draw = () => {
@@ -1457,7 +1541,7 @@ function viewTeacher(app, wid, tid) {
 function viewRef(app, tab) {
   const tabs = [['region', '產區簡表'], ['aroma', '香氣詞彙'], ['food', '食物原理'], ['frame', '品鑑架構']];
   app.append(h('div', { class: 'subtabs', role: 'tablist' }, tabs.map(([k, l]) => h('button', { type: 'button', role: 'tab', class: tab === k ? 'on' : '', onclick: () => go('/ref/' + k) }, l))));
-  const hd = { region: ['grapes', '產區簡表', '二十多個產區的品種與風格，一頁看完'], aroma: ['glass', '香氣詞彙', '一類、二類、三類，照第二級詞彙表'], food: ['decanter', '食物原理', '食物如何改變杯裡的酒'], frame: ['cork', '品鑑架構', '視覺、嗅覺、味覺、結論'] }[tab];
+  const hd = { region: ['grapes', '產區簡表', '走一趟產區：品種、風格、代表酒款'], aroma: ['glass', '香氣詞彙', '聞到什麼？從果香、發酵香到陳年香，一層層找'], food: ['decanter', '食物原理', '杯裡的酒，遇上桌上的菜會怎麼變'], frame: ['cork', '品鑑架構', '看、聞、嚐、下結論，四步走完一杯'] }[tab];
   if (hd) app.append(h('div', { class: 'refhd' }, art(hd[0], 44), h('div', { class: 'tx' }, h('b', null, hd[1]), h('span', { class: 'small muted' }, hd[2]))));
   if (tab === 'region') {
     const q = h('input', { type: 'search', id: 'rq', placeholder: '搜尋產區、品種、代表酒款（中英文都可以）', 'aria-label': '搜尋產區', style: 'margin-bottom:12px' });
@@ -1468,11 +1552,11 @@ function viewRef(app, tab) {
         g.append(h('div', { class: 'rcard' }, h('span', { class: 'c' }, r.c), h('b', null, r.n + '（' + r.en + '）'), h('dl', null, h('dt', null, '品種'), h('dd', null, r.g), h('dt', null, '風格'), h('dd', null, r.s), h('dt', null, '代表'), h('dd', null, r.e)))));
     };
     q.addEventListener('input', draw); draw();
-    app.append(h('div', { class: 'note' }, '簡表，請以課本為準。這份是依公開知識整理的，不是教材原文。'), h('div', { style: 'height:12px' }), q, g);
+    app.append(h('div', { class: 'note' }, '產區筆記：整理自公開資料，不是課本原文，請以課本為準。'), h('div', { style: 'height:12px' }), q, g);
   } else if (tab === 'aroma') {
-    const st = h('div', { class: 'stack' }, h('div', { class: 'note info' }, '詞彙照第二級詞彙表（2023 第 2 版）。'));
+    const st = h('div', { class: 'stack' }, h('div', { class: 'note info' }, '詞彙照第二級詞彙表（2023 第 2 版）：聞到什麼，就從那一類找起。'));
     VOC.forEach((layer, i) => st.append(h('section', { class: 'sec' }, h('h2', null, LAYER_TITLE[i]),
-      layer.map(([g, items]) => h('div', null, h('div', { class: 'gl' }, g), h('div', { class: 'chips' }, items.map(x => h('span', { class: 'chip static' }, x))))))));
+      layer.map(([g, items]) => h('div', null, h('div', { class: 'gl' }, groupIcon(g), g), h('div', { class: 'chips' }, items.map(x => h('span', { class: 'chip static' }, groupDot(g), x))))))));
     app.append(st);
   } else if (tab === 'food') {
     const st = h('div', { class: 'stack' }, h('div', { class: 'note' }, '標「課本」的 4 列是從 IMG_7081 讀到的，照片模糊，請對課本核對。其餘標「待確認」的，是依 WSET 公開原則建檔，不是教材原文。'));
@@ -1521,7 +1605,7 @@ function viewSettings(app) {
     h('div', { class: 'btnrow' },
       h('button', { class: 'btn primary', type: 'button', id: 'trySample', onclick: () => { window._prefillReply = LABEL_SAMPLE; go('/new'); } }, '貼上範例回覆，到新增頁試用'),
       h('button', { class: 'btn', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(LABEL_SAMPLE); toast('已複製範例'); } catch (e) { sampleBox.select(); toast('請手動複製'); } } }, '複製範例'))));
-  st.append(h('section', { class: 'sec' }, h('h2', null, '儲存狀態'),
+  st.append(h('section', { class: 'sec' }, h('h2', null, '手冊存放位置'),
     h('div', null, Store.mode === 'idb' ? '資料存在這台裝置的瀏覽器（IndexedDB），不上傳到任何地方。' : '這個環境無法永久儲存，資料只留在目前分頁。請用下方「匯出備份」。'),
     Store.err ? h('div', { class: 'note' }, '儲存錯誤：' + (Store.err.message || Store.err)) : null,
     h('div', { class: 'small muted' }, '共 ' + wines.length + ' 支酒。換瀏覽器、清除網站資料、換裝置之前，都請先匯出備份。')));
@@ -1556,7 +1640,7 @@ function viewSettings(app) {
   const hasSample = wines.some(w => w.extra && w.extra.sample);
   st.append(h('section', { class: 'sec' }, h('h2', null, '其他'),
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '預設顯示模式'), h('div', { class: 'seg mode' }, ['simple', 'full'].map(m => h('button', { type: 'button', class: S.mode === m ? 'on' : '', onclick: e => { S.mode = m; saveSettings(); [...e.currentTarget.parentNode.children].forEach((c, i) => c.classList.toggle('on', ['simple', 'full'][i] === m)); } }, m === 'simple' ? '簡易' : '完整')))),
-    h('div', { class: 'btnrow' }, !hasSample ? h('button', { class: 'btn', type: 'button', onclick: async () => { await loadSamples(); toast('已載入範例'); go('/'); } }, '載入範例酒款') : h('button', { class: 'btn', type: 'button', onclick: async () => { for (const w of wines.filter(x => x.extra && x.extra.sample)) await Store.del('wines', w.id); wines = wines.filter(x => !(x.extra && x.extra.sample)); toast('已移除範例'); renderPath(curPath); } }, '移除範例酒款'))));
+    h('div', { class: 'btnrow' }, !hasSample ? h('button', { class: 'btn', type: 'button', onclick: async () => { await loadSamples(); toast('範例酒款已放進手冊'); go('/'); } }, '載入範例酒款') : h('button', { class: 'btn', type: 'button', onclick: async () => { for (const w of wines.filter(x => x.extra && x.extra.sample)) await Store.del('wines', w.id); wines = wines.filter(x => !(x.extra && x.extra.sample)); toast('範例酒款已收起來'); renderPath(curPath); } }, '移除範例酒款'))));
   st.append(h('section', { class: 'sec' }, h('h2', null, '關於'),
     h('div', { class: 'small muted' }, '個人學習用，不公開。筆記都在本機，沒有帳號、沒有後端。課本詞彙與表格取自個人教材；產區簡表與標「待確認」的食物原理為整理資料，請以課本為準。資料結構版本 ' + SCHEMA + '。')));
   app.append(st);
