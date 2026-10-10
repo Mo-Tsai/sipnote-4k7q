@@ -32,6 +32,7 @@
   --info:#6F8196; --info-soft:#E6ECF1; --info-fg:#3F5266;
   --danger:#A8574C; --danger-soft:#F4E1DC; --danger-fg:#7F362D;
   --gray-soft:#EDE4CE; --gray:#66594A;
+  --q-top:#CFDDA6; --q-top-fg:#2F3B16; --q-good:#E8EBD6; --q-mid:#EDE4CE; --q-var:#F5ECD2; --q-weak:#F4E1DC;
   --c-vis:#7C5416; --c-vis-soft:#F3E7C8; --c-nose:#46532A; --c-nose-soft:#E8EBD6; --c-taste:#6E1F30; --c-taste-soft:#F2DDDD; --c-end:#3F5266; --c-end-soft:#E4EAF0;
   --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,-apple-system,"Segoe UI",sans-serif;
   --r:10px;
@@ -39,6 +40,7 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
+    --q-top:#2C3A18; --q-top-fg:#D3E0A8; --q-good:#232B15; --q-mid:#2F1C21; --q-var:#2A2214; --q-weak:#3A1C1A;
     /* 深酒紅黑：不是純黑，帶一點酒紅的暗色底，搭暖白字 */
     --bg:#1A0F12; --surface:#241519; --surface2:#2F1C21; --fg:#F1E8D8; --muted:#B8A794; --line:#46292F; --ctl:#947680;
     --gold:#C8AE7C; --gold-ink:#C8AE7C; --star:#D9B25A; --accent:#E8B0B8; --sel:#3C1B24; --accent-fg:#F6EFE2; --btn:#6B2433;
@@ -53,6 +55,7 @@
   }
 }
 :root[data-theme="dark"]{
+  --q-top:#2C3A18; --q-top-fg:#D3E0A8; --q-good:#232B15; --q-mid:#2F1C21; --q-var:#2A2214; --q-weak:#3A1C1A;
   --bg:#1A0F12; --surface:#241519; --surface2:#2F1C21; --fg:#F1E8D8; --muted:#B8A794; --line:#46292F; --ctl:#947680;
   --gold:#C8AE7C; --gold-ink:#C8AE7C; --star:#D9B25A; --accent:#E8B0B8; --sel:#3C1B24; --accent-fg:#F6EFE2; --btn:#6B2433;
   --wine:#6B2433; --wine-bd:#B5627A; --wine-tx:#EDB8C0; --wine-bar:#C9708A; --wine-soft:#3C1B24; --wine-fill:#5C2333;
@@ -317,6 +320,46 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .prow .po{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
 .prow.unsure{background:var(--warn-soft)}
 .prow.same{opacity:.7;cursor:default}
+/* 第三輪：L3 刻度、L3 詞彙、年份天氣、年份參考表 */
+.seg.five button{min-width:0;padding:6px 2px;flex:1 1 0}
+.seg.two2 button{flex:1 1 calc(50% - 6px)}
+.chip.l3{border-style:dashed}
+.chip.l3.on{border-style:solid}
+.l3blk{display:flex;flex-direction:column;gap:6px;margin-top:6px;padding:8px 10px;border:1px dashed var(--ctl);border-radius:var(--r)}
+.l3blk .l3h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tog{display:flex;align-items:center;gap:10px;min-height:44px;width:100%;text-align:left;border:1px solid var(--ctl);background:var(--bg);border-radius:var(--r);padding:6px 12px;cursor:pointer}
+.tog .knob{flex:none;width:40px;height:24px;border-radius:999px;border:1px solid var(--ctl);background:var(--surface2);position:relative;transition:background .15s}
+.tog .knob::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.tog[aria-checked="true"]{border-color:var(--gold);background:var(--sel)}
+.tog[aria-checked="true"] .knob{background:var(--wine);border-color:var(--wine-bd)}
+.tog[aria-checked="true"] .knob::after{transform:translateX(16px);background:#F3F0EA}
+.tog .tl{flex:1;min-width:0;line-height:1.35}
+.tog .tl small{display:block;color:var(--muted);font-size:.8rem}
+.seeded{font-size:.8rem;color:var(--warn-fg);font-weight:400;letter-spacing:0}
+.vwhint{display:flex;flex-direction:column;gap:2px}
+.vwhint ul{margin:4px 0 0;padding-left:1.2em}
+.vm{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);-webkit-overflow-scrolling:touch}
+.vm table{border-collapse:separate;border-spacing:0;font-size:.8rem}
+.vm th,.vm td{padding:0;text-align:center;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.vm thead th{position:sticky;top:0;background:var(--surface2);font-weight:500;min-width:46px;height:36px;z-index:1}
+.vm th.rn,.vm td.rn{position:sticky;left:0;z-index:2;background:var(--surface);text-align:left;min-width:118px;max-width:118px;padding:0 8px;font-weight:500;border-right:1px solid var(--gold)}
+.vm thead th.rn{background:var(--surface2);z-index:3}
+.vm td.rn button{all:unset;display:block;box-sizing:border-box;width:100%;min-height:44px;line-height:1.3;padding:5px 0;cursor:pointer;font-size:.8rem}
+.vm td.rn button small{display:block;color:var(--muted);font-weight:400}
+.vm td.c button{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:46px;min-height:44px;cursor:pointer;font-size:.8rem;font-weight:500;position:relative}
+.vm td.c button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.vm td.sel button{box-shadow:inset 0 0 0 2px var(--gold)}
+.q-top{background:var(--q-top);color:var(--q-top-fg)}.q-good{background:var(--q-good)}.q-mid{background:var(--q-mid)}.q-var{background:var(--q-var)}.q-weak{background:var(--q-weak)}.q-none{background:transparent;color:var(--muted)}
+.vm .mod::after{content:"";position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--wine-bar)}
+.vrow{display:grid;grid-template-columns:48px minmax(0,1fr);gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.vrow:last-child{border-bottom:0}
+.vrow .yr{font-size:1.25rem;font-weight:300;font-variant-numeric:tabular-nums;line-height:1.3}
+.vrow .vb{display:flex;flex-direction:column;gap:6px;min-width:0}
+.vrow.hl{background:var(--sel);margin-inline:-8px;padding-inline:8px;border-radius:var(--r)}
+.pill.q-top,.pill.q-good,.pill.q-mid,.pill.q-var,.pill.q-weak{border-color:var(--line);color:var(--fg)}
+.pill.q-top{color:var(--q-top-fg)}
+.srcs{margin:0;padding-left:1.2em;font-size:.8rem}
+.srcs li{overflow-wrap:anywhere;padding:4px 0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (prefers-reduced-motion:reduce){.toast.mini{opacity:.92}}
 </style>
@@ -333,7 +376,7 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 <script>
 'use strict';
 /* ========= 基本工具 ========= */
-const SCHEMA = 1;
+const SCHEMA = 2;   /* 2：第三輪新增 lvl／t3／vw／refGrapes 等欄位；都是另存的新欄位，v1 資料與備份照常可匯入 */
 const APP_ID = 'wset-notes';
 const $ = (s, r = document) => r.querySelector(s);
 function h(tag, attrs, ...kids) {
@@ -423,7 +466,8 @@ const Store = {
 };
 
 /* ========= 設定 ========= */
-let S = { k: 'settings', mode: 'full', lastBackup: null, firstUse: Date.now(), schemaVersion: SCHEMA };
+let S = { k: 'settings', mode: 'full', lastBackup: null, firstUse: Date.now(), schemaVersion: SCHEMA, l3Vocab: false, l3Cat: {}, showTodo: true, defLvl: 2 };
+let refOv = {};   /* 年份參考表：Mo 在本機改過的格（鍵＝產區|軌|年份） */
 async function loadSettings() {
   const s = await Store.get('meta', 'settings');
   if (s) S = Object.assign(S, s);
@@ -484,6 +528,98 @@ const VOC = [
 ];
 const REASONS = [['balance', '平衡度'], ['finish', '餘味長度'], ['intensity', '風味濃度'], ['complexity', '複雜度']];
 
+/* ========= 第三輪：WSET L3 ========= */
+/* L3 刻度（5 段）。來源：WSET Level 3 Systematic Approach to Tasting Wine（官方 SAT 表）。中文用語為整理版，全部「待對課本」。
+   酒精在 L3 官方表仍是低／中／高三段，所以沿用 OPT.lmh。甜度 L3 為六段。 */
+const OPT3 = {
+  inten: ['淡', '中-', '中', '中+', '濃'],
+  lmh: ['低', '中-', '中', '中+', '高'],
+  body: ['輕盈', '中-', '中', '中+', '飽滿'],
+  finish: ['短', '中-', '中', '中+', '長'],
+  sweet: ['干', '微干', '中干', '中甜', '甜', '極甜'],
+  dev: ['年輕', '發展中', '充分發展', '已衰退'],
+  mousse: ['輕柔', '綿密', '強勁'],
+  ready: ['太年輕', '現在可喝，也有陳年潛力', '現在喝，不適合陳年', '已過適飲期']
+};
+const L3SCALE = { nInt: 'inten', sweet: 'sweet', acid: 'lmh', tannin: 'lmh', body: 'body', fInt: 'inten', finish: 'finish' };
+const L3ONLY = [['dev', '發展程度', '嗅覺'], ['mousseL3', '氣泡（mousse）', '味覺'], ['ready', '適飲期／陳年潛力', '結論']];
+/* L2 → L3 近似值（切到 L3 時帶入）；L3 → L2 收斂（只用在跨層級對照） */
+const up3 = (k, v) => (k === 'sweet' && v === '中') ? '中甜' : v;
+const down3 = (k, v) => { if (!v) return v; if (k === 'sweet') return ({ '中干': '中', '中甜': '中', '極甜': '甜' })[v] || v; return (v === '中-' || v === '中+') ? '中' : v; };
+
+/* L3 詞彙（官方 Wine-Lexicon 整理成台灣用語，英文對照；l2＝對應的 L2 分組，sub＝L3 自己的分群名）。所有條目「待對課本」。 */
+const L3LEX = [
+  [
+    { l2: '花香', cl: 'Floral', items: [['相思樹花', 'acacia'], ['忍冬', 'honeysuckle'], ['洋甘菊', 'chamomile'], ['接骨木花', 'elderflower'], ['天竺葵', 'geranium'], ['花簇', 'blossom'], ['玫瑰', 'rose'], ['紫羅蘭', 'violet']] },
+    { l2: '綠色水果', cl: 'Green fruit', items: [['蘋果', 'apple'], ['醋栗', 'gooseberry'], ['梨', 'pear'], ['梨形糖', 'pear drop'], ['榲桲', 'quince'], ['葡萄', 'grape']] },
+    { l2: '柑橘類水果', cl: 'Citrus fruit', items: [['葡萄柚', 'grapefruit'], ['檸檬', 'lemon'], ['萊姆', 'lime'], ['橙皮', 'orange peel'], ['檸檬皮', 'lemon peel']] },
+    { l2: '帶核水果', cl: 'Stone fruit', items: [['水蜜桃', 'peach'], ['杏桃', 'apricot'], ['油桃', 'nectarine']] },
+    { l2: '熱帶水果', cl: 'Tropical fruit', items: [['香蕉', 'banana'], ['荔枝', 'lychee'], ['芒果', 'mango'], ['香瓜', 'melon'], ['百香果', 'passion fruit'], ['鳳梨', 'pineapple']] },
+    { l2: '紅色水果', cl: 'Red fruit', items: [['紅醋栗', 'redcurrant'], ['蔓越莓', 'cranberry'], ['覆盆子', 'raspberry'], ['草莓', 'strawberry'], ['紅櫻桃', 'red cherry'], ['紅李', 'red plum']] },
+    { l2: '黑色水果', cl: 'Black fruit', items: [['黑加侖', 'blackcurrant'], ['黑莓', 'blackberry'], ['野黑莓', 'bramble'], ['藍莓', 'blueberry'], ['黑櫻桃', 'black cherry'], ['黑李', 'black plum']] },
+    { l2: '水果成熟度', cl: 'Dried/cooked fruit', items: [['無花果', 'fig'], ['西梅乾', 'prune'], ['葡萄乾', 'raisin'], ['蘇丹娜葡萄乾', 'sultana'], ['櫻桃酒', 'kirsch'], ['果醬感', 'jamminess'], ['烘烤／燉煮水果', 'baked/stewed fruits'], ['蜜餞水果', 'preserved fruits']] },
+    { l2: '草本植物', cl: 'Herbaceous', items: [['青椒', 'green bell pepper'], ['青草', 'grass'], ['蕃茄葉', 'tomato leaf'], ['蘆筍', 'asparagus'], ['黑加侖葉', 'blackcurrant leaf']] },
+    { l2: '香草植物', cl: 'Herbal', items: [['尤加利樹', 'eucalyptus'], ['薄荷', 'mint'], ['藥味', 'medicinal'], ['薰衣草', 'lavender'], ['茴香', 'fennel'], ['蒔蘿', 'dill']] },
+    { l2: '香料', cl: 'Pungent spice', items: [['黑／白胡椒', 'black/white pepper'], ['甘草', 'liquorice']] },
+    { l2: '其他', cl: 'Other', items: [['燧石', 'flint'], ['濕石頭', 'wet stones'], ['濕羊毛', 'wet wool']] }
+  ],
+  [
+    { l2: '酵母（酒渣、酵母自溶、酒花）', cl: 'Yeast (lees, autolysis)', items: [['餅乾', 'biscuit'], ['麵包', 'bread'], ['烤麵包', 'toast'], ['酥皮點心', 'pastry'], ['布里歐許', 'brioche'], ['麵包麵糰', 'bread dough'], ['起司', 'cheese']] },
+    { l2: '蘋果酸乳酸轉化', cl: 'MLF', items: [['奶油', 'butter'], ['起司', 'cheese'], ['鮮奶油', 'cream']] },
+    { l2: '橡木', cl: 'Oak', items: [['香草', 'vanilla'], ['丁香', 'cloves'], ['肉豆蔻', 'nutmeg'], ['椰子', 'coconut'], ['奶油糖', 'butterscotch'], ['烤吐司', 'toast'], ['雪松', 'cedar'], ['焦炭', 'charred wood'], ['煙燻', 'smoke'], ['巧克力', 'chocolate'], ['咖啡', 'coffee'], ['樹脂味', 'resinous']] }
+  ],
+  [
+    { l2: '刻意氧化的葡萄酒', sub: '', cl: 'Deliberate oxidation', items: [['杏仁', 'almond'], ['杏仁膏', 'marzipan'], ['榛果', 'hazelnut'], ['核桃', 'walnut'], ['巧克力', 'chocolate'], ['咖啡', 'coffee'], ['太妃糖', 'toffee'], ['焦糖', 'caramel']] },
+    { l2: '白酒', sub: '水果陳年發展', cl: 'Fruit development (white)', items: [['杏桃乾', 'dried apricot'], ['橘子果醬', 'marmalade'], ['蘋果乾', 'dried apple'], ['香蕉乾', 'dried banana']] },
+    { l2: '紅酒', sub: '水果陳年發展', cl: 'Fruit development (red)', items: [['無花果', 'fig'], ['西梅乾', 'prune'], ['焦油', 'tar'], ['黑莓乾', 'dried blackberry'], ['蔓越莓乾', 'dried cranberry'], ['煮熟黑莓', 'cooked blackberry'], ['煮熟紅李', 'cooked red plum']] },
+    { l2: '白酒', sub: '瓶中陳年', cl: 'Bottle age (white)', items: [['汽油', 'petrol'], ['煤油', 'kerosene'], ['肉桂', 'cinnamon'], ['生薑', 'ginger'], ['肉豆蔻', 'nutmeg'], ['烤吐司', 'toast'], ['堅果味', 'nutty'], ['蘑菇', 'mushroom'], ['乾草', 'hay'], ['蜂蜜', 'honey']] },
+    { l2: '紅酒', sub: '瓶中陳年', cl: 'Bottle age (red)', items: [['皮革', 'leather'], ['森林地表', 'forest floor'], ['泥土', 'earth'], ['蘑菇', 'mushroom'], ['野味', 'game'], ['煙草', 'tobacco'], ['植物菜蔬味', 'vegetal'], ['濕樹葉', 'wet leaves'], ['鹹香味', 'savoury'], ['肉味', 'meaty'], ['農莊味', 'farmyard']] }
+  ]
+];
+const stripP = s => String(s).replace(/[（(].*?[）)]/g, '').trim();
+/* 勾選用：只放「L2 同分組裡沒有的」L3 條目，L2 已有的詞請用 L2 的 chips */
+const L3_VOC = L3LEX.map((layer, li) => layer.map(c => {
+  const l2 = ((VOC[li].find(g => g[0] === c.l2) || [0, []])[1]).map(stripP);
+  return { g: c.l2, sub: c.sub || '', cl: c.cl, items: c.items.map(x => x[0]).filter(z => !l2.includes(z)) };
+}).filter(c => c.items.length));
+const L3_URL = 'https://www.wsetglobal.com/media/3119/wset_l3_wines_sat_en_jun-2016.pdf';
+
+/* 年份天氣 */
+const VW_TEMP = ['偏熱', '正常', '偏冷'];
+const VW_RAIN = ['多雨', '正常', '少雨'];
+const VW_EVENTS = ['春霜', '冰雹', '乾旱', '熱浪', '病害', '日照不足', '開花期惡劣天氣', '野火'];
+const VW_HARV = ['早', '正常', '晚'];
+const VW_HRAIN = ['收穫期有下雨', '收穫期沒下雨'];
+const VW_YIELD = ['少', '正常', '多'];
+const VW_RIPE = ['未熟', '成熟', '過熟'];
+const VW_Q = ['差', '普通', '好', '很好', '極好'];
+const vwEmpty = () => ({ temp: '', rain: '', events: [], harvest: '', hrain: '', yield: '', ripe: '', quality: '', note: '', ref: '' });
+/* 預期風味提示：葡萄栽培的一般原則，僅供對照；不納入完整度與老師版命中率 */
+function vwHints(v) {
+  const o = [];
+  if (v.temp === '偏熱') o.push('偏熱的年份：葡萄成熟快，酸度傾向偏低、酒精偏高，果味偏成熟（成熟水果、黑色水果、熱帶水果）。');
+  if (v.temp === '偏冷') o.push('偏冷的年份：成熟慢，酸度傾向偏高、酒精偏低，果味偏青綠（綠色水果、柑橘、紅色水果），單寧可能較青澀。');
+  if (v.rain === '多雨') o.push('多雨：果實容易被稀釋、風味較淡，也要留意病害（黴菌）風險。');
+  if (v.rain === '少雨') o.push('少雨：果粒較小、風味較濃縮；缺水過頭時葡萄會停止成熟。');
+  const ev = arr(v.events);
+  if (ev.includes('春霜')) o.push('春霜：新芽受凍，產量通常大減，存活的果實會比較濃縮。');
+  if (ev.includes('冰雹')) o.push('冰雹：果實受傷、產量下降，傷口易生病害，酒可能不夠純淨。');
+  if (ev.includes('乾旱')) o.push('乾旱：果粒小、皮厚，單寧與風味較濃，酸度偏低；嚴重時成熟停滯。');
+  if (ev.includes('熱浪')) o.push('熱浪：果實曬傷或萎縮，酸度快速下降、酒精升高，容易出現煮熟水果或果乾的味道。');
+  if (ev.includes('病害')) o.push('病害：風味可能不純淨（黴味、土味），產量下降；貴腐是甜酒的例外。');
+  if (ev.includes('日照不足')) o.push('日照不足：成熟度不夠，偏青澀、酸高、酒體較輕。');
+  if (ev.includes('開花期惡劣天氣')) o.push('開花期惡劣天氣：落花落果，產量減少，果串不整齊（成熟度不一）。');
+  if (ev.includes('野火')) o.push('野火：煙燻味可能附著在果皮上，酒中出現煙燻、灰燼的異味（煙燻汙染）。');
+  if (v.harvest === '早') o.push('收穫較早：多半是熱年，成熟快，酸度低、酒精高。');
+  if (v.harvest === '晚') o.push('收穫較晚：多半是涼年，成熟慢，酸度保留得較好、香氣較細緻。');
+  if (v.hrain === '收穫期有下雨') o.push('收穫期下雨：果實吸水稀釋，風味變淡，也增加黴菌風險。');
+  if (v.yield === '少') o.push('產量少：每顆果實分到的養分多，風味較濃縮。');
+  if (v.yield === '多') o.push('產量多：若沒有疏果，風味容易被稀釋。');
+  if (v.ripe === '未熟') o.push('成熟度不足：青澀、酸高，單寧生硬。');
+  if (v.ripe === '過熟') o.push('過熟：果醬或煮熟水果味、酒精高、酸度低，結構可能鬆散。');
+  return o;
+}
+
 /* 食物對葡萄酒的影響。src: tb = 課本 IMG_7081 讀到（照片模糊，請核對）；todo = 待 Mo 對課本確認（依 WSET 公開原則） */
 const FOOD = [
   { k: 'sweet', label: '甜', src: 'tb', effect: '更干、更苦、更酸；甜味與果香變得較不明顯' },
@@ -506,33 +642,33 @@ const FOOD_OTHER = [
 /* 產區簡表（agent 依公開知識整理，請以課本為準）。
    n＝台灣常用中文名、en＝英文、a＝輸入別名（大陸譯名、舊名、原文；只用來辨識，不顯示）。顯示一律「中文（English）」。 */
 const REGIONS = [
-  { c: '法國', n: '波爾多', en: 'Bordeaux', a: ['波尔多'], g: '紅：卡本內蘇維濃、梅洛、卡本內弗朗。白：白蘇維濃、榭密雍', s: '紅酒多為中高酸、中高單寧、黑色水果與雪松；左岸以卡本內蘇維濃為主，右岸以梅洛為主。蘇玳是貴腐甜白。', e: '梅多克（Médoc）、聖愛美濃（Saint-Émilion）、波美侯（Pomerol）、格拉夫（Graves）、蘇玳（Sauternes）' },
-  { c: '法國', n: '勃根地', en: 'Burgundy', a: ['Bourgogne', '勃艮第', '勃根第', '勃艮地', '布根地'], g: '黑皮諾、夏多內', s: '紅酒酒體輕至中、高酸、低至中單寧、紅色水果；白酒從夏布利（高酸、少橡木）到伯恩丘（橡木、較飽滿）。', e: '夏布利（Chablis）、夜丘（Côte de Nuits）、伯恩丘（Côte de Beaune）、馬貢（Mâconnais）' },
-  { c: '法國', n: '薄酒萊', en: 'Beaujolais', a: ['薄酒來', '薄酒莱'], g: '加美', s: '酒體輕、低單寧、高酸，紅色水果與糖果香，常用二氧化碳浸漬法，適合年輕時飲用。', e: '薄酒萊新酒（Beaujolais Nouveau）、薄酒萊村莊級（Beaujolais-Villages）、克魯級（Cru，如 Morgon）' },
-  { c: '法國', n: '隆河', en: 'Rhône', a: ['Rhone', '羅訥河谷', '羅訥河', '罗讷河谷', '隆河谷', '羅納河谷', 'Cotes du Rhone', 'Côtes du Rhône'], g: '北：希哈（紅）、維歐尼（白）。南：格那希、希哈、慕維得爾', s: '北部紅酒偏黑色水果與黑胡椒；南部多為調配，酒精較高、酒體飽滿。', e: '羅第丘（Côte-Rôtie）、艾米達吉（Hermitage）、教皇新堡（Châteauneuf-du-Pape）、隆河丘（Côtes du Rhône）' },
-  { c: '法國', n: '羅亞爾河', en: 'Loire', a: ['羅瓦爾河', '卢瓦尔河', '羅亞爾河谷', '羅瓦爾河谷', 'Val de Loire'], g: '白蘇維濃、白詩南、慕斯卡德（Melon de Bourgogne）、卡本內弗朗', s: '偏涼爽氣候，白酒高酸、酒體輕至中；也產氣泡酒與甜白（白詩南）。', e: '松塞爾（Sancerre）、普依芙美（Pouilly-Fumé）、梧雷（Vouvray）、慕斯卡德（Muscadet）、希濃（Chinon）' },
-  { c: '法國', n: '阿爾薩斯', en: 'Alsace', a: ['亞爾薩斯', '阿尔萨斯'], g: '麗絲玲、格烏茲塔明那、灰皮諾、蜜思嘉', s: '以品種名標示；多為乾型但也有甜型，格烏茲塔明那香氣濃郁、帶荔枝與玫瑰。', e: 'Alsace AOC、Alsace Grand Cru' },
-  { c: '法國', n: '香檳', en: 'Champagne', a: ['香槟', '香檳區'], g: '黑皮諾、莫尼耶皮諾、夏多內', s: '傳統法（瓶中二次發酵）氣泡酒，高酸；酵母自溶帶來餅乾、烤麵包香。', e: '無年份香檳（Non-Vintage）、年份香檳（Vintage）、白中白（Blanc de Blancs）、粉紅香檳（Rosé）' },
-  { c: '法國', n: '普羅旺斯', en: 'Provence', a: ['普罗旺斯', 'Côtes de Provence', 'Cotes de Provence', 'Bandol'], g: '格那希、仙梭（Cinsault）、慕維得爾、希哈', s: '地中海氣候，以淡雅的乾型粉紅酒聞名；也產紅酒與白酒。', e: '普羅旺斯丘（Côtes de Provence）、邦多爾（Bandol）' },
-  { c: '法國', n: '朗格多克-胡西雍', en: 'Languedoc-Roussillon', a: ['Languedoc', 'Roussillon', "Pays d'Oc", '朗格多克', '隆格多克', '胡西雍', '魯西雍'], g: '格那希、希哈、慕維得爾、卡利濃、梅洛、夏多內', s: '地中海氣候、產量大，常見品種標示的平價酒款。', e: "Pays d'Oc IGP、Languedoc AOC" },
-  { c: '義大利', n: '皮蒙特', en: 'Piedmont', a: ['Piemonte', '皮埃蒙特', '皮耶蒙特'], g: '內比歐露、巴貝拉、多切托、蜜思嘉', s: '內比歐露：高酸、高單寧、玫瑰與焦油香；蜜思嘉為微甜低酒精微泡酒。', e: '巴羅洛（Barolo）、巴巴瑞斯科（Barbaresco）、阿斯蒂蜜思嘉（Moscato d\'Asti）' },
-  { c: '義大利', n: '托斯卡尼', en: 'Tuscany', a: ['Toscana', '托斯卡納', '托斯卡那'], g: '山吉歐維榭', s: '紅酒高酸、中高單寧，紅櫻桃與乾燥香草，常經橡木與瓶中陳年。', e: '經典奇揚替（Chianti Classico）、蒙塔奇諾布魯奈羅（Brunello di Montalcino）' },
-  { c: '義大利', n: '威尼托', en: 'Veneto', a: ['威內托', '威尼多'], g: '葛雷拉、葛佳內加（Garganega）、科維納（Corvina）', s: '普賽克氣泡酒（槽式法，清新果香）；索阿維白酒；阿瑪羅內以風乾葡萄釀造，酒精高、濃縮。', e: '普賽克（Prosecco）、索阿維（Soave）、瓦波利切拉（Valpolicella）、阿瑪羅內（Amarone）' },
-  { c: '義大利', n: '西西里', en: 'Sicily', a: ['Sicilia', '西西里島'], g: '黑珍珠（Nero d\'Avola）、格里羅（Grillo）', s: '溫暖氣候，紅酒果味成熟、酒精中高；也產加強酒馬沙拉。', e: 'Sicilia DOC、馬沙拉（Marsala）' },
-  { c: '義大利', n: '普利亞', en: 'Puglia', a: ['Apulia', '阿普里亞', '普里亞'], g: '普米提沃（Primitivo）、內格羅阿馬羅（Negroamaro）', s: '炎熱產區，紅酒成熟果味、酒體飽滿、價格親民。', e: 'Salice Salentino、Primitivo di Manduria' },
-  { c: '西班牙', n: '里奧哈', en: 'Rioja', a: ['利奧哈', '里歐哈'], g: '田帕尼優、格那希', s: '以橡木陳年時間分級（Crianza、Reserva、Gran Reserva）；常見草莓、香草、椰子與皮革。', e: 'Rioja Crianza / Reserva / Gran Reserva' },
-  { c: '西班牙', n: '里亞斯巴斯', en: 'Rías Baixas', a: ['Rias Baixas'], g: '阿爾巴利諾', s: '大西洋涼爽氣候，白酒高酸、柑橘與桃子，適合搭海鮮。', e: 'Rías Baixas DO' },
-  { c: '西班牙', n: '卡瓦', en: 'Cava', a: [], g: '馬卡貝歐（Macabeo）、沙雷洛（Xarel·lo）、帕雷亞達（Parellada）', s: '傳統法氣泡酒，風格接近簡化版香檳，價格親民。', e: 'Cava Brut' },
-  { c: '西班牙', n: '赫雷斯', en: 'Jerez', a: ['Sherry', '雪莉'], g: '帕洛米諾（Palomino）', s: '加強酒；Fino 為生物式陳年（酒花），Oloroso 為氧化式陳年。', e: 'Fino、Manzanilla、Oloroso' },
-  { c: '德國', n: '德國', en: 'Germany', a: ['Mosel', 'Rheingau', '摩澤爾', '德国', 'Deutschland'], g: '麗絲玲、米勒圖高、黑皮諾（Spätburgunder）', s: '涼爽氣候，麗絲玲高酸、低酒精、花與青蘋果香；以成熟度分級（Kabinett、Spätlese、Auslese…）。', e: '摩澤爾（Mosel）、萊茵高（Rheingau）、法爾茲（Pfalz）' },
-  { c: '奧地利', n: '奧地利', en: 'Austria', a: ['奥地利', 'Österreich'], g: '綠維特利納、茨威格（Zweigelt）', s: '綠維特利納乾型白酒，帶白胡椒與柑橘，中高酸。', e: 'Niederösterreich、Wachau' },
-  { c: '葡萄牙', n: '葡萄牙', en: 'Portugal', a: ['Douro', 'Port', '波特', 'Vinho Verde', '綠酒', '杜奧'], g: '杜羅河谷：國產多瑞加（Touriga Nacional）、紅巴羅卡（Tinta Barroca）。綠酒：阿爾巴利諾等', s: '杜羅河谷產紅酒與波特酒；綠酒（Vinho Verde）清爽微泡、低酒精。', e: '波特酒（Port：Ruby、Tawny）、杜羅河谷（Douro DOC）、綠酒（Vinho Verde）' },
-  { c: '美國', n: '加州', en: 'California', a: ['美國加州', 'Napa', 'Napa Valley', 'Sonoma', '納帕', '納帕谷', '索諾瑪', '加利福尼亞'], g: '卡本內蘇維濃、梅洛、金芬黛、黑皮諾、夏多內、白蘇維濃', s: '陽光充足，成熟果味明顯；納帕谷卡本內蘇維濃飽滿、單寧豐厚，常用橡木。', e: '納帕谷（Napa Valley）、索諾瑪（Sonoma）、中央海岸（Central Coast）' },
-  { c: '智利', n: '智利', en: 'Chile', a: ['Maipo', 'Casablanca'], g: '卡本內蘇維濃、卡門內爾、梅洛、白蘇維濃、夏多內', s: '氣候穩定、產區由北到南狹長；平價優質，卡本內蘇維濃與卡門內爾為代表。', e: '邁坡谷（Maipo Valley）、卡薩布蘭加谷（Casablanca Valley）、中央山谷（Central Valley）' },
-  { c: '阿根廷', n: '阿根廷', en: 'Argentina', a: ['Mendoza', '門多薩'], g: '馬爾貝克、特濃情（Torrontés，白）', s: '高海拔、乾燥日照；馬爾貝克色深、黑色水果、柔和單寧。', e: '門多薩（Mendoza）、盧漢德庫約（Luján de Cuyo）' },
-  { c: '澳洲', n: '澳洲', en: 'Australia', a: ['Barossa', 'Barossa Valley', '巴羅莎', '澳大利亞', '澳大利亚'], g: '希哈（Shiraz）、卡本內蘇維濃、夏多內、麗絲玲、榭密雍', s: '風格多元；巴羅莎谷希哈飽滿、成熟黑色水果與胡椒；克雷爾谷麗絲玲乾型高酸。', e: '巴羅莎谷（Barossa Valley）、庫納瓦拉（Coonawarra）、克雷爾谷（Clare Valley）、獵人谷（Hunter Valley）' },
-  { c: '紐西蘭', n: '紐西蘭', en: 'New Zealand', a: ['Marlborough', '馬爾堡', '新西蘭', '新西兰'], g: '白蘇維濃、黑皮諾、夏多內', s: '馬爾堡白蘇維濃：高酸、強烈的醋栗、青草與熱帶水果；中奧塔哥黑皮諾。', e: '馬爾堡（Marlborough）、霍克斯灣（Hawke\'s Bay）、中奧塔哥（Central Otago）' },
-  { c: '南非', n: '南非', en: 'South Africa', a: ['Stellenbosch', 'Swartland'], g: '白詩南、皮諾塔吉、希哈、卡本內蘇維濃', s: '白詩南（當地稱 Steen）為特色；皮諾塔吉為本地特有品種，帶煙燻與黑色水果。', e: '斯泰倫博斯（Stellenbosch）、帕爾（Paarl）、斯瓦特蘭（Swartland）' }
+  { c: '法國', n: '波爾多', en: 'Bordeaux', cl: '海洋性（受大西洋與吉倫特河調節，溫和、秋季有雨風險）', a: ['波尔多'], g: '紅：卡本內蘇維濃、梅洛、卡本內弗朗。白：白蘇維濃、榭密雍', s: '紅酒多為中高酸、中高單寧、黑色水果與雪松；左岸以卡本內蘇維濃為主，右岸以梅洛為主。蘇玳是貴腐甜白。', e: '梅多克（Médoc）、聖愛美濃（Saint-Émilion）、波美侯（Pomerol）、格拉夫（Graves）、蘇玳（Sauternes）' },
+  { c: '法國', n: '勃根地', en: 'Burgundy', cl: '涼爽大陸性（四季分明，年份差異大）', a: ['Bourgogne', '勃艮第', '勃根第', '勃艮地', '布根地'], g: '黑皮諾、夏多內', s: '紅酒酒體輕至中、高酸、低至中單寧、紅色水果；白酒從夏布利（高酸、少橡木）到伯恩丘（橡木、較飽滿）。', e: '夏布利（Chablis）、夜丘（Côte de Nuits）、伯恩丘（Côte de Beaune）、馬貢（Mâconnais）' },
+  { c: '法國', n: '薄酒萊', en: 'Beaujolais', cl: '溫和大陸性（偏溫暖，受地中海影響）', a: ['薄酒來', '薄酒莱'], g: '加美', s: '酒體輕、低單寧、高酸，紅色水果與糖果香，常用二氧化碳浸漬法，適合年輕時飲用。', e: '薄酒萊新酒（Beaujolais Nouveau）、薄酒萊村莊級（Beaujolais-Villages）、克魯級（Cru，如 Morgon）' },
+  { c: '法國', n: '隆河', en: 'Rhône', cl: '北部涼爽大陸性、南部溫暖地中海式', a: ['Rhone', '羅訥河谷', '羅訥河', '罗讷河谷', '隆河谷', '羅納河谷', 'Cotes du Rhone', 'Côtes du Rhône'], g: '北：希哈（紅）、維歐尼（白）。南：格那希、希哈、慕維得爾', s: '北部紅酒偏黑色水果與黑胡椒；南部多為調配，酒精較高、酒體飽滿。', e: '羅第丘（Côte-Rôtie）、艾米達吉（Hermitage）、教皇新堡（Châteauneuf-du-Pape）、隆河丘（Côtes du Rhône）' },
+  { c: '法國', n: '羅亞爾河', en: 'Loire', cl: '涼爽海洋性（上游偏大陸性）', a: ['羅瓦爾河', '卢瓦尔河', '羅亞爾河谷', '羅瓦爾河谷', 'Val de Loire'], g: '白蘇維濃、白詩南、慕斯卡德（Melon de Bourgogne）、卡本內弗朗', s: '偏涼爽氣候，白酒高酸、酒體輕至中；也產氣泡酒與甜白（白詩南）。', e: '松塞爾（Sancerre）、普依芙美（Pouilly-Fumé）、梧雷（Vouvray）、慕斯卡德（Muscadet）、希濃（Chinon）' },
+  { c: '法國', n: '阿爾薩斯', en: 'Alsace', cl: '涼爽大陸性（沃日山脈擋雨，相對乾燥）', a: ['亞爾薩斯', '阿尔萨斯'], g: '麗絲玲、格烏茲塔明那、灰皮諾、蜜思嘉', s: '以品種名標示；多為乾型但也有甜型，格烏茲塔明那香氣濃郁、帶荔枝與玫瑰。', e: 'Alsace AOC、Alsace Grand Cru' },
+  { c: '法國', n: '香檳', en: 'Champagne', cl: '涼爽（海洋性與大陸性交界，成熟邊緣）', a: ['香槟', '香檳區'], g: '黑皮諾、莫尼耶皮諾、夏多內', s: '傳統法（瓶中二次發酵）氣泡酒，高酸；酵母自溶帶來餅乾、烤麵包香。', e: '無年份香檳（Non-Vintage）、年份香檳（Vintage）、白中白（Blanc de Blancs）、粉紅香檳（Rosé）' },
+  { c: '法國', n: '普羅旺斯', en: 'Provence', cl: '地中海式（炎熱乾燥，有密斯特拉風）', a: ['普罗旺斯', 'Côtes de Provence', 'Cotes de Provence', 'Bandol'], g: '格那希、仙梭（Cinsault）、慕維得爾、希哈', s: '地中海氣候，以淡雅的乾型粉紅酒聞名；也產紅酒與白酒。', e: '普羅旺斯丘（Côtes de Provence）、邦多爾（Bandol）' },
+  { c: '法國', n: '朗格多克-胡西雍', en: 'Languedoc-Roussillon', cl: '地中海式（溫暖乾燥）', a: ['Languedoc', 'Roussillon', "Pays d'Oc", '朗格多克', '隆格多克', '胡西雍', '魯西雍'], g: '格那希、希哈、慕維得爾、卡利濃、梅洛、夏多內', s: '地中海氣候、產量大，常見品種標示的平價酒款。', e: "Pays d'Oc IGP、Languedoc AOC" },
+  { c: '義大利', n: '皮蒙特', en: 'Piedmont', cl: '涼爽至溫和大陸性（秋季多霧）', a: ['Piemonte', '皮埃蒙特', '皮耶蒙特'], g: '內比歐露、巴貝拉、多切托、蜜思嘉', s: '內比歐露：高酸、高單寧、玫瑰與焦油香；蜜思嘉為微甜低酒精微泡酒。', e: '巴羅洛（Barolo）、巴巴瑞斯科（Barbaresco）、阿斯蒂蜜思嘉（Moscato d\'Asti）' },
+  { c: '義大利', n: '托斯卡尼', en: 'Tuscany', cl: '地中海式（溫暖，內陸偏大陸性）', a: ['Toscana', '托斯卡納', '托斯卡那'], g: '山吉歐維榭', s: '紅酒高酸、中高單寧，紅櫻桃與乾燥香草，常經橡木與瓶中陳年。', e: '經典奇揚替（Chianti Classico）、蒙塔奇諾布魯奈羅（Brunello di Montalcino）' },
+  { c: '義大利', n: '威尼托', en: 'Veneto', cl: '溫和大陸性（受阿爾卑斯山與亞得里亞海影響）', a: ['威內托', '威尼多'], g: '葛雷拉、葛佳內加（Garganega）、科維納（Corvina）', s: '普賽克氣泡酒（槽式法，清新果香）；索阿維白酒；阿瑪羅內以風乾葡萄釀造，酒精高、濃縮。', e: '普賽克（Prosecco）、索阿維（Soave）、瓦波利切拉（Valpolicella）、阿瑪羅內（Amarone）' },
+  { c: '義大利', n: '西西里', en: 'Sicily', cl: '地中海式（溫暖至炎熱、乾燥）', a: ['Sicilia', '西西里島'], g: '黑珍珠（Nero d\'Avola）、格里羅（Grillo）', s: '溫暖氣候，紅酒果味成熟、酒精中高；也產加強酒馬沙拉。', e: 'Sicilia DOC、馬沙拉（Marsala）' },
+  { c: '義大利', n: '普利亞', en: 'Puglia', cl: '地中海式（炎熱乾燥）', a: ['Apulia', '阿普里亞', '普里亞'], g: '普米提沃（Primitivo）、內格羅阿馬羅（Negroamaro）', s: '炎熱產區，紅酒成熟果味、酒體飽滿、價格親民。', e: 'Salice Salentino、Primitivo di Manduria' },
+  { c: '西班牙', n: '里奧哈', en: 'Rioja', cl: '大陸性為主，受大西洋與地中海影響（有海拔）', a: ['利奧哈', '里歐哈'], g: '田帕尼優、格那希', s: '以橡木陳年時間分級（Crianza、Reserva、Gran Reserva）；常見草莓、香草、椰子與皮革。', e: 'Rioja Crianza / Reserva / Gran Reserva' },
+  { c: '西班牙', n: '里亞斯巴斯', en: 'Rías Baixas', cl: '涼爽海洋性（潮濕多雨）', a: ['Rias Baixas'], g: '阿爾巴利諾', s: '大西洋涼爽氣候，白酒高酸、柑橘與桃子，適合搭海鮮。', e: 'Rías Baixas DO' },
+  { c: '西班牙', n: '卡瓦', en: 'Cava', cl: '地中海式（溫暖）', a: [], g: '馬卡貝歐（Macabeo）、沙雷洛（Xarel·lo）、帕雷亞達（Parellada）', s: '傳統法氣泡酒，風格接近簡化版香檳，價格親民。', e: 'Cava Brut' },
+  { c: '西班牙', n: '赫雷斯', en: 'Jerez', cl: '溫暖地中海式（炎熱乾燥）', a: ['Sherry', '雪莉'], g: '帕洛米諾（Palomino）', s: '加強酒；Fino 為生物式陳年（酒花），Oloroso 為氧化式陳年。', e: 'Fino、Manzanilla、Oloroso' },
+  { c: '德國', n: '德國', en: 'Germany', cl: '涼爽大陸性（種植北界，靠河谷坡地取暖）', a: ['Mosel', 'Rheingau', '摩澤爾', '德国', 'Deutschland'], g: '麗絲玲、米勒圖高、黑皮諾（Spätburgunder）', s: '涼爽氣候，麗絲玲高酸、低酒精、花與青蘋果香；以成熟度分級（Kabinett、Spätlese、Auslese…）。', e: '摩澤爾（Mosel）、萊茵高（Rheingau）、法爾茲（Pfalz）' },
+  { c: '奧地利', n: '奧地利', en: 'Austria', cl: '涼爽至溫和大陸性', a: ['奥地利', 'Österreich'], g: '綠維特利納、茨威格（Zweigelt）', s: '綠維特利納乾型白酒，帶白胡椒與柑橘，中高酸。', e: 'Niederösterreich、Wachau' },
+  { c: '葡萄牙', n: '葡萄牙', en: 'Portugal', cl: '北部海洋性、南部與內陸地中海式；杜羅河谷炎熱乾燥', a: ['Douro', 'Port', '波特', 'Vinho Verde', '綠酒', '杜奧'], g: '杜羅河谷：國產多瑞加（Touriga Nacional）、紅巴羅卡（Tinta Barroca）。綠酒：阿爾巴利諾等', s: '杜羅河谷產紅酒與波特酒；綠酒（Vinho Verde）清爽微泡、低酒精。', e: '波特酒（Port：Ruby、Tawny）、杜羅河谷（Douro DOC）、綠酒（Vinho Verde）' },
+  { c: '美國', n: '加州', en: 'California', cl: '地中海式（沿海受涼霧與寒流調節，內陸炎熱）', a: ['美國加州', 'Napa', 'Napa Valley', 'Sonoma', '納帕', '納帕谷', '索諾瑪', '加利福尼亞'], g: '卡本內蘇維濃、梅洛、金芬黛、黑皮諾、夏多內、白蘇維濃', s: '陽光充足，成熟果味明顯；納帕谷卡本內蘇維濃飽滿、單寧豐厚，常用橡木。', e: '納帕谷（Napa Valley）、索諾瑪（Sonoma）、中央海岸（Central Coast）' },
+  { c: '智利', n: '智利', en: 'Chile', cl: '地中海式（寒流與安地斯山調節）', a: ['Maipo', 'Casablanca'], g: '卡本內蘇維濃、卡門內爾、梅洛、白蘇維濃、夏多內', s: '氣候穩定、產區由北到南狹長；平價優質，卡本內蘇維濃與卡門內爾為代表。', e: '邁坡谷（Maipo Valley）、卡薩布蘭加谷（Casablanca Valley）、中央山谷（Central Valley）' },
+  { c: '阿根廷', n: '阿根廷', en: 'Argentina', cl: '炎熱乾燥大陸性（高海拔，日夜溫差大）', a: ['Mendoza', '門多薩'], g: '馬爾貝克、特濃情（Torrontés，白）', s: '高海拔、乾燥日照；馬爾貝克色深、黑色水果、柔和單寧。', e: '門多薩（Mendoza）、盧漢德庫約（Luján de Cuyo）' },
+  { c: '澳洲', n: '澳洲', en: 'Australia', cl: '多樣：溫暖地中海式到涼爽海洋性', a: ['Barossa', 'Barossa Valley', '巴羅莎', '澳大利亞', '澳大利亚'], g: '希哈（Shiraz）、卡本內蘇維濃、夏多內、麗絲玲、榭密雍', s: '風格多元；巴羅莎谷希哈飽滿、成熟黑色水果與胡椒；克雷爾谷麗絲玲乾型高酸。', e: '巴羅莎谷（Barossa Valley）、庫納瓦拉（Coonawarra）、克雷爾谷（Clare Valley）、獵人谷（Hunter Valley）' },
+  { c: '紐西蘭', n: '紐西蘭', en: 'New Zealand', cl: '涼爽海洋性（日照強、日夜溫差大）', a: ['Marlborough', '馬爾堡', '新西蘭', '新西兰'], g: '白蘇維濃、黑皮諾、夏多內', s: '馬爾堡白蘇維濃：高酸、強烈的醋栗、青草與熱帶水果；中奧塔哥黑皮諾。', e: '馬爾堡（Marlborough）、霍克斯灣（Hawke\'s Bay）、中奧塔哥（Central Otago）' },
+  { c: '南非', n: '南非', en: 'South Africa', cl: '地中海式（受本格拉寒流與海風調節）', a: ['Stellenbosch', 'Swartland'], g: '白詩南、皮諾塔吉、希哈、卡本內蘇維濃', s: '白詩南（當地稱 Steen）為特色；皮諾塔吉為本地特有品種，帶煙燻與黑色水果。', e: '斯泰倫博斯（Stellenbosch）、帕爾（Paarl）、斯瓦特蘭（Swartland）' }
 ];
 const GRAPES = ['卡本內蘇維濃', '梅洛', '卡本內弗朗', '黑皮諾', '希哈／Shiraz', '格那希', '慕維得爾', '田帕尼優', '山吉歐維榭', '內比歐露', '巴貝拉', '馬爾貝克', '卡門內爾', '金芬黛', '加美', '皮諾塔吉',
   '夏多內', '白蘇維濃', '麗絲玲', '白詩南', '榭密雍', '灰皮諾', '格烏茲塔明那', '維歐尼', '阿爾巴利諾', '綠維特利納', '蜜思嘉', '葛雷拉', '米勒圖高', '莫尼耶皮諾', '多切托'];
@@ -591,40 +727,53 @@ const SINGLE = [
 ];
 const MULTI = [
   ['aroma1', '香氣 一類'], ['aroma2', '香氣 二類'], ['aroma3', '香氣 三類'],
-  ['flav1', '風味 一類'], ['flav2', '風味 二類'], ['flav3', '風味 三類']
+  ['flav1', '風味 一類'], ['flav2', '風味 二類'], ['flav3', '風味 三類'],
+  ['l3aroma1', 'L3 香氣 一類'], ['l3aroma2', 'L3 香氣 二類'], ['l3aroma3', 'L3 香氣 三類'],
+  ['l3flav1', 'L3 風味 一類'], ['l3flav2', 'L3 風味 二類'], ['l3flav3', 'L3 風味 三類']
 ];
+const isL3 = w => w.lvl === 3;
+const sv = (w, k) => (isL3(w) && L3SCALE[k]) ? (w.t3 || {})[k] : (w.t || {})[k];   /* 刻度值：L3 模式讀 t3，其餘讀 t（L2 值永遠留著） */
 const showTannin = w => !w.type || w.type === 'red';
 function completeness(w, simple) {
-  const t = w.t || {}, b = w.basic;
-  if (simple) { const s = [!!b.name, !!b.producer, !!b.region, !!b.grape, !!b.vintage, !!t.colour, !!t.nInt, !!t.sweet, !!t.acid, !!t.body, !!t.fInt, !!t.finish, !!t.quality]; if (showTannin(w)) s.push(!!t.tannin); return [s.filter(Boolean).length, s.length]; }
+  const t = w.t || {}, b = w.basic, g = k => sv(w, k), t3 = w.t3 || {};
+  if (simple) { const s = [!!b.name, !!b.producer, !!b.region, !!b.grape, !!b.vintage, !!t.colour, !!g('nInt'), !!g('sweet'), !!g('acid'), !!g('body'), !!g('fInt'), !!g('finish'), !!t.quality]; if (showTannin(w)) s.push(!!g('tannin')); return [s.filter(Boolean).length, s.length]; }
   const it = [!!b.name, !!b.producer, !!b.region, !!b.grape, !!b.vintage,
-    !!t.clarity, !!t.depth, !!t.colour, !!t.clean, !!t.nInt, anyOf(t.aroma1, t.aroma2, t.aroma3, t.aromaNote),
-    !!t.sweet, !!t.acid, !!t.alc, !!t.body, !!t.fInt, anyOf(t.flav1, t.flav2, t.flav3, t.flavNote), !!t.finish,
+    !!t.clarity, !!t.depth, !!t.colour, !!t.clean, !!g('nInt'), anyOf(t.aroma1, t.aroma2, t.aroma3, t.aromaNote, t.l3aroma1, t.l3aroma2, t.l3aroma3),
+    !!g('sweet'), !!g('acid'), !!t.alc, !!g('body'), !!g('fInt'), anyOf(t.flav1, t.flav2, t.flav3, t.flavNote, t.l3flav1, t.l3flav2, t.l3flav3), !!g('finish'),
     !!t.quality, REASONS.some(([k]) => t.qr && t.qr[k] && (t.qr[k].on || t.qr[k].note))];
-  if (showTannin(w)) it.push(!!t.tannin);
+  if (showTannin(w)) it.push(!!g('tannin'));
+  if (isL3(w)) it.push(!!t3.dev, !!t3.ready);
   return [it.filter(Boolean).length, it.length];
 }
 function sameSet(a, b) { a = arr(a); b = arr(b); return a.length === b.length && a.every(x => b.includes(x)); }
-function compareSheets(w, tm, tt) {
-  tm = tm || {}; tt = tt || {};
+/* 對照：mine / teach 都是 { t, t3 }（酒款本身與老師版都有這兩塊）。
+   同為 L3 模式且雙方都有 L3 值 → 直接比 L3 值；否則兩邊都收斂回 L2 的三段再比（只比可對應的項目）。 */
+const pickV = (sh, k, l3) => { const v2 = sh.t[k], v3 = sh.t3[k]; return l3 ? (down3(k, v3) || v2) : (v2 || down3(k, v3)); };
+function compareSheets(w, mine, teach) {
+  const sh = o => ({ t: (o && o.t) || {}, t3: (o && o.t3) || {} });
+  const tm = sh(mine), tt = sh(teach), l3 = isL3(w);
   const rows = []; let same = 0, diff = 0;
   const per = {};
-  for (const [k, label, grp] of SINGLE) {
-    if (k === 'tannin' && !showTannin(w)) continue;
-    const a = tm[k], b = tt[k];
+  const one = (k, label, grp, a, b) => {
     let st = 'none';
     if (a && b) { st = a === b ? 'same' : 'diff'; st === 'same' ? same++ : diff++; per[k] = st === 'same'; }
     else if (a || b) st = 'one';
     if (st !== 'none') rows.push({ k, label, grp, a, b, st, multi: false });
+  };
+  for (const [k, label, grp] of SINGLE) {
+    if (k === 'tannin' && !showTannin(w)) continue;
+    if (l3 && L3SCALE[k] && tm.t3[k] && tt.t3[k]) one(k, label, grp, tm.t3[k], tt.t3[k]);
+    else one(k, label, grp, pickV(tm, k, l3), pickV(tt, k, l3));
   }
+  for (const [k, label, grp] of L3ONLY) one(k, label, grp, tm.t3[k], tt.t3[k]);
   for (const [k, label] of MULTI) {
-    const a = arr(tm[k]), b = arr(tt[k]);
+    const a = arr(tm.t[k]), b = arr(tt.t[k]);
     if (!a.length && !b.length) continue;
     const st = a.length && b.length ? (sameSet(a, b) ? 'same' : 'diff') : 'one';
-    rows.push({ k, label, grp: label.startsWith('香氣') ? '嗅覺' : '味覺', a, b, st, multi: true });
+    rows.push({ k, label, grp: label.includes('香氣') ? '嗅覺' : '味覺', a, b, st, multi: true });
   }
   for (const [k, label] of REASONS) {
-    const a = !!(tm.qr && tm.qr[k] && tm.qr[k].on), b = !!(tt.qr && tt.qr[k] && tt.qr[k].on);
+    const a = !!(tm.t.qr && tm.t.qr[k] && tm.t.qr[k].on), b = !!(tt.t.qr && tt.t.qr[k] && tt.t.qr[k].on);
     if (!a && !b) continue;
     rows.push({ k: 'qr_' + k, label: '品質理由・' + label, grp: '結論', a, b, st: a && b ? 'same' : 'one', multi: false, bool: true });
   }
@@ -632,7 +781,7 @@ function compareSheets(w, tm, tt) {
   return { rows, same, diff, n, pct: n ? Math.round(same / n * 100) : null, per };
 }
 const latestTeacher = w => arr(w.teacher).slice().sort((a, b) => b.createdAt - a.createdAt)[0];
-function wineHit(w) { const t = latestTeacher(w); return t ? compareSheets(w, w.t, t.t) : null; }
+function wineHit(w) { const t = latestTeacher(w); return t ? compareSheets(w, w, t) : null; }
 
 /* ========= 資料 ========= */
 let wines = [];
@@ -640,7 +789,7 @@ function newWine() {
   const n = Date.now();
   return { id: uid('w'), schemaVersion: SCHEMA, createdAt: n, updatedAt: n,
     basic: { date: today(), name: '', producer: '', region: '', grape: '', vintage: '', abv: '', price: '', shop: '', lessonNo: '' },
-    photos: [], type: '', t: {}, mood: { occ: [], with: [], note: '' }, food: { text: '', comp: [], feel: [], spice: '', foodInt: '', acidFat: '' },
+    photos: [], type: '', lvl: 2, t: {}, t3: {}, vw: vwEmpty(), refGrapes: [], mood: { occ: [], with: [], note: '' }, food: { text: '', comp: [], feel: [], spice: '', foodInt: '', acidFat: '' },
     stars: 0, note: '', teacher: [], extra: {} };
 }
 function normalizeWine(w) {
@@ -655,7 +804,10 @@ function normalizeWine(w) {
     const to = { '上課': '上課品飲', '聚餐': '聚會', '自己喝': '獨酌' }[old];
     if (to && !w.mood.occ.length) w.mood.occ = [to];
   }
-  w.t = w.t || {}; w.teacher = arr(w.teacher); w.photos = arr(w.photos); w.extra = w.extra || {};
+  w.t = w.t || {}; w.t3 = w.t3 || {}; w.lvl = w.lvl === 3 ? 3 : 2;
+  w.vw = Object.assign(vwEmpty(), w.vw || {}); w.vw.events = arr(w.vw.events); w.refGrapes = arr(w.refGrapes);
+  w.teacher = arr(w.teacher).map(x => Object.assign({}, x, { t: (x && x.t) || {}, t3: (x && x.t3) || {} }));
+  w.photos = arr(w.photos); w.extra = w.extra || {};
   return w;
 }
 let saveTimer = null, pendingWine = null;
@@ -754,7 +906,7 @@ function renderPath(path) {
       case 'edit': viewForm(app, parts[1]); break;
       case 'wine': viewDetail(app, parts[1]); break;
       case 'teacher': viewTeacher(app, parts[1], parts[2]); break;
-      case 'ref': viewRef(app, parts[1] || 'region'); break;
+      case 'ref': viewRef(app, parts[1] || 'region', parts[2]); break;
       case 'settings': viewSettings(app); break;
       default: viewHome(app);
     }
@@ -772,8 +924,8 @@ function buildBrand() {
 }
 
 /* ========= 酒標辨識：貼上填入（不串 API、不放金鑰；Gemini 讀酒標 → 貼回來 → 解析 → 預覽 → 套用） ========= */
-const LABEL_PROMPT = "你是葡萄酒酒標「抄錄」助手。我會附上一張或多張葡萄酒的酒標、背標或酒瓶照片，你的唯一工作，是把照片上「印出來的文字」整理成下面固定的 JSON。全程使用繁體中文（台灣用語），原文名稱（酒名、酒莊）保留原文拼寫。\n\n【輸出格式】\n只輸出一個 JSON 區塊（用 ```json 包起來），不要加任何其他文字：\n{\"酒名\":\"\",\"酒莊\":\"\",\"國家\":\"\",\"產區\":\"\",\"品種\":[\"\",\"\"],\"年份\":\"\",\"酒精度\":\"\",\"備註\":\"\",\"不確定\":[\"欄位名\"]}\n\n【欄位說明】\n- 酒名：酒標上的酒款名稱（cuvée 或系列名）。沒有獨立酒名時，填酒標上最醒目的名稱。保留原文。\n- 酒莊：生產者或酒廠名稱，保留原文。\n- 國家：繁體中文，例如「法國」「義大利」。\n- 產區：標籤上印的產區或法定產區（AOC、DOC、DO 等），可寫成「中文（原文）」。\n- 品種：陣列，只填標籤上有印的品種，用繁體中文常用譯名。標籤沒印就給空陣列 []。\n- 年份：四位數西元年份；標示 NV 或沒有年份，填 \"NV\"。\n- 酒精度：例如 \"13.5%\"。\n- 備註：只放標籤上印的其他資訊（等級、裝瓶方式、容量、認證），一兩句；沒有就留空字串。\n- 不確定：把「看不太清楚、可能讀錯」的欄位名稱放進這個陣列；都清楚就給空陣列 []。\n\n【規則】\n1. 只抄標籤上看得到的字。看不清楚或標籤上沒有寫的欄位，一律留空（品種留空陣列），絕對不要猜、不要用你的知識補、不要依產區推測品種或年份。\n2. 絕對不要寫任何香氣、風味、口感、顏色描述、評價、評分、適飲期、價格、搭餐建議，也不要介紹酒莊或產區。備註裡也不行。\n3. 欄位名稱固定使用上面的中文，不要改名，也不要增減欄位。\n4. 多張照片視為同一支酒，合併資訊；彼此矛盾時以背標為準，並把該欄位放進「不確定」。\n5. 只回傳 JSON 區塊，不要開場白，也不要結語。";
-const LABEL_SAMPLE = "```json\n{\"酒名\":\"Vieilles Vignes\",\"酒莊\":\"Domaine Exemple\",\"國家\":\"法國\",\"產區\":\"勃根地（Gevrey-Chambertin）\",\"品種\":[],\"年份\":\"2019\",\"酒精度\":\"13%\",\"備註\":\"標籤印有 Vieilles Vignes（老藤）。\",\"不確定\":[]}\n```";
+const LABEL_PROMPT = "你是葡萄酒酒標「抄錄」助手。我會附上一張或多張葡萄酒的酒標、背標或酒瓶照片，你的主要工作，是把照片上「印出來的文字」整理成下面固定的 JSON。另外有一個獨立欄位「產區可能品種（參考）」，是你給的參考建議，和標籤文字分開處理（規則見下）。全程使用繁體中文（台灣用語），原文名稱（酒名、酒莊）保留原文拼寫。\n\n【輸出格式】\n只輸出一個 JSON 區塊（用 ```json 包起來），不要加任何其他文字：\n{\"酒名\":\"\",\"酒莊\":\"\",\"國家\":\"\",\"產區\":\"\",\"品種\":[\"\",\"\"],\"年份\":\"\",\"酒精度\":\"\",\"產區可能品種（參考）\":[\"\",\"\"],\"備註\":\"\",\"不確定\":[\"欄位名\"]}\n\n【欄位說明】\n- 酒名：酒標上的酒款名稱（cuvée 或系列名）。沒有獨立酒名時，填酒標上最醒目的名稱。保留原文。\n- 酒莊：生產者或酒廠名稱，保留原文。\n- 國家：繁體中文，例如「法國」「義大利」。\n- 產區：標籤上印的產區或法定產區（AOC、DOC、DO 等），可寫成「中文（原文）」。\n- 品種：陣列，只填標籤上有印的品種，用繁體中文常用譯名。標籤沒印就給空陣列 []。\n- 年份：四位數西元年份；標示 NV 或沒有年份，填 \"NV\"。\n- 酒精度：例如 \"13.5%\"。\n- 產區可能品種（參考）：陣列。只有在標籤上有明確產區（例如法定產區名，或清楚的產區名稱）時才給；列出該法定產區或產區常見的葡萄品種，最多 6 個，由常見到少見排，繁體中文常用譯名。這不是標籤上的資訊，只是給我參考；沒有明確產區、或你不確定時，一律給空陣列 []。\n- 備註：只放標籤上印的其他資訊（等級、裝瓶方式、容量、認證），一兩句；沒有就留空字串。\n- 不確定：把「看不太清楚、可能讀錯」的標籤欄位名稱放進這個陣列；都清楚就給空陣列 []。不要把「產區可能品種（參考）」放進來。\n\n【規則】\n1. 除了「產區可能品種（參考）」之外，只抄標籤上看得到的字。看不清楚或標籤上沒有寫的欄位，一律留空（品種留空陣列），絕對不要猜、不要用你的知識補、不要依產區推測品種或年份。\n2. 「產區可能品種（參考）」只能放在它自己的欄位。標籤沒印品種時，「品種」仍然給空陣列，不要把參考品種搬進「品種」。\n3. 絕對不要寫任何香氣、風味、口感、顏色描述、評價、評分、適飲期、價格、搭餐建議，也不要介紹酒莊或產區。備註裡也不行。\n4. 欄位名稱固定使用上面的中文，不要改名，也不要增減欄位。\n5. 多張照片視為同一支酒，合併資訊；彼此矛盾時以背標為準，並把該欄位放進「不確定」。\n6. 只回傳 JSON 區塊，不要開場白，也不要結語。";
+const LABEL_SAMPLE = "```json\n{\"酒名\":\"Vieilles Vignes\",\"酒莊\":\"Domaine Exemple\",\"國家\":\"法國\",\"產區\":\"勃根地（Gevrey-Chambertin）\",\"品種\":[],\"年份\":\"2019\",\"酒精度\":\"13%\",\"產區可能品種（參考）\":[\"黑皮諾\"],\"備註\":\"標籤印有 Vieilles Vignes（老藤）。\",\"不確定\":[]}\n```";
 /* [代號, 顯示名, 可接受的欄位名別名] */
 const LF = [
   ['name', '酒名', ['酒名', '名稱', '酒款', '酒款名稱', 'name', 'winename', 'wine', 'cuvee', 'cuvée']],
@@ -783,10 +935,12 @@ const LF = [
   ['grape', '品種', ['品種', '品种', '葡萄品種', '葡萄品种', 'grape', 'grapes', 'variety', 'varieties']],
   ['vintage', '年份', ['年份', '年分', 'vintage', 'year']],
   ['abv', '酒精度', ['酒精度', '酒精', '酒精濃度', '酒精浓度', 'abv', 'alcohol']],
+  ['regionGrapes', '產區可能品種（參考）', ['產區可能品種（參考）', '產區可能品種', '產區常見品種（參考）', '產區常見品種', '產區品種', '可能品種', '參考品種', '產區可能品種參考', 'region grapes', 'regiongrapes', 'possible grapes', 'typical grapes', 'regional grapes']],
   ['note', '備註', ['備註', '备注', '註記', 'notes', 'note', 'comment', 'comments']],
   ['unsure', '不確定', ['不確定', '不确定', '不確定欄位', 'uncertain', 'unsure']]
 ];
-const lfKey = s => { const n = String(s).toLowerCase().replace(/[\s　"'“”‘’「」『』*_`:：]/g, ''); const f = LF.find(r => r[2].some(a => a.toLowerCase().replace(/\s/g, '') === n)); return f ? f[0] : null; };
+const lfNorm = s => String(s).toLowerCase().replace(/[\s　"'“”‘’「」『』*_`:：()（）]/g, '');
+const lfKey = s => { const n = lfNorm(s); const f = LF.find(r => r[2].some(a => lfNorm(a) === n)); return f ? f[0] : null; };
 const lfLabel = k => (LF.find(r => r[0] === k) || [0, k])[1];
 
 /* 寬鬆 JSON：容許單引號、全形引號、中文冒號／逗號、沒引號的 key、尾逗號、少逗號 */
@@ -848,14 +1002,16 @@ function lineParse(text) {
     const isList = /^[\[［].*[\]］]$/.test(v);
     v = v.replace(/^[\[［]|[\]］]$/g, '').trim();
     v = v.replace(/^["'“”‘’「『]+|["'“”‘’」』]+$/g, '').trim();
-    out[k] = isList || k === 'grape' || k === 'unsure' ? v.split(/\s*[、,，;；]\s*/).map(x => x.replace(/^["'“”‘’「『]+|["'“”‘’」』]+$/g, '').trim()).filter(Boolean) : v;
+    out[k] = isList || k === 'grape' || k === 'unsure' || k === 'regionGrapes' ? v.split(/\s*[、,，;；]\s*/).map(x => x.replace(/^["'“”‘’「『]+|["'“”‘’」』]+$/g, '').trim()).filter(Boolean) : v;
   });
   return out;
 }
 const EMPTYV = /^(無|无|未知|不明|不詳|不详|未標示|未标示|看不清|看不清楚|n\/?a|null|none|unknown|[-—－])$/i;
 const cs = v => { if (Array.isArray(v)) v = v.map(cs).filter(Boolean).join('、'); else if (v && typeof v === 'object') return ''; v = String(v == null ? '' : v).trim(); return EMPTYV.test(v) ? '' : v; };
 function normLabel(raw) {
-  const d = { name: cs(raw.name), producer: cs(raw.producer), country: cs(raw.country), region: cs(raw.region), grape: [], vintage: '', abv: '', note: cs(raw.note), unsure: [] };
+  const d = { name: cs(raw.name), producer: cs(raw.producer), country: cs(raw.country), region: cs(raw.region), grape: [], regionGrapes: [], vintage: '', abv: '', note: cs(raw.note), unsure: [] };
+  const rg = raw.regionGrapes; const rl = Array.isArray(rg) ? rg : typeof rg === 'string' ? rg.split(/[、,，;；]+/) : [];
+  d.regionGrapes = [...new Set(rl.map(cs).filter(Boolean).map(normGrape))].slice(0, 6);
   const g = raw.grape; const gl = Array.isArray(g) ? g : typeof g === 'string' ? g.split(/[、,，;；]+/) : [];
   d.grape = [...new Set(gl.map(cs).filter(Boolean).map(normGrape))];
   const vs = cs(raw.vintage);
@@ -925,6 +1081,13 @@ function buildAiPanel(w, onApply, prefill) {
     const plan = aiPlan(w, res.d);
     if (!plan.rows.length) { showErr('有讀到格式，但每個欄位都是空的（Gemini 可能沒看清楚酒標）。換一張更清楚的照片再問一次。'); return; }
     const checks = [];
+    const sel = new Set();
+    const cand = res.d.regionGrapes;
+    const shown = cand.filter(g => !res.d.grape.includes(g));
+    const refBlock = shown.length ? h('div', { class: 'l3blk', id: 'refGrapeBlock' },
+      h('div', { class: 'l3h' }, h('span', { class: 'pill info' }, '產區可能品種（參考，非標籤）')),
+      h('div', { class: 'chips' }, shown.map(g => { const b = h('button', { type: 'button', class: 'chip l3', 'aria-pressed': 'false', onclick: () => { if (sel.has(g)) sel.delete(g); else sel.add(g); b.classList.toggle('on', sel.has(g)); b.setAttribute('aria-pressed', sel.has(g)); } }, g); return b; })),
+      h('div', { class: 'small muted' }, '這是 AI 依產區給的參考，不是標籤上的資訊。預設都沒勾，點選的才會加進「品種」欄。')) : null;
     const list = h('div', { class: 'prev' });
     plan.rows.forEach(r => {
       const cb = h('input', { type: 'checkbox', id: 'aic_' + r.k, 'aria-label': '套用' + r.label, checked: !r.same && !r.old, disabled: r.same });
@@ -943,14 +1106,21 @@ function buildAiPanel(w, onApply, prefill) {
         if (r.k === 'note') w.note = r.append ? w.note.trim() + '\n' + r.val : r.val; else w.basic[r.k] = r.val;
         done.push(r.k);
       });
+      if (sel.size) {
+        const cur = String(w.basic.grape || '').split(/[、,，;；]+/).map(x => x.trim()).filter(Boolean);
+        sel.forEach(g => { if (!cur.includes(g)) cur.push(g); });
+        w.basic.grape = cur.join('、'); if (!done.includes('grape')) done.push('grape');
+      }
       if (!done.length) { toast('沒有勾選任何欄位'); return; }
+      if (cand.length) w.refGrapes = cand.slice();
       onApply(done);
       out.innerHTML = ''; out.append(h('div', { class: 'note ok', role: 'status' }, '已套用：' + done.map(lfLabel).join('、') + '。可以直接在上面的欄位修改。'));
       ta.value = '';
     } }, '套用勾選的欄位');
     out.append(h('div', { class: 'small muted' }, '解析方式：' + res.mode + '。已有內容的欄位預設不覆蓋，要換就勾選。'),
       list,
-      plan.missing.includes('品種') ? h('div', { class: 'note info' }, '品種：標籤沒印，請自行補（在「品種」欄選或輸入，也可以查課本）。') : null,
+      plan.missing.includes('品種') ? h('div', { class: 'note info' }, '品種：標籤沒印，請自行補（在「品種」欄選或輸入，也可以查課本）' + (cand.length ? '，或參考下面的產區可能品種。' : '。')) : null,
+      refBlock,
       plan.missing.filter(x => x !== '品種').length ? h('div', { class: 'small muted' }, '沒讀到（留空）：' + plan.missing.filter(x => x !== '品種').join('、')) : null,
       h('div', { class: 'btnrow' }, apply));
   };
@@ -1034,7 +1204,7 @@ function colourDot(type, name) {
 
 /* ========= 共用元件 ========= */
 function seg(ctx, key, opts, extra = {}) {
-  const wrap = h('div', { class: 'seg' + (opts.length > 5 || extra.colors ? ' wrapb' : ''), role: 'group' });
+  const wrap = h('div', { class: 'seg' + (extra.wrap ? ' two2' : (opts.length > 5 || extra.colors) ? ' wrapb' : opts.length === 5 ? ' five' : ''), role: 'group' });
   opts.forEach((o, i) => {
     const b = h('button', { type: 'button', class: ctx.t[key] === o ? 'on' : '', 'aria-pressed': ctx.t[key] === o ? 'true' : 'false',
       onclick: () => {
@@ -1046,12 +1216,12 @@ function seg(ctx, key, opts, extra = {}) {
   });
   return wrap;
 }
-function chipsMulti(ctx, key, items, keyFn, gname) {
+function chipsMulti(ctx, key, items, keyFn, gname, cls) {
   const wrap = h('div', { class: 'chips' });
   items.forEach(it => {
     const v = keyFn ? keyFn(it) : it;
     const on = arr(ctx.t[key]).includes(v);
-    const b = h('button', { type: 'button', class: 'chip' + (on ? ' on' : ''), 'aria-pressed': on, onclick: () => {
+    const b = h('button', { type: 'button', class: 'chip' + (cls ? ' ' + cls : '') + (on ? ' on' : ''), 'aria-pressed': on, onclick: () => {
       const a = arr(ctx.t[key]).slice(); const i = a.indexOf(v);
       if (i >= 0) a.splice(i, 1); else a.push(v);
       ctx.t[key] = a; b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', i < 0);
@@ -1062,19 +1232,44 @@ function chipsMulti(ctx, key, items, keyFn, gname) {
   });
   return wrap;
 }
+/* 開關（role=switch）：label 主文字、sub 小字 */
+function toggle(label, sub, on, onClick) {
+  const b = h('button', { type: 'button', class: 'tog', role: 'switch', 'aria-checked': on ? 'true' : 'false', onclick: () => onClick(b) },
+    h('span', { class: 'knob', 'aria-hidden': 'true' }), h('span', { class: 'tl' }, label, sub ? h('small', null, sub) : null));
+  return b;
+}
 function grp(label, ...kids) { return h('div', { class: 'grp' }, h('div', { class: 'lbl' }, label), kids); }
 function lay(ctx, keyPrefix, layer, type) {
-  const key = keyPrefix + (layer + 1);
+  const key = keyPrefix + (layer + 1), key3 = 'l3' + key;
   let groups = VOC[layer];
   if (layer === 2) groups = type === 'red' ? groups.filter(g => g[0] !== '白酒') : (type === 'white' || type === 'rose' || type === 'sparkling') ? groups.filter(g => g[0] !== '紅酒') : groups;
   const badge = h('span', { class: 'badge' });
   const d = h('details', { class: 'lay' });
-  const upd = () => { const n = arr(ctx.t[key]).length; badge.textContent = n; badge.hidden = !n; };
+  const upd = () => { const n = arr(ctx.t[key]).length + arr(ctx.t[key3]).length; badge.textContent = n; badge.hidden = !n; };
   d._upd = upd; upd();
-  if (arr(ctx.t[key]).length) d.open = true;
+  if (arr(ctx.t[key]).length || arr(ctx.t[key3]).length) d.open = true;
   d.append(h('summary', null, LAYER_TITLE[layer], badge));
   const body = h('div', { class: 'body' });
-  groups.forEach(([g, items]) => body.append(h('div', null, h('div', { class: 'gl' }, groupIcon(g), g), chipsMulti(ctx, key, items, it => g + '|' + it, g))));
+  const fill = () => {
+    body.innerHTML = '';
+    const picks = arr(ctx.t[key3]).length;
+    if (S.l3Vocab || picks) {
+      const on = !!S.l3Cat[key] || !!picks;
+      body.append(toggle('L3 詳細詞彙', picks ? '已勾選的 L3 詞彙會一直顯示' : '展開這一類的 L3 條目（待對課本）', on, () => {
+        if (picks) { toast('這一類已有勾選的 L3 詞彙，所以會一直顯示'); return; }
+        S.l3Cat[key] = !S.l3Cat[key]; saveSettings(); fill();
+      }));
+    }
+    const showL3 = (S.l3Vocab && S.l3Cat[key]) || arr(ctx.t[key3]).length;
+    groups.forEach(([g, items]) => {
+      const div = h('div', null, h('div', { class: 'gl' }, groupIcon(g), g), chipsMulti(ctx, key, items, it => g + '|' + it, g));
+      if (showL3) L3_VOC[layer].filter(c => c.g === g).forEach(c => div.append(h('div', { class: 'l3blk' },
+        h('div', { class: 'l3h' }, h('span', { class: 'pill info' }, 'L3' + (c.sub ? '・' + c.sub : '')), S.showTodo ? h('span', { class: 'pill warn' }, '待對課本') : null, h('span', null, c.cl)),
+        chipsMulti(ctx, key3, c.items, it => g + '|' + it, g, 'l3'))));
+      body.append(div);
+    });
+  };
+  fill();
   d.append(body); return d;
 }
 const vlabel = v => String(v).split('|').pop();
@@ -1086,6 +1281,18 @@ function buildSheet(ctx, w, mode) {
   const type = w.type;
   const colOpts = type ? COLOURS[type] : null;
   const subs = subHead;
+  const L3 = isL3(w) && !!ctx.t3;
+  const c3 = L3 ? { t: ctx.t3, onChange: ctx.onChange } : null;
+  /* 刻度：L3 模式用 5 段（資料存 t3），否則用 L2 三段 */
+  const sc = (key, label, l2opts) => {
+    if (!(L3 && L3SCALE[key])) return grp(label, seg(ctx, key, l2opts));
+    const hint = h('span', { class: 'seeded' });
+    const showH = () => { hint.textContent = ctx.t3._seeded && ctx.t3._seeded[key] ? '（由 L2 近似帶入，請確認）' : ''; };
+    showH();
+    const g = grp(label, seg({ t: ctx.t3, onChange: k => { if (ctx.t3._seeded) delete ctx.t3._seeded[k]; showH(); ctx.onChange(k); } }, key, OPT3[L3SCALE[key]]));
+    g.firstChild.append(hint); return g;
+  };
+  if (L3) root.append(h('div', { class: 'note info small' }, 'L3 模式：刻度多了「中-」「中+」，甜度多到六段；酒精在 L3 官方表仍是低／中／高。L2 的值另外留著，隨時可切回去。用語待對課本。'));
   /* 視覺 */
   root.append(subs('視覺'));
   if (full) root.append(grp('澄清度', seg(ctx, 'clarity', OPT.clarity)));
@@ -1097,32 +1304,37 @@ function buildSheet(ctx, w, mode) {
   /* 嗅覺 */
   root.append(subs('嗅覺'));
   if (full) root.append(grp('純淨度', seg(ctx, 'clean', OPT.clean)));
-  root.append(grp('香氣濃度', seg(ctx, 'nInt', OPT.inten)));
+  root.append(sc('nInt', '香氣濃度', OPT.inten));
+  if (L3 && full) root.append(grp('發展程度', seg(c3, 'dev', OPT3.dev)));
   if (full) {
-    root.append(grp('香氣特徵', [0, 1, 2].map(i => lay(ctx, 'aroma', i, type)),
+    root.append(grp('香氣特徵',
+      toggle('L3 詳細詞彙', '展開 L3 條目，香氣與風味都適用（記住你的選擇）', !!S.l3Vocab, () => { S.l3Vocab = !S.l3Vocab; saveSettings(); (ctx.redraw || (() => {}))(); }),
+      [0, 1, 2].map(i => lay(ctx, 'aroma', i, type)),
       h('input', { type: 'text', id: 'aromaNote', placeholder: '其他香氣（自由補充）', value: ctx.t.aromaNote || '', 'aria-label': '其他香氣', oninput: e => { ctx.t.aromaNote = e.target.value; ctx.onChange('aromaNote'); } })));
   }
   /* 味覺 */
   root.append(subs('味覺'));
-  root.append(grp('甜度', seg(ctx, 'sweet', OPT.sweet)));
-  root.append(grp('酸度', seg(ctx, 'acid', OPT.lmh)));
-  if (showTannin(w)) root.append(grp('單寧', seg(ctx, 'tannin', OPT.lmh)));
+  root.append(sc('sweet', '甜度', OPT.sweet));
+  root.append(sc('acid', '酸度', OPT.lmh));
+  if (showTannin(w)) root.append(sc('tannin', '單寧', OPT.lmh));
   else {
-    const d = h('details', { class: 'lay' }); if (ctx.t.tannin) d.open = true;
-    d.append(h('summary', null, '單寧（' + TYPE_NAME[type] + '通常不需要，點開才填）'), h('div', { class: 'body' }, seg(ctx, 'tannin', OPT.lmh)));
+    const d = h('details', { class: 'lay' }); if (sv(w, 'tannin')) d.open = true;
+    d.append(h('summary', null, '單寧（' + TYPE_NAME[type] + '通常不需要，點開才填）'), h('div', { class: 'body' }, sc('tannin', '單寧', OPT.lmh)));
     root.append(d);
   }
   if (full) root.append(grp('酒精', seg(ctx, 'alc', OPT.lmh)));
-  root.append(grp('酒體', seg(ctx, 'body', OPT.body)));
-  root.append(grp('風味濃度', seg(ctx, 'fInt', OPT.inten)));
+  root.append(sc('body', '酒體', OPT.body));
+  if (L3 && type === 'sparkling') root.append(grp('氣泡（mousse）', seg(c3, 'mousseL3', OPT3.mousse)));
+  root.append(sc('fInt', '風味濃度', OPT.inten));
   if (full) {
     root.append(grp('風味特徵', [0, 1, 2].map(i => lay(ctx, 'flav', i, type)),
       h('input', { type: 'text', id: 'flavNote', placeholder: '其他風味（自由補充）', value: ctx.t.flavNote || '', 'aria-label': '其他風味', oninput: e => { ctx.t.flavNote = e.target.value; ctx.onChange('flavNote'); } })));
   }
-  root.append(grp('餘味', seg(ctx, 'finish', OPT.finish)));
+  root.append(sc('finish', '餘味', OPT.finish));
   /* 結論 */
   root.append(subs('結論'));
   root.append(grp('品質水平', seg(ctx, 'quality', OPT.quality)));
+  if (L3) root.append(grp('適飲期／陳年潛力', seg(c3, 'ready', OPT3.ready, { wrap: true })));
   if (full) {
     const g = grp('品質理由');
     ctx.t.qr = ctx.t.qr || {};
@@ -1137,7 +1349,7 @@ function buildSheet(ctx, w, mode) {
 }
 
 /* ========= 首頁（手冊） ========= */
-let filt = { q: '', type: '', mocc: '', mwith: '', region: '', stars: '', from: '', to: '' };
+let filt = { q: '', type: '', mocc: '', mwith: '', region: '', stars: '', from: '', to: '', vwTemp: '', vwRain: '' };
 function viewHome(app) {
   const frag = h('div', { class: 'stack' });
   if (Store.mode === 'mem') frag.append(h('div', { class: 'banner' }, h('div', { class: 'sp' }, '這個環境無法永久儲存（' + (Store.err && Store.err.message || '未知原因') + '）。目前的筆記只存在這個分頁，關掉就沒了。請常用「設定 → 匯出備份」。')));
@@ -1164,24 +1376,28 @@ function viewHome(app) {
   }
   /* 篩選 */
   const regions = [...new Set(wines.map(w => displayRegion(w.basic.region)).filter(Boolean))];
-  const nAct = ['type', 'mocc', 'mwith', 'region', 'stars', 'from', 'to'].filter(k => filt[k]).length;
+  const nAct = ['type', 'mocc', 'mwith', 'region', 'stars', 'from', 'to', 'vwTemp', 'vwRain'].filter(k => filt[k]).length;
   const search = h('input', { type: 'search', id: 'fq', placeholder: '搜尋酒名／酒莊／產區／品種', value: filt.q, 'aria-label': '搜尋', style: 'margin-bottom:10px', oninput: e => { filt.q = e.target.value; renderList(); } });
   const f = h('div', { class: 'filters' },
     h('select', { id: 'ftype', 'aria-label': '酒種', onchange: e => { filt.type = e.target.value; renderList(); } }, h('option', { value: '' }, '全部酒種'), TYPES.map(([k, l]) => h('option', { value: k, selected: filt.type === k }, l))),
     h('select', { id: 'fmocc', 'aria-label': '場合', onchange: e => { filt.mocc = e.target.value; renderList(); } }, h('option', { value: '' }, '全部場合'), MOOD_OCC.map(o => h('option', { value: o, selected: filt.mocc === o }, o))),
     h('select', { id: 'fmwith', 'aria-label': '和誰喝', onchange: e => { filt.mwith = e.target.value; renderList(); } }, h('option', { value: '' }, '不限和誰喝'), MOOD_WITH.map(o => h('option', { value: o, selected: filt.mwith === o }, o))),
     h('select', { id: 'freg', 'aria-label': '產區', onchange: e => { filt.region = e.target.value; renderList(); } }, h('option', { value: '' }, '全部產區'), regions.map(o => h('option', { value: o, selected: filt.region === o }, o))),
+    h('select', { id: 'fvt', 'aria-label': '年份溫度', onchange: e => { filt.vwTemp = e.target.value; renderList(); } }, h('option', { value: '' }, '年份溫度不限'), VW_TEMP.map(o => h('option', { value: o, selected: filt.vwTemp === o }, '年份' + o))),
+    h('select', { id: 'fvr', 'aria-label': '年份降雨', onchange: e => { filt.vwRain = e.target.value; renderList(); } }, h('option', { value: '' }, '年份降雨不限'), VW_RAIN.map(o => h('option', { value: o, selected: filt.vwRain === o }, '年份' + o))),
     h('select', { id: 'fst', 'aria-label': '星數', onchange: e => { filt.stars = e.target.value; renderList(); } }, h('option', { value: '' }, '不限星數'), [5, 4, 3, 2, 1].map(n => h('option', { value: n, selected: String(filt.stars) === String(n) }, n + ' 星以上'))),
     h('div', { class: 'dates' },
       h('label', { class: 'f' }, '從', h('input', { type: 'date', id: 'ffrom', value: filt.from, onchange: e => { filt.from = e.target.value; renderList(); } })),
       h('label', { class: 'f' }, '到', h('input', { type: 'date', id: 'fto', value: filt.to, onchange: e => { filt.to = e.target.value; renderList(); } }))));
-  frag.append(search, h('details', { class: 'fl', open: nAct > 0 }, h('summary', null, '篩選（酒種、場合、和誰喝、產區、星數、日期）', nAct ? h('span', { class: 'badge' }, nAct + ' 項') : null), f));
+  frag.append(search, h('details', { class: 'fl', open: nAct > 0 }, h('summary', null, '篩選（酒種、場合、和誰喝、產區、年份天氣、星數、日期）', nAct ? h('span', { class: 'badge' }, nAct + ' 項') : null), f));
   const info = h('div', { class: 'small muted', id: 'listinfo' });
   const list = h('div', { class: 'list', id: 'wlist' });
   frag.append(info, list);
   app.append(frag);
   renderList();
 }
+const vwHas = v => !!v && anyOf(v.temp, v.rain, v.events, v.harvest, v.hrain, v.yield, v.ripe, v.quality, v.note);
+const vwText = w => { const v = w.vw; return vwHas(v) ? ['年份', v.temp, v.rain, ...arr(v.events), v.harvest && '收穫' + v.harvest, v.hrain, v.yield && '產量' + v.yield, v.ripe, v.quality && '葡萄品質' + v.quality, v.note].filter(Boolean).join(' ') : ''; };
 function regSearch(s) { const r = s && findRegion(s); return r ? [r.n, r.en].concat(r.a).join(' ') : ''; }
 function grapeSearch(s) { return String(s || '').split(/[、,，;；]+/).map(x => { const c = normGrape(x.trim()); return c && GRAPE_ALIAS[c] ? [c].concat(GRAPE_ALIAS[c]).join(' ') : ''; }).join(' '); }
 function renderList() {
@@ -1189,12 +1405,14 @@ function renderList() {
   const q = filt.q.trim().toLowerCase();
   const rows = wines.filter(w => {
     const b = w.basic;
-    if (q && ![b.name, b.producer, b.region, b.grape, regSearch(b.region), grapeSearch(b.grape), arr((w.mood || {}).occ).join(' '), arr((w.mood || {}).with).join(' '), (w.mood || {}).note || ''].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![b.name, b.producer, b.region, b.grape, regSearch(b.region), grapeSearch(b.grape), arr((w.mood || {}).occ).join(' '), arr((w.mood || {}).with).join(' '), (w.mood || {}).note || '', vwText(w)].join(' ').toLowerCase().includes(q)) return false;
     if (filt.type && w.type !== filt.type) return false;
     const md = w.mood || {};
     if (filt.mocc && !arr(md.occ).includes(filt.mocc)) return false;
     if (filt.mwith && !arr(md.with).includes(filt.mwith)) return false;
     if (filt.region && displayRegion(b.region) !== filt.region) return false;
+    if (filt.vwTemp && (w.vw || {}).temp !== filt.vwTemp) return false;
+    if (filt.vwRain && (w.vw || {}).rain !== filt.vwRain) return false;
     if (filt.stars && (w.stars || 0) < +filt.stars) return false;
     if (filt.from && b.date < filt.from) return false;
     if (filt.to && b.date > filt.to) return false;
@@ -1223,7 +1441,7 @@ function hitStats() {
   const acc = {}; let wcount = 0, S1 = 0, N1 = 0;
   wines.forEach(w => {
     const t = latestTeacher(w); if (!t) return; wcount++;
-    const c = compareSheets(w, w.t, t.t);
+    const c = compareSheets(w, w, t);
     c.rows.forEach(r => { if (r.multi || r.bool || r.st === 'one' || r.st === 'none') return; const a = acc[r.k] = acc[r.k] || { label: r.label, s: 0, n: 0 }; a.n++; if (r.st === 'same') a.s++; });
   });
   const items = Object.values(acc).map(a => ({ ...a, pct: Math.round(a.s / a.n * 100) })).sort((a, b) => a.pct - b.pct);
@@ -1237,8 +1455,9 @@ function viewForm(app, id) {
   if (id) { w = wines.find(x => x.id === id); if (!w) { app.append(h('div', { class: 'card' }, '手冊裡找不到這杯酒。', h('button', { class: 'btn', onclick: () => go('/') }, '回手冊'))); return; } }
   else w = newWine();
   const isNew = !id;
+  if (isNew) w.lvl = S.defLvl === 3 ? 3 : 2;
   const mode = () => S.mode;
-  const ctx = { t: w.t, onChange: () => { touch(w); updProg(); } };
+  const ctx = { t: w.t, t3: w.t3, onChange: () => { touch(w); updProg(); }, redraw: () => drawSheet() };
   const prog = h('span', { class: 'pill prog', id: 'prog' });
   const updProg = () => { const [d, t] = completeness(w, S.mode === 'simple'); prog.textContent = '完整度 ' + d + '/' + t; prog.style.setProperty('--p', Math.round(d / t * 100) + '%'); };
   const modeSeg = h('div', { class: 'seg mode', role: 'group', 'aria-label': '顯示模式' },
@@ -1290,7 +1509,7 @@ function viewForm(app, id) {
   const aiApplied = keys => {
     const setv = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
     keys.forEach(k => { if (k === 'note') setv('note', w.note); else setv('b_' + k, w.basic[k]); });
-    touch(w); updProg(); showRegion();
+    touch(w); updProg(); showRegion(); showRefLine();
     toast('已填入 ' + keys.length + ' 個欄位');
   };
   const prefill = window._prefillReply || ''; window._prefillReply = '';
@@ -1305,6 +1524,7 @@ function viewForm(app, id) {
       h('label', { class: 'f full', for: 'b_region' }, '產區', regionInput),
       h('div', { class: 'full' }, regionCard),
       h('label', { class: 'f full', for: 'b_grape' }, '品種', h('input', { type: 'text', id: 'b_grape', list: 'dl_grape', placeholder: '可輸入多個，用「、」分開', value: w.basic.grape || '', autocomplete: 'off', oninput: set(w.basic, 'grape') })),
+      h('div', { class: 'full small muted', id: 'refGrapeLine' }),
       fin('酒精度', 'abv', 'text', { attrs: { placeholder: '例：13.5%' } }),
       fin('價格', 'price', 'text', { attrs: { inputmode: 'decimal', placeholder: 'NT$' } }),
       fin('購買處', 'shop', 'text'),
@@ -1314,6 +1534,8 @@ function viewForm(app, id) {
       photoBox,
       h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', onclick: () => camIn.click() }, '拍照'), h('button', { type: 'button', class: 'btn', onclick: () => galIn.click() }, '從相簿選'), camIn, galIn)));
   showRegion();
+  const showRefLine = () => { const e = document.getElementById('refGrapeLine'); if (e) e.textContent = arr(w.refGrapes).length ? '產區常見品種（參考，非標籤）：' + w.refGrapes.join('、') : ''; };
+  showRefLine();
 
   /* B 品鑑 */
   const sheetHolder = h('div');
@@ -1326,9 +1548,17 @@ function viewForm(app, id) {
     } }, l)));
   const drawSheet = () => { sheetHolder.innerHTML = ''; sheetHolder.append(buildSheet(ctx, w, mode())); };
   drawSheet();
+  const lvlBtns = [2, 3].map(n => h('button', { type: 'button', class: w.lvl === n ? 'on' : '', 'aria-pressed': w.lvl === n, onclick: () => {
+    if (w.lvl === n) return;
+    w.lvl = n; if (n === 3) seedL3(w);
+    lvlBtns.forEach((b, i) => { const on = [2, 3][i] === w.lvl; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+    drawSheet(); touch(w); updProg();
+  } }, n === 2 ? 'L2（第二級）' : 'L3（第三級）'));
   const secB = h('section', { class: 'sec area-b' },
     h('h2', null, 'WSET 品鑑', h('small', null, mode() === 'simple' ? '簡易：只顯示重點項目，切到「完整」可補填' : '完整：全部項目')),
-    h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '酒種'), typeSeg), sheetHolder);
+    h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '酒種'), typeSeg),
+    h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '品鑑層級（L3 為 5 段刻度，可隨時切換）'), h('div', { class: 'seg' }, lvlBtns)),
+    sheetHolder);
 
   /* C 食物 + 喜好 */
   const moodSec = h('section', { class: 'sec', id: 'moodSec' }, h('h2', null, '這杯的心情', h('small', null, '日常記錄用，不列入完整度與老師版對照')),
@@ -1340,8 +1570,79 @@ function viewForm(app, id) {
       starPicker(w, () => touch(w)),
       h('label', { class: 'f', for: 'note' }, '備註', h('textarea', { id: 'note', placeholder: '想記的任何事', oninput: e => { w.note = e.target.value; touch(w); } }, w.note || ''))));
 
-  app.append(top, h('div', { class: 'grid2f' }, h('div', { class: 'stack area-a' }, secA, moodSec), secB, secC));
+  const vwSec = buildVwSection(w, mode(), () => touch(w));
+  app.append(top, h('div', { class: 'grid2f' }, h('div', { class: 'stack area-a' }, secA, moodSec, vwSec), secB, secC));
   updProg();
+}
+/* 第一次切到 L3：把 L2 的三段值近似帶入（不覆蓋已有的 L3 值），並標記「由 L2 帶入」 */
+function seedL3(w) {
+  w.t3 = w.t3 || {};
+  for (const k in L3SCALE) {
+    if (w.t[k] && !w.t3[k]) { w.t3[k] = up3(k, w.t[k]); (w.t3._seeded = w.t3._seeded || {})[k] = true; }
+  }
+}
+/* 年份天氣（每支酒）。可一鍵帶入年份參考表（產區＋年份對得上才有） */
+const REF_MAP = { '波爾多': 'bordeaux', '勃根地': 'burgundy', '香檳': 'champagne', '隆河': 'rhone', '羅亞爾河': 'loire', '阿爾薩斯': 'alsace', '皮蒙特': 'piedmont', '托斯卡尼': 'tuscany', '里奧哈': 'rioja', '德國': 'germany', '加州': 'california', '智利': 'chile', '阿根廷': 'argentina', '澳洲': 'australia', '紐西蘭': 'newzealand', '南非': 'southafrica' };
+function refMatch(w) {
+  const r = findRegion(w.basic.region); if (!r) return null;
+  const ref = VINTAGE_REF.regions.find(x => x.id === REF_MAP[r.n]); if (!ref) return null;
+  const y = parseInt(w.basic.vintage, 10); if (!(y >= VINTAGE_REF.from && y <= VINTAGE_REF.to)) return null;
+  return { ref, year: y };
+}
+const Q2GRAPE = { '卓越': '極好', '佳': '很好', '普通': '普通', '弱': '差' };
+function fillVwFromRef(v, cell, key) {
+  const c = arr(cell.climate);
+  v.temp = c.includes('偏熱') ? '偏熱' : c.includes('偏冷') ? '偏冷' : c.includes('正常') ? '正常' : '';
+  v.rain = c.includes('多雨') ? '多雨' : (c.includes('少雨') || c.includes('乾旱')) ? '少雨' : c.includes('正常') ? '正常' : '';
+  v.events = ['春霜', '冰雹', '乾旱', '熱浪', '病害', '日照不足', '野火'].filter(x => c.includes(x));
+  v.hrain = c.includes('收穫期下雨') ? '收穫期有下雨' : '';
+  v.quality = Q2GRAPE[cell.q] || '';
+  v.note = (cell.note && cell.note !== '—' ? cell.note : '') + (cell.q === '不均' ? '（年份參考表：品質不均）' : '');
+  v.ref = key;
+}
+const refLabel = key => { const [rid, tid, y] = String(key).split('|'); const r = VINTAGE_REF.regions.find(x => x.id === rid); const t = r && r.tracks.find(x => x.id === tid); return r ? r.name + (t && r.tracks.length > 1 ? '・' + t.label : '') + '・' + y : key; };
+function buildVwSection(w, mode, cb) {
+  const v = w.vw;
+  const det = h('details', { class: 'lay', id: 'vwd' });
+  det.open = mode === 'full' || vwHas(v);
+  const body = h('div', { class: 'body' });
+  det.append(h('summary', null, vwHas(v) ? '已記錄・點開查看或修改' : '點開記錄這個年份的天氣'), body);
+  const hintBox = h('div', { class: 'note info vwhint' });
+  const drawHints = () => {
+    const hs = vwHints(v); hintBox.innerHTML = '';
+    hintBox.classList.toggle('hidden', !hs.length);
+    if (!hs.length) return;
+    hintBox.append(h('b', null, '預期風味提示'), h('ul', null, hs.map(x => h('li', null, x))), h('div', { class: 'small muted' }, '葡萄栽培的一般原則，僅供和實際喝到的對照；不列入完整度與老師版命中率。'));
+  };
+  const cx = { t: v, onChange: () => { cb(); drawHints(); } };
+  let trackId = null;
+  const draw = () => {
+    body.innerHTML = '';
+    body.append(h('div', { class: 'small muted' }, '記下這個年份的天氣，再對照杯中的酸度、酒精和果味。不列入完整度與老師版命中率。'));
+    const m = refMatch(w);
+    if (m) {
+      const tr = m.ref.tracks; if (!trackId || !tr.some(t => t.id === trackId)) trackId = (tr.find(t => w.type === 'white' && /white|白/.test(t.id + t.label)) || tr.find(t => w.type === 'red' && /red|紅|north|main/.test(t.id + t.label)) || tr[0]).id;
+      const cell = refCell(m.ref.id, trackId, m.year);
+      const bar = h('div', { class: 'stack' });
+      if (tr.length > 1) bar.append(h('label', { class: 'f' }, '年份參考表的哪一條', h('select', { id: 'vwTrack', onchange: e => { trackId = e.target.value; draw(); } }, tr.map(t => h('option', { value: t.id, selected: t.id === trackId }, t.label)))));
+      const has = cell && (cell.q || arr(cell.climate).length);
+      bar.append(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'vwFill', disabled: !has, onclick: () => { fillVwFromRef(v, cell, m.ref.id + '|' + trackId + '|' + m.year); cb(); draw(); toast('已帶入年份參考，可以再修改'); } },
+        has ? '帶入年份參考表（' + m.ref.name + '・' + m.year + '）' : '年份參考表在這格沒有資料（' + m.ref.name + '・' + m.year + '）')));
+      if (has) bar.append(h('div', { class: 'small muted' }, '參考內容：' + [arr(cell.climate).join('、'), cell.q ? '品質' + cell.q : '', cell.note && cell.note !== '—' ? cell.note : ''].filter(Boolean).join('；') + '。會取代下面的欄位，待核對。'));
+      body.append(bar);
+    } else body.append(h('div', { class: 'small muted' }, '年份參考表涵蓋 2015–2025 的主要產區；這支酒的產區或年份不在範圍內，請自己記錄（或先填產區與年份）。'));
+    if (v.ref) body.append(h('div', { class: 'small' }, h('span', { class: 'pill info' }, '帶入自年份參考表：' + refLabel(v.ref))));
+    body.append(grp('溫度', seg(cx, 'temp', VW_TEMP)), grp('降雨', seg(cx, 'rain', VW_RAIN)),
+      grp('重大事件', chipsMulti(cx, 'events', VW_EVENTS)),
+      grp('收穫', seg(cx, 'harvest', VW_HARV)), grp('收穫期有沒有下雨', seg(cx, 'hrain', VW_HRAIN)),
+      grp('產量', seg(cx, 'yield', VW_YIELD)), grp('成熟度', seg(cx, 'ripe', VW_RIPE)),
+      grp('葡萄品質判斷', seg(cx, 'quality', VW_Q)),
+      h('label', { class: 'f', for: 'vwNote' }, '一行備註', h('input', { type: 'text', id: 'vwNote', value: v.note || '', placeholder: '例：夏天很熱，9 月初就收了', oninput: e => { v.note = e.target.value; cb(); } })),
+      hintBox);
+    drawHints();
+  };
+  draw();
+  return h('section', { class: 'sec', id: 'vwSec' }, h('h2', null, '年份天氣', h('small', null, '這一年的天氣怎麼影響葡萄')), det);
 }
 function starPicker(w, cb) {
   const wrap = h('div', { class: 'stars', role: 'group', 'aria-label': '個人喜好星數' });
@@ -1394,7 +1695,7 @@ function findRegion(s) {
   return REGIONS.find(r => regNames(r).some(a => a.length >= 2 && k.includes(a))) || null;                         /* 退回：字串包含 */
 }
 function regionBox(r) {
-  return h('div', { class: 'regioncard' }, h('b', null, regionLabel(r)), h('div', null, h('span', { class: 'muted' }, '品種：'), r.g), h('div', null, h('span', { class: 'muted' }, '風格：'), r.s), h('div', null, h('span', { class: 'muted' }, '代表：'), r.e),
+  return h('div', { class: 'regioncard' }, h('b', null, regionLabel(r)), h('div', null, h('span', { class: 'muted' }, '品種：'), r.g), h('div', null, h('span', { class: 'muted' }, '氣候：'), r.cl), h('div', null, h('span', { class: 'muted' }, '風格：'), r.s), h('div', null, h('span', { class: 'muted' }, '代表：'), r.e),
     h('div', { class: 'small muted' }, '簡表，請以課本為準'));
 }
 
@@ -1430,18 +1731,20 @@ function viewDetail(app, id) {
   const head = h('section', { class: 'sec' },
     h('h2', { style: 'font-size:1.5625rem' }, b.name || '（未命名）'),
     h('div', { class: 'muted' }, [b.producer, displayRegion(b.region), b.vintage].filter(Boolean).join('・')),
-    h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;align-items:center' }, starsRO(w.stars), w.type ? h('span', { class: 'pill gray' }, TYPE_NAME[w.type]) : null, h('span', { class: 'pill' }, '完整度 ' + d + '/' + tot)),
+    h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;align-items:center' }, starsRO(w.stars), w.type ? h('span', { class: 'pill gray' }, TYPE_NAME[w.type]) : null, h('span', { class: 'pill' }, '完整度 ' + d + '/' + tot), isL3(w) ? h('span', { class: 'pill info' }, 'L3 模式') : null),
     w.photos.length ? heroImgs : null,
     h('dl', { class: 'kv' },
-      [['日期', b.date], ['課堂', b.lessonNo], ['品種', b.grape], ['酒精度', b.abv], ['價格', b.price], ['購買處', b.shop]].filter(x => x[1]).map(([k, v]) => [h('dt', null, k), h('dd', null, v)])));
+      [['日期', b.date], ['課堂', b.lessonNo], ['品種', b.grape], ['酒精度', b.abv], ['價格', b.price], ['購買處', b.shop]].filter(x => x[1]).map(([k, v]) => [h('dt', null, k), h('dd', null, v)])),
+    arr(w.refGrapes).length ? h('div', { class: 'small muted' }, '產區常見品種（參考，非標籤）：' + w.refGrapes.join('、')) : null);
   const two = h('div', { class: 'grid2f' });
   /* 品鑑摘要 */
   const sum = h('section', { class: 'sec area-b' }, h('h2', null, 'WSET 品鑑'));
   const groups = ['視覺', '嗅覺', '味覺', '結論'];
   groups.forEach(g => {
     const items = [];
-    SINGLE.filter(s => s[2] === g).forEach(([k, label]) => { if (t[k]) items.push(h('dt', null, label), h('dd', null, k === 'colour' ? colourDot(w.type, t[k]) : null, t[k])); });
-    MULTI.filter(m => (g === '嗅覺' ? m[0].startsWith('aroma') : g === '味覺' ? m[0].startsWith('flav') : false)).forEach(([k, label]) => { if (arr(t[k]).length) items.push(h('dt', null, label), h('dd', null, chipsRO(t[k]))); });
+    SINGLE.filter(s => s[2] === g).forEach(([k, label]) => { const v = sv(w, k); if (v) items.push(h('dt', null, label), h('dd', null, k === 'colour' ? colourDot(w.type, v) : null, v)); });
+    L3ONLY.filter(s => s[2] === g && isL3(w)).forEach(([k, label]) => { const v = (w.t3 || {})[k]; if (v) items.push(h('dt', null, label), h('dd', null, v)); });
+    MULTI.filter(m => (g === '嗅覺' ? m[0].includes('aroma') : g === '味覺' ? m[0].includes('flav') : false)).forEach(([k, label]) => { if (arr(t[k]).length) items.push(h('dt', null, label), h('dd', null, chipsRO(t[k], k.startsWith('l3') ? 'l3' : ''), k.startsWith('l3') && S.showTodo ? h('div', { class: 'small muted' }, 'L3 詞彙，待對課本') : null)); });
     if (g === '視覺' && t.mousse) items.push(h('dt', null, '氣泡'), h('dd', null, t.mousse));
     if (g === '嗅覺' && t.aromaNote) items.push(h('dt', null, '其他香氣'), h('dd', null, t.aromaNote));
     if (g === '味覺' && t.flavNote) items.push(h('dt', null, '其他風味'), h('dd', null, t.flavNote));
@@ -1477,6 +1780,7 @@ function viewDetail(app, id) {
     if (md.note) ms.append(h('div', null, md.note));
     left.append(ms);
   }
+  if (vwHas(w.vw)) left.append(vwDetail(w));
   if (w.note) left.append(h('section', { class: 'sec' }, h('h2', null, '備註'), h('div', { style: 'white-space:pre-wrap' }, w.note)));
   two.append(left, sum);
   stack.append(two);
@@ -1484,18 +1788,29 @@ function viewDetail(app, id) {
   stack.append(reviewSection(w));
   app.append(stack);
 }
+function vwDetail(w) {
+  const v = w.vw, ms = h('section', { class: 'sec', id: 'vwDetail' }, h('h2', null, '年份天氣', h('small', null, b2(w))));
+  const pairs = [['溫度', v.temp], ['降雨', v.rain], ['重大事件', arr(v.events).join('、')], ['收穫', v.harvest], ['收穫期下雨', v.hrain], ['產量', v.yield], ['成熟度', v.ripe], ['葡萄品質', v.quality]].filter(x => x[1]);
+  if (pairs.length) ms.append(h('dl', { class: 'kv' }, pairs.map(([k, x]) => [h('dt', null, k), h('dd', null, x)])));
+  if (v.note) ms.append(h('div', null, v.note));
+  if (v.ref) ms.append(h('div', { class: 'small' }, h('span', { class: 'pill info' }, '帶入自年份參考表：' + refLabel(v.ref) + '（待核對）')));
+  const hs = vwHints(v);
+  if (hs.length) ms.append(h('div', { class: 'note info vwhint' }, h('b', null, '預期風味提示'), h('ul', null, hs.map(x => h('li', null, x))), h('div', { class: 'small muted' }, '一般原則，僅供對照實際喝到的風味。')));
+  return ms;
+}
+const b2 = w => [w.basic.vintage, displayRegion(w.basic.region)].filter(Boolean).join('・');
 function reviewSection(w) {
   const sec = h('section', { class: 'sec' }, h('h2', null, '對照老師的杯子', h('small', null, '覆核・老師版')));
   const tl = arr(w.teacher).slice().sort((a, b) => b.createdAt - a.createdAt);
   sec.append(h('div', { class: 'btnrow' }, h('button', { class: 'btn primary', type: 'button', onclick: () => {
-    const tt = { id: uid('t'), by: '', createdAt: Date.now(), t: {} }; w.teacher.push(tt); touch(w); flushSave().then(() => go('/teacher/' + w.id + '/' + tt.id));
+    const tt = { id: uid('t'), by: '', createdAt: Date.now(), t: {}, t3: {} }; w.teacher.push(tt); touch(w); flushSave().then(() => go('/teacher/' + w.id + '/' + tt.id));
   } }, '新增老師版')));
   if (!tl.length) { sec.append(h('div', { class: 'muted' }, '這杯記下後，可以用同一份勾選表再勾一次老師說的，兩邊並排對照。')); return sec; }
   let cur = tl[0];
   const holder = h('div', { class: 'stack' });
   const draw = () => {
     holder.innerHTML = '';
-    const c = compareSheets(w, w.t, cur.t);
+    const c = compareSheets(w, w, cur);
     holder.append(h('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;align-items:center' },
       tl.length > 1 ? h('select', { 'aria-label': '選擇老師版', style: 'width:auto', onchange: e => { cur = tl.find(x => x.id === e.target.value); draw(); } }, tl.map(x => h('option', { value: x.id, selected: x.id === cur.id }, (x.by || '老師版') + '・' + new Date(x.createdAt).toLocaleDateString()))) : h('b', null, (cur.by || '老師版')),
       c.pct != null ? h('span', { class: 'pill ' + (c.pct >= 70 ? 'ok' : 'warn') }, '單選命中率 ' + c.pct + '%（' + c.same + '/' + c.n + '）') : h('span', { class: 'pill gray' }, '雙方都勾的單選項目還沒有'),
@@ -1525,7 +1840,7 @@ function delTeacherBtn(w, cur) {
 function viewTeacher(app, wid, tid) {
   const w = wines.find(x => x.id === wid); const tt = w && w.teacher.find(x => x.id === tid);
   if (!tt) { app.append(h('div', { class: 'card' }, '找不到老師版。', h('button', { class: 'btn', onclick: () => go('/') }, '回手冊'))); return; }
-  const ctx = { t: tt.t, onChange: () => touch(w) };
+  const ctx = { t: tt.t, t3: tt.t3, onChange: () => touch(w), redraw: () => draw() };
   const sheet = h('div');
   const draw = () => { sheet.innerHTML = ''; sheet.append(buildSheet(ctx, w, 'full')); };
   draw();
@@ -1539,19 +1854,113 @@ function viewTeacher(app, wid, tid) {
       sheet));
 }
 
+/* ========= 年份參考表 ========= */
+/* 資料由查證整理（來源逐區列在頁面上），整張表標「AI 整理參考，待核對，非權威」。 */
+const VINTAGE_REF = /*VREF_START*/{"from":2015,"to":2025,"checked":"2026-10-10","regions":[{"id":"bordeaux","name":"波爾多","en":"Bordeaux","tracks":[{"id":"red","label":"紅酒（左岸右岸）","years":{"2015":{"climate":["偏熱","少雨"],"q":"卓越","note":"極乾暖年份，右岸表現尤佳；瑪歌與聖埃美濃特別突出","src":["s1","s2","s4"],"evidence":"WS LB 94 RB 97; WSG Good-Exc/Excellent"},"2016":{"climate":["多雨","少雨"],"q":"卓越","note":"春雨後轉乾燥夏季，赤霞珠香氣好、兩岸均優","src":["s1","s2","s4"],"evidence":"WS LB 97 RB 94; WSG Exc-Exceptional"},"2017":{"climate":["春霜","偏熱"],"q":"佳","note":"春霜傷及低窪地，酒款清新純淨；波雅克、聖朱利安與聖埃美濃較佳","src":["s1","s2","s4"],"evidence":"WS LB 91 RB 93; WSG Good"},"2018":{"climate":["多雨","病害","少雨"],"q":"卓越","note":"上半年多雨黴病減產，七月中後轉乾；酒體濃密單寧強","src":["s1","s2","s4"],"evidence":"WS LB 96 RB 94; WSG Exc-Exceptional"},"2019":{"climate":["偏熱","熱浪"],"q":"佳","note":"夏季酷熱但及時降雨，果味豐厚單寧紮實；WSG 評價更高","src":["s1","s2","s4"],"evidence":"WS LB 93 RB 92; WSG Exceptional"},"2020":{"climate":["多雨","病害","偏熱","少雨"],"q":"佳","note":"春雨黴病後轉為炎熱乾燥，早採收；左岸品質有高有低","src":["s1","s2","s4"],"evidence":"WS LB 93 RB 92; WSG Exc-Exceptional"},"2021":{"climate":["春霜","多雨","偏冷"],"q":"普通","note":"春霜加冷涼多雨夏季，酒款偏草本、早熟；少數亮點","src":["s1","s2","s4"],"evidence":"WS LB 84 RB 84; WSG Fair-Good"},"2022":{"climate":["偏熱","少雨"],"q":"卓越","note":"溫暖乾燥且雨水時機佳，兩岸皆豐潤純淨","src":["s1","s2","s4"],"evidence":"WS LB 95 RB 97; WSG Exceptional"},"2023":{"climate":["病害","偏熱"],"q":"佳","note":"發芽早、產量高、黴病壓力；酒款輕盈清新、較不耐久","src":["s1","s2","s4"],"evidence":"WS LB 90 RB 90; WSG Good-Exc/Good"},"2024":{"climate":["多雨","春霜","病害"],"q":"不均","note":"極潮濕、黴病嚴重、產量為1991年來最小；評論家意見分歧","src":["s4","s6","s7"],"evidence":"Decanter 3/5; Kelley weakest decade; WSG Fair"},"2025":{"climate":["偏熱","熱浪","乾旱"],"q":"佳","note":"炎熱乾燥、產量極小；八月底降雨助酸度，酒莊間差異大","src":["s5","s8"],"evidence":"Quinney: excellent vintage; critics: estate-specific"}}},{"id":"sweet","label":"甜白（蘇玳）","years":{"2015":{"climate":["偏冷","多雨"],"q":"佳","note":"暖乾開局後轉涼多雨，貴腐分批形成；酒款清新純淨","src":["s3","s4"],"evidence":"WS 94; WSG Exc-Exceptional"},"2016":{"climate":["少雨"],"q":"佳","note":"秋季極乾使貴腐有限；酒款清爽友善，巴薩克較有活力","src":["s3","s4"],"evidence":"WS 90; WSG Excellent"},"2017":{"climate":["春霜"],"q":"佳","note":"春霜減產（巴薩克尤甚），貴腐快速感染；酒款多汁","src":["s3","s4"],"evidence":"WS 91; WSG Excellent"},"2018":{"climate":["病害","冰雹","少雨"],"q":"普通","note":"黴病與冰雹減產、晚季乾燥限制貴腐；酒款圓潤偏早熟","src":["s3","s4"],"evidence":"WS 89; WSG Good-Excellent"},"2019":{"climate":["偏熱","少雨"],"q":"佳","note":"炎熱乾燥、貴腐僅一波；酒款熟美清新但深度稍欠","src":["s3","s4"],"evidence":"WS 91; WSG Good-Excellent"},"2020":{"climate":["冰雹","少雨"],"q":"普通","note":"早期冰雹減產、下半年乾燥貴腐少；多汁熱帶感但層次不足","src":["s3","s4"],"evidence":"WS 89; WSG Good"},"2021":{"climate":["春霜"],"q":"不均","note":"嚴重春霜致產量極少；WS 與 WSG 評價落差大","src":["s3","s4"],"evidence":"WS 89; WSG Exceptional"},"2022":{"climate":["偏熱","少雨"],"q":"佳","note":"暖乾氣候、晚季貴腐迅速；酒款豐潤但複雜度略遜","src":["s3","s4"],"evidence":"WS 94; WSG Exceptional"},"2023":{"climate":["春霜","病害"],"q":"卓越","note":"霜害與黴病減產，涼夜保留酸度；酒款鮮活，被譽為近年最佳","src":["s3","s4"],"evidence":"WS 95; WSG Exc-Exceptional"},"2024":{"climate":["多雨"],"q":"普通","note":"八月底雨後貴腐提早出現；酒款清新純淨，但較不濃郁","src":["s4","s6","s7"],"evidence":"WSG Good; Martin/Galloni: very good"},"2025":{"climate":["偏熱","少雨"],"q":"佳","note":"八月底雨後貴腐早發；Vinous、JR 讚賞，但尚屬早期評價","src":["s5","s8"],"evidence":"Martin: strongest recent; Lawther: major success"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - Bordeaux Left Bank Reds","url":"https://www.winespectator.com/vintage-charts/region/bordeaux-left-bank-reds-medoc-pessac-leognan","checked":"2026-10-10"},{"id":"s2","name":"Wine Spectator Vintage Chart - Bordeaux Right Bank Reds","url":"https://www.winespectator.com/vintage-charts/region/bordeaux-right-bank-reds-pomerol-st-emilion","checked":"2026-10-10"},{"id":"s3","name":"Wine Spectator Vintage Chart - Bordeaux Sauternes","url":"https://www.winespectator.com/vintage-charts/region/bordeaux-sauternes","checked":"2026-10-10"},{"id":"s4","name":"Wine Scholar Guild Bordeaux Vintage Chart (Andrew Jefford; 評級由星星圖示推定)","url":"https://www.winescholarguild.com/bordeaux-vintage-chart","checked":"2026-10-10"},{"id":"s5","name":"Liv-ex - Bordeaux 2025 weather and crop report (Gavin Quinney)","url":"https://www.liv-ex.com/bordeaux-2025-weather-and-crop-report/","checked":"2026-10-10"},{"id":"s6","name":"Wine With Seth WineWiki - 2024 Bordeaux Vintage","url":"https://www.winewithseth.com/winewiki/2024-bordeaux-vintage/","checked":"2026-10-10"},{"id":"s7","name":"Vinfolio - Bordeaux 2024: what the critics are saying","url":"https://www.vinfolio.com/editorial/bordeaux-2024-critics-round-up","checked":"2026-10-10"},{"id":"s8","name":"Vinfolio - Bordeaux 2025: what the critics are saying","url":"https://www.vinfolio.com/editorial/bordeaux-2025-what-the-critics-are-saying","checked":"2026-10-10"}],"gaps":"WS 圖表只到2023；2024-2025 紅酒靠 WSG、Liv-ex 與 Vinfolio 評論彙整，無統一評分，2025 為 en primeur 早期評價，q 為依多位評論家意見的粗略判斷。WSG 評級為星星圖示推定，換算：Exceptional=卓越、Excellent/Good-Exc=佳、Good/Fair=普通。Decanter 星等多數僅在搜尋摘要見過、原頁付費牆無法開啟，故未作依據（2024 的 3/5 由 Wine With Seth 引述）。紅酒 q 以 WS 左右岸平均為主（≥95卓越），2019、2020 WS 低於 WSG，取 WS。蘇玳 2021 WS 與 WSG 差距大標不均。2025 蘇玳無數字評分。"},{"id":"burgundy","name":"勃根地","en":"Burgundy","tracks":[{"id":"red","label":"紅（黑皮諾）","years":{"2015":{"climate":["偏熱","少雨"],"q":"卓越","note":"春雨後夏季炎熱乾燥，酒款飽滿成熟平衡","src":["s1","s2","s4"],"evidence":"WS CdN 98 CdB 95; WSG Exc-Exceptional"},"2016":{"climate":["春霜"],"q":"佳","note":"春霜使產量極低；酒款優雅多汁、果味深","src":["s1","s2","s4"],"evidence":"WS CdN 97 CdB 94; WSG Excellent"},"2017":{"climate":[],"q":"佳","note":"產量正常，酒款清新易飲；頂級可陳年約二十年","src":["s1","s2","s4"],"evidence":"WS CdN 94 CdB 93; WSG Good"},"2018":{"climate":[],"q":"佳","note":"酒體濃密果味重，部分偏果醬感，多數仍平衡","src":["s1","s2","s4"],"evidence":"WS CdN 93 CdB 92; WSG Exc-Exceptional"},"2019":{"climate":["偏熱","少雨"],"q":"卓越","note":"夏季炎熱乾燥，酒款濃縮複雜、結構強、可久存","src":["s1","s2","s4"],"evidence":"WS CdN 97 CdB 95; WSG Exc-Exceptional"},"2020":{"climate":["偏熱","少雨"],"q":"卓越","note":"極熱乾年份、早採收；酒款強勁但仍有清新感","src":["s1","s2","s4"],"evidence":"WS CdN 96 CdB 94; WSG Exc-Exceptional"},"2021":{"climate":["春霜","病害"],"q":"佳","note":"霜害與黴病減產；夜丘較少受害，酒款優雅芬芳","src":["s1","s2","s4"],"evidence":"WS CdN 92 CdB 90; WSG Good-Excellent"},"2022":{"climate":["偏熱","少雨"],"q":"卓越","note":"六月雨水緩解炎熱乾燥夏季；酒款鮮活複雜、果味突出","src":["s1","s2","s4"],"evidence":"WS CdN 98 CdB 96; WSG Exceptional"},"2023":{"climate":["偏熱","多雨"],"q":"佳","note":"產量大需疏果；最佳者密度足，但 WSG 提醒部分偏稀","src":["s1","s2","s4"],"evidence":"WS CdN 96 CdB 94; WSG Fair-Good"},"2024":{"climate":["多雨","春霜","病害","日照不足"],"q":"不均","note":"極潮濕、黴病嚴重，紅酒減產最高約八成；最佳者清新透明","src":["s4","s6"],"evidence":"WSG Poor-Fair; Martin/Meadows: best very fresh"},"2025":{"climate":["偏熱","熱浪","冰雹"],"q":null,"note":"兩次熱浪使產量下降；BIVB 稱濃縮度佳，但尚無獨立評分","src":["s5"],"evidence":"BIVB: fine concentration, low yield; no scores"}}},{"id":"white","label":"白（夏多內）","years":{"2015":{"climate":["偏熱","少雨"],"q":"卓越","note":"成熟豐滿；早採收的酒莊保有酸度可久存","src":["s3","s1","s4"],"evidence":"WS 95; WSG Excellent"},"2016":{"climate":["春霜"],"q":"佳","note":"討喜優雅、結構佳；部分葡萄園因霜害減產","src":["s3","s4"],"evidence":"WS 92; WSG Good-Excellent"},"2017":{"climate":[],"q":"佳","note":"成熟豐腴、結構鮮明；許多已適飲，最好的需數年","src":["s3","s4"],"evidence":"WS 94; WSG Good-Excellent"},"2018":{"climate":[],"q":"佳","note":"柔軟開放的豐潤白酒；頂級者結構鮮明可短期陳年","src":["s3","s4"],"evidence":"WS 92; WSG Excellent"},"2019":{"climate":["偏熱","少雨"],"q":"佳","note":"炎熱乾燥但不過熟；頂級酒款複雜平衡多汁","src":["s3","s4"],"evidence":"WS 93; WSG Exc-Exceptional"},"2020":{"climate":["偏熱","乾旱"],"q":"佳","note":"夏季乾旱、八月採收，但酒款仍俐落鮮活","src":["s3","s4"],"evidence":"WS 94; WSG Excellent"},"2021":{"climate":["春霜"],"q":"佳","note":"四月霜害減產；最佳者如鋼鐵般緊實、酸度鮮明","src":["s3","s4"],"evidence":"WS 93; WSG Good-Excellent"},"2022":{"climate":["偏熱","少雨"],"q":"卓越","note":"六月雨後炎熱乾燥，作物健康；白酒新鮮平衡","src":["s3","s4"],"evidence":"WS 95; WSG Exc-Exceptional"},"2023":{"climate":["偏熱","熱浪"],"q":"佳","note":"八、九月熱浪，採收時機決定新鮮度","src":["s3","s4"],"evidence":"WS 93; WSG Good-Excellent"},"2024":{"climate":["多雨","春霜","冰雹","病害"],"q":"佳","note":"潮濕黴病年，但白酒表現優於紅酒；清新緊實（WS 為預估區間）","src":["s3","s4","s6"],"evidence":"WS 92-95 NYR; WSG Fair-Good; whites > reds"},"2025":{"climate":["偏熱","熱浪"],"q":null,"note":"熱浪使產量下降；BIVB 稱白酒受熱損較明顯，尚無獨立評分","src":["s5"],"evidence":"BIVB: heat losses, esp. whites; no scores"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - Burgundy Cotes de Nuits Reds","url":"https://www.winespectator.com/vintage-charts/region/burgundy-cotes-de-nuits-reds","checked":"2026-10-10"},{"id":"s2","name":"Wine Spectator Vintage Chart - Burgundy Cotes de Beaune Reds","url":"https://www.winespectator.com/vintage-charts/region/burgundy-cotes-de-beaune-reds","checked":"2026-10-10"},{"id":"s3","name":"Wine Spectator Vintage Chart - Burgundy White","url":"https://www.winespectator.com/vintage-charts/region/burgundy-white","checked":"2026-10-10"},{"id":"s4","name":"Wine Scholar Guild Bourgogne Vintage Chart (Andrew Jefford; 評級由星星圖示推定)","url":"https://www.winescholarguild.com/vintage-charts/french-wine-vintage-chart/bourgogne-vintage-chart","checked":"2026-10-10"},{"id":"s5","name":"Wine With Seth WineWiki - 2025 Burgundy Vintage (引述 BIVB)","url":"https://www.winewithseth.com/winewiki/2025-burgundy-vintage/","checked":"2026-10-10"},{"id":"s6","name":"Vinfolio - Burgundy 2024: the critics' verdict","url":"https://www.vinfolio.com/editorial/burgundy-2024-the-critics-verdict","checked":"2026-10-10"}],"gaps":"WS 紅酒圖表只到2023、白酒到2024（2024為預估區間）。紅酒軌以 WS 夜丘與伯恩丘兩張圖共同判斷，WSG 為合併表。2025 只有 BIVB 經 Wine With Seth 轉述的收成報告，無獨立評分，q 留空。2024 評論主要來自 Vinfolio 彙整（Vinous、Burghound、JR、Decanter 全文付費牆），未取得分數。WSG 評級為星星圖示推定，換算：Exceptional=卓越、Excellent/Good-Exc=佳、Good/Fair=普通、Poor-Fair=弱。氣候標籤僅在來源頁面有明確描述時才標，2017、2018 無描述故留空；白酒氣候部分沿用同產區紅酒圖描述（WS 白酒頁多無天氣文字）。"},{"id":"champagne","name":"香檳","en":"Champagne","tracks":[{"id":"vintage","label":"年份香檳","years":{"2015":{"climate":["偏熱","少雨"],"q":"佳","note":"炎熱乾燥、病害少；黑皮諾特別突出，最佳者具陳年潛力","src":["s1","s2","s3"],"evidence":"WS 94; WSG Good-Excellent"},"2016":{"climate":["春霜","多雨","病害","冰雹"],"q":"佳","note":"霜害、雨後腐壞使收成約少三分之一；黑皮諾優於夏多內","src":["s1","s2","s3"],"evidence":"WS 92; WSG Good-Excellent, variable"},"2017":{"climate":["春霜","冰雹","多雨","病害"],"q":"弱","note":"產量小且參差，多數酒廠未宣布年份香檳","src":["s1","s2","s3"],"evidence":"WS 83; WSG Poor-Fair; most houses no vintage"},"2018":{"climate":["偏熱"],"q":"佳","note":"炎熱豐收，果味成熟、酸度偏低；適合中短期飲用","src":["s1","s2","s3"],"evidence":"WS 93; WSG Exceptional"},"2019":{"climate":["春霜","冰雹","熱浪","病害"],"q":"佳","note":"產量小但品質好、酸度高於2018；WS 為預估區間","src":["s1","s2","s3"],"evidence":"WS 89-92 prelim; WSG Exc-Exceptional"},"2020":{"climate":["偏熱","乾旱"],"q":"佳","note":"史上最早採收，產量上限僅8000公斤；公會稱品質優異","src":["s2","s3","s4"],"evidence":"WSG Exc-Exceptional; Comite: splendid"},"2021":{"climate":["春霜","多雨","病害","冰雹","偏冷"],"q":"不均","note":"霜害黴病使收成創35年新低；品質參差，多數入無年份調配","src":["s2","s3","s5"],"evidence":"WSG Fair-Good, mixed; lowest yields in 35 years"},"2022":{"climate":["偏熱","少雨"],"q":"卓越","note":"日照充足、葡萄健康；公會稱「太陽年份」，夏多內尤佳","src":["s2","s3","s6"],"evidence":"WSG Exceptional; Comite: solar vintage"},"2023":{"climate":["偏熱","病害"],"q":"不均","note":"超大豐收，腐壞多；品質看篩選，Dom Pérignon 棄用","src":["s2","s3","s7"],"evidence":"WSG Fair-Good; DP rejected 2023 base"},"2024":{"climate":["多雨","春霜","冰雹","病害","日照不足"],"q":"佳","note":"潮濕黴病年，產區間損失差異大；酒款清新低酒精，評價屬初步","src":["s2","s8"],"evidence":"WSG Good-Excellent; very uneven losses"},"2025":{"climate":["偏熱","熱浪"],"q":null,"note":"早採收、高酒精度與高酸度；業界稱優異，但尚無獨立評分","src":["s9"],"evidence":"Comite/houses: high quality; no independent score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - Champagne","url":"https://www.winespectator.com/vintage-charts/region/champagne","checked":"2026-10-10"},{"id":"s2","name":"Wine Scholar Guild Champagne Vintage Chart (Andrew Jefford; 評級由星星圖示推定)","url":"https://www.winescholarguild.com/champagne-vintage-chart","checked":"2026-10-10"},{"id":"s3","name":"Uncorked - Vintage guide: Champagne","url":"https://www.uncorked.co.uk/vintage-chart-champagne","checked":"2026-10-10"},{"id":"s4","name":"Wine With Seth WineWiki - 2020 Champagne Vintage","url":"https://www.winewithseth.com/winewiki/2020-champagne-vintage/","checked":"2026-10-10"},{"id":"s5","name":"Wine With Seth WineWiki - 2021 Champagne Vintage","url":"https://www.winewithseth.com/winewiki/2021-champagne-vintage/","checked":"2026-10-10"},{"id":"s6","name":"Wine With Seth WineWiki - 2022 Champagne Vintage","url":"https://www.winewithseth.com/winewiki/2022-champagne-vintage/","checked":"2026-10-10"},{"id":"s7","name":"Wine With Seth WineWiki - 2023 Champagne Vintage","url":"https://www.winewithseth.com/winewiki/2023-champagne-vintage/","checked":"2026-10-10"},{"id":"s8","name":"Wine With Seth WineWiki - 2024 Champagne Vintage","url":"https://www.winewithseth.com/winewiki/2024-champagne-vintage/","checked":"2026-10-10"},{"id":"s9","name":"Wine With Seth WineWiki - 2025 Champagne Vintage","url":"https://www.winewithseth.com/winewiki/2025-champagne-vintage/","checked":"2026-10-10"}],"gaps":"WS 香檳圖表只到2019（2019為預估）；2020-2025 沒有 WS/Decanter/Vinous 的數字評分，只有 WSG（Jefford，星星圖示推定）、Uncorked 文字與 Wine With Seth 引述香檳區公會的說法。香檳沒有統一的年份宣布，各酒廠自行決定；公開來源只明確提到 2017（多數酒廠未宣布）與 2023（Dom Pérignon 棄用），其他年份的宣布名單未取得。2020、2022 的 q 主要依 WSG 與公會說法，獨立來源少，可信度較低。2024 為初步評價；2025 q 留空。WSG 換算：Exceptional=卓越、Excellent/Good-Exc=佳、Good/Fair=普通或不均、Poor-Fair=弱。"},{"id":"rhone","name":"隆河","en":"Rhône","tracks":[{"id":"north","label":"北隆河（希哈）","years":{"2015":{"climate":["偏熱","乾旱"],"q":"卓越","note":"北隆河公認新標竿：酷熱乾旱但夜涼，酸度保留，紅白酒皆佳。","src":["s1","s3"],"evidence":"WS 99; V&M 19/20; hot, drought, cool nights"},"2016":{"climate":["多雨","冰雹","偏熱"],"q":"卓越","note":"春雨多、四月冰雹減產，夏秋炎熱，紅酒純淨集中、白酒鮮明。","src":["s1","s3"],"evidence":"WS 97; V&M 18/20; wet spring, Hermitage hail"},"2017":{"climate":["偏熱","少雨"],"q":"卓越","note":"生長季長、溫暖乾燥且夜涼，無嚴重天候問題，紅酒熟美。","src":["s1","s3"],"evidence":"WS 97; V&M 17/20; long warm dry season"},"2018":{"climate":["多雨","病害","偏熱","少雨"],"q":"佳","note":"春季潮濕霉病壓力大，夏季熱而乾，紅酒柔順、白酒豐潤。","src":["s1","s3"],"evidence":"WS 92; V&M 17/20; June mildew, hot dry summer"},"2019":{"climate":["偏熱","少雨","冰雹"],"q":"卓越","note":"花期風大、克羅茲冰雹減產，紅酒濃縮明確，白酒表現較不穩。","src":["s1","s3"],"evidence":"WS 96; V&M 19/20; hail Crozes, reds concentrated"},"2020":{"climate":["偏熱","乾旱"],"q":"卓越","note":"史上最早採收之一，高溫乾旱仍保優雅，紅白酒皆偉大。","src":["s1","s3"],"evidence":"WS 96; V&M 19/20; record heat, earliest harvests"},"2021":{"climate":["偏冷","多雨","春霜","病害"],"q":"普通","note":"寒冷多雨，希哈偏瘦欠熟；花崗岩坡地有佳作，白酒出色。","src":["s1","s3"],"evidence":"WS 87; V&M 16/20; cold, frost, mildew"},"2022":{"climate":["偏熱","乾旱"],"q":"佳","note":"極端高溫乾旱、採收很早，但酒款仍清新優雅，早飲易親近。","src":["s1","s3"],"evidence":"WS 94; V&M 18/20; extreme heat and drought"},"2023":{"climate":["多雨","病害","熱浪"],"q":"佳","note":"春季冷濕有霉病、八月熱浪，成酒平衡細緻，早飲易親近。","src":["s1"],"evidence":"WS 93; cold wet spring mildew, August heatwave"},"2024":{"climate":["多雨","病害","冰雹"],"q":"普通","note":"春雨多、病害重且產量低；白酒出色，紅酒較輕，科特羅蒂最弱。","src":["s4","s5","s8"],"evidence":"Decanter 3.5/5; whites excellent, Côte-Rôtie weakest"},"2025":{"climate":["偏熱","熱浪","收穫期下雨"],"q":null,"note":"高溫少量年，產區公會稱品質優良；尚無獨立評分，暫不判定。","src":["s6","s7"],"evidence":"Inter-Rhône: excellent, small crop; no independent score"}}},{"id":"south","label":"南隆河（格那希混釀）","years":{"2015":{"climate":["偏熱","多雨"],"q":"卓越","note":"七月前乾暖、八月大雨；晚熟的格那希與慕維得表現佳，紅酒濃厚。","src":["s2","s3"],"evidence":"WS 97; V&M 19/20; warm dry July, heavy August rain"},"2016":{"climate":["偏熱"],"q":"卓越","note":"日夜溫差大、成熟緩慢均勻，WS 稱新標竿，紅酒濃郁而清新。","src":["s2","s3"],"evidence":"WS 99; V&M 17/20; big diurnal swing"},"2017":{"climate":["偏熱","少雨"],"q":"不均","note":"花期困難使格那希大減產，高溫乾燥催熟，品質不一致。","src":["s2","s3"],"evidence":"WS 92 inconsistent; V&M 17/20; Grenache flowering problems"},"2018":{"climate":["多雨","病害","偏熱","少雨"],"q":"佳","note":"春雨致嚴重霉病、格那希減產；夏季熱乾，紅酒柔順低酸。","src":["s2","s3"],"evidence":"WS 92; V&M 18/20; spring mildew, hot dry summer"},"2019":{"climate":["偏熱","少雨"],"q":"佳","note":"濕冬後熱乾生長季，紅酒豐熟質地細，但骨架稍弱未達頂級。","src":["s2","s3"],"evidence":"WS 94; V&M 19/20; lacks spine for elite"},"2020":{"climate":["偏熱","少雨"],"q":"佳","note":"熱乾夏季配涼夜，採收順利，酒款易飲，但品質不齊。","src":["s2","s3"],"evidence":"WS 93; V&M 19/20; hot dry, more heterogeneous"},"2021":{"climate":["春霜","病害"],"q":"不均","note":"春霜與霉病減產，格那希脆弱；品質參差，白酒表現亮眼。","src":["s2","s3"],"evidence":"WS 88 mixed; V&M 15/20; frost, mildew"},"2022":{"climate":["偏熱","乾旱","冰雹"],"q":"卓越","note":"極端高溫乾旱，八月雨救了藤蔓，拉克羅遭龍捲風冰雹；紅酒豐潤。","src":["s2","s3"],"evidence":"WS 95; V&M 19/20; drought, La Crau hail"},"2023":{"climate":["偏熱","少雨"],"q":"佳","note":"炎熱晴朗，春雨與涼夜調節，紅酒多汁柔順，早飲易親近。","src":["s2"],"evidence":"WS 94; hot dry, spring rains, cool nights"},"2024":{"climate":["多雨","病害","冰雹"],"q":"普通","note":"潮濕溫和無乾旱，酸度佳、酒精中等；部分欠濃縮，吉恭達斯出色。","src":["s4","s5","s8"],"evidence":"Decanter 3.5/5; Gigondas stood out, some lack concentration"},"2025":{"climate":["偏熱","熱浪"],"q":null,"note":"八月熱浪、產量略少；產區公會稱平衡優良，尚無獨立評分。","src":["s6","s7"],"evidence":"Inter-Rhône: balanced, small volumes; no independent score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Charts — Rhône/Northern","url":"https://www.winespectator.com/vintage-charts/region/rhone-northern","checked":"2026-10-10"},{"id":"s2","name":"Wine Spectator Vintage Charts — Rhône/Southern","url":"https://www.winespectator.com/vintage-charts/region/rhone-southern","checked":"2026-10-10"},{"id":"s3","name":"Vins et Millésimes — French wine vintage score chart (/20, 次要參考)","url":"https://www.vinsetmillesimes.com/en/blog/post/vintage-rating-chart-for-french-wines.html","checked":"2026-10-10"},{"id":"s4","name":"Decanter — Rhône 2024 en primeur full report (Matt Walls；付費牆，僅見摘要)","url":"https://www.decanter.com/premium/rhone-2024-en-primeur-full-report-and-the-vintages-top-scoring-wines-570196/","checked":"2026-10-10"},{"id":"s5","name":"Wine With Seth — 2024 Rhône Valley Vintage (轉述 Decanter)","url":"https://www.winewithseth.com/winewiki/2024-rhone-valley-vintage/","checked":"2026-10-10"},{"id":"s6","name":"Inter Rhône (Rhône Valley Vineyards) — 2025 Vintage","url":"https://www.vins-rhone.com/en/2025-vintage","checked":"2026-10-10"},{"id":"s7","name":"Wine With Seth — 2025 Rhône Valley Vintage","url":"https://www.winewithseth.com/winewiki/2025-rhone-valley-vintage/","checked":"2026-10-10"},{"id":"s8","name":"Inter Rhône (Rhône Valley Vineyards) — 2024 Vintage","url":"https://www.vins-rhone.com/en/2024-vintage","checked":"2026-10-10"}],"gaps":"2023 兩軌只有 WS 單一來源（V&M 表只到 2022）。2024 以 Decanter（Matt Walls）3.5/5 為準，該文付費牆、只見搜尋摘要與 Seth 轉述，3.5/5 換成「普通」是我的換算假設；產區公會（s8）說「很有前景」，口徑偏宣傳，未採為 q。2025 只有產區公會與 Seth 轉述（無獨立評分），q 留空。WS 與 V&M 有出入：南隆河 2016 WS 99 對 V&M 17/20、北隆河 2016–2017 WS 97 對 V&M 18/17，q 依 WS（V&M 為零售商粗略區域平均）。南隆河 2017、2021 因 WS 文字明說品質不一致／mixed 而標「不均」（WS 分數 92、88）；2020 WS 僅附帶提到 heterogeneous，維持「佳」。"},{"id":"loire","name":"羅亞爾河","en":"Loire","tracks":[{"id":"all","label":"全區概況（WS 將品麗珠／白梢楠／白蘇維濃分開評分，本表取三者中位數）","years":{"2015":{"climate":["偏熱","少雨"],"q":"佳","note":"炎熱乾燥的穩健年份，為2010年以來最佳；白梢楠甜干皆出色。","src":["s1","s2"],"evidence":"WS CF90 CB92 SB90; V&M 18/20"},"2016":{"climate":["春霜","多雨","乾旱"],"q":"佳","note":"春霜減產達五成，夏季乾燥不太熱，酸度比2015新鮮，甜酒亮眼","src":["s1","s2"],"evidence":"WS CF92 CB94 SB92; V&M 18/20; frost cut crop"},"2017":{"climate":["春霜","偏熱","少雨"],"q":"佳","note":"春霜減產，生長季乾暖提早一到兩週；白酒純淨、紅酒清新。","src":["s1","s2"],"evidence":"WS CF90 CB92 SB91; V&M 15/20; severe spring frost"},"2018":{"climate":["正常","病害"],"q":"佳","note":"大豐收、天氣有利，酒體濃縮、酸度偏低；白蘇維濃區略受雨害。","src":["s1","s2"],"evidence":"WS CF92 CB93 SB89; V&M 17/20"},"2019":{"climate":["偏熱"],"q":"佳","note":"夏季高溫使藤蔓受壓、減產，但果實品質高，酸度自然高而和諧。","src":["s1","s2"],"evidence":"WS CF93 CB94 SB90; V&M 18/20; summer heat, low yields"},"2020":{"climate":["偏熱"],"q":"佳","note":"濕冬春蓄水後迎來酷熱夏季；白梢楠與品麗珠表現佳。","src":["s1","s2"],"evidence":"WS CF92 CB94 SB90; V&M 17/20; exceptionally hot summer"},"2021":{"climate":["春霜","多雨","冰雹"],"q":"普通","note":"霜害、豪雨與冰雹使產量大減，酒款清爽輕巧、酸度鮮明。","src":["s1","s2"],"evidence":"WS 89/89/89; V&M 17/20; frost, rain, hail"},"2022":{"climate":["偏熱","乾旱","春霜"],"q":"卓越","note":"溫暖晴朗、八月雨解熱，果實健康；多位生產者稱十年最佳之一。","src":["s1","s2"],"evidence":"WS CF93 CB96 SB95; V&M 17/20; warm sunny, healthy"},"2023":{"climate":["多雨","病害","偏熱"],"q":"不均","note":"產區差異大：慕斯卡得與中央產區平衡，安茹、索米爾因霉病吃力。","src":["s1","s3"],"evidence":"WS CF93 CB92 SB92 heterogeneous; WSG 2-2.5 to 4 stars"},"2024":{"climate":["多雨","春霜","冰雹","病害"],"q":"弱","note":"雨量破紀錄，霜、雹、霉病交加；僅少數白酒新鮮，整體偏弱。","src":["s3","s4","s5"],"evidence":"WSG poor, uniformly difficult; Decanter Centre-Loire 2/5"},"2025":{"climate":["偏熱","少雨","熱浪","冰雹"],"q":null,"note":"春夏炎熱乾燥、七月冰雹；僅有產區公會說法，暫無獨立評分。","src":["s6"],"evidence":"Centre-Loire body: promising; no independent score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Charts — Loire","url":"https://www.winespectator.com/vintage-charts/region/loire","checked":"2026-10-10"},{"id":"s2","name":"Vins et Millésimes — French wine vintage score chart (/20, 次要參考)","url":"https://www.vinsetmillesimes.com/en/blog/post/vintage-rating-chart-for-french-wines.html","checked":"2026-10-10"},{"id":"s3","name":"Wine Scholar Guild — Loire Valley Vintage Chart (Andrew Jefford)","url":"https://www.winescholarguild.com/loire-valley-vintage-chart","checked":"2026-10-10"},{"id":"s4","name":"Decanter — Centre-Loire wines in 2024 (付費牆，僅見摘要)","url":"https://www.decanter.com/premium/centre-loire-wines-in-2024-the-human-impact-of-a-harrowing-vintage-565298","checked":"2026-10-10"},{"id":"s5","name":"The Wine Doctor — Loire 2024 weather","url":"https://www.thewinedoctor.com/tastingsformal/loire2024_weather.shtml","checked":"2026-10-10"},{"id":"s6","name":"Vins du Centre-Loire — Vintage 2025","url":"https://www.vins-centre-loire.com/en/vintages/2025","checked":"2026-10-10"}],"gaps":"羅亞爾河各品種差異大，本表 q 取 WS 三個分數的中位數（品麗珠／白梢楠／白蘇維濃），三者原始分數寫在 evidence；2022 中位數 95 判為卓越，但品麗珠僅 93。2023 因 WS 與 WSG 文字都明說各產區品質差距大而標「不均」（WS 分數 92–93）。2024：WSG 評為 Poor（星等圖，由工具推讀，未能直接看到圖），Decanter 只讀到中央產區 2/5 的摘要，慕斯卡得與圖爾區（Vouvray）2024 查無獨立評分，故「弱」主要代表中央產區與整體文字描述，南部／西部可能較好。2025 只有中央產區公會一份官方說法（s6）；InterLoire 與 CSW 的 2025 報告只見搜尋摘要（網頁 403 或未開），不納入來源，q 留空。WS 2024、2025 尚無條目；V&M 表只到 2022，且不分品種。"},{"id":"alsace","name":"阿爾薩斯","en":"Alsace","tracks":[{"id":"all","label":"全區概況（白酒為主）","years":{"2015":{"climate":["乾旱"],"q":"佳","note":"乾旱年，頂尖生產者仍釀出活潑均衡的酒款；格烏茲特拉敏表現佳。","src":["s1","s2"],"evidence":"WS 91; V&M 18/20; drought, Gewürztraminer excelled"},"2016":{"climate":["病害","乾旱"],"q":"佳","note":"天候不穩，霉病或乾旱；酒體輕盈優雅，灰皮諾佳，少有貴腐甜酒。","src":["s1","s2"],"evidence":"WS 90; V&M 17/20; erratic, mildew and/or drought"},"2017":{"climate":["春霜"],"q":"佳","note":"四月嚴重霜害減產，山坡較輕；夏秋條件優良，酒款濃縮平衡。","src":["s1","s2"],"evidence":"WS 92; V&M 16/20; late April frost"},"2018":{"climate":["偏熱","少雨"],"q":"佳","note":"產量豐，六月底起熱乾；山坡與頂尖生產者出色，灰皮諾尤佳。","src":["s1","s2"],"evidence":"WS 91; V&M 17/20; abundant crop, hot dry"},"2019":{"climate":["偏熱","少雨","收穫期下雨"],"q":"佳","note":"夏季熱乾、八月降雨解渴，成熟完美，新鮮與豐厚並具，耐陳年。","src":["s1","s2"],"evidence":"WS 93; V&M 18/20; late harvest rains, few sweet wines"},"2020":{"climate":["偏熱","乾旱"],"q":"佳","note":"又一暖年、缺水減產，酒精偏高但酸度也高，新鮮度佳。","src":["s1","s2"],"evidence":"WS 92; V&M 18/20; warm, drought stress"},"2021":{"climate":["偏冷","春霜","多雨","病害"],"q":"佳","note":"偏冷的經典年，春霜與霉病減產兩成；低酒精、高酸，麗絲玲最佳。","src":["s1","s2"],"evidence":"WS 90; V&M 16/20; frost, mildew, -20% volume"},"2022":{"climate":["偏熱"],"q":"佳","note":"酷熱夏季後遇雨，果實熟、酸度平衡；特級園與乾型酒最出色。","src":["s1","s2"],"evidence":"WS 92; V&M 18/20; scorching summer, late rain"},"2023":{"climate":["多雨"],"q":"佳","note":"春雨多、麗絲玲減產；酒款有礦物感、酒精比2022低，耐陳年。","src":["s1"],"evidence":"WS 93; rainy spring, Riesling volumes reduced"},"2024":{"climate":["多雨","病害"],"q":null,"note":"雨水偏多、病害壓力高、產量大降；麗絲玲清新有深度，缺評分。","src":["s3","s4"],"evidence":"No score; WSG fresh, Riesling ageworthy; Vinous wet year"},"2025":{"climate":["乾旱","偏熱"],"q":null,"note":"史上最早採收、乾旱高溫，產量約減一成；尚無可靠品質評分。","src":["s5","s6"],"evidence":"Earliest harvest on record; volume -9 to -11%; no score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Charts — Alsace","url":"https://www.winespectator.com/vintage-charts/region/alsace","checked":"2026-10-10"},{"id":"s2","name":"Vins et Millésimes — French wine vintage score chart (/20, 次要參考)","url":"https://www.vinsetmillesimes.com/en/blog/post/vintage-rating-chart-for-french-wines.html","checked":"2026-10-10"},{"id":"s3","name":"Wine Scholar Guild — Alsace Vintage Chart (Andrew Jefford)","url":"https://www.winescholarguild.com/alsace-vintage-chart","checked":"2026-10-10"},{"id":"s4","name":"Vinous — Alsace 2024: A Rainy Year of Svelte Beauties (Anne Krebiehl MW, 2026-03)","url":"https://billing.vinous.com/articles/alsace-2024-a-rainy-year-of-svelte-beauties-mar-2026","checked":"2026-10-10"},{"id":"s5","name":"Pleinchamp — En Alsace, top départ des vendanges le 19 août","url":"https://www.pleinchamp.com/actualite/en-alsace-top-depart-des-vendanges-le-19-aout-une-precocite-historique","checked":"2026-10-10"},{"id":"s6","name":"La Passion du Vin — Le millésime 2025 en Alsace (新聞標題彙整)","url":"https://www.lapassionduvin.com/alsace/55487-le-millesime-2025-en-alsace","checked":"2026-10-10"}],"gaps":"2023 只有 WS 單一來源。2024：WSG 的星等是圖片（文字沒寫評等）、Vinous 也無數字，兩者都說麗絲玲佳但格烏茲特拉敏表現不一（Vinous 反而讚其明亮），且雨年、減產，無法可靠換算 q，留空。2025：s5 僅見搜尋摘要（頁面未直接開啟，氣候與採收日期出自摘要），s6 只有新聞標題（有的稱「歷史性低產」、有的稱「令酒農欣喜」），查無 CIVA 或獨立評論的品質評分，q 留空；DRAAF 官方報告連線被拒。WS 的 2016 描述天候「不穩」但未標為品質不一，維持依分數的「佳」。阿爾薩斯 WS 分數全為 88–94 區間，q 因此多為「佳」，區辨度有限。"},{"id":"piedmont","name":"皮蒙特","en":"Piedmont","tracks":[{"id":"main","label":"巴羅洛／巴巴瑞斯科（內比歐露）","years":{"2015":{"climate":["偏熱"],"q":"卓越","note":"夏季酷熱但葡萄健康、提早採收；酒體中等，早期就好入口。","src":["s1","s2"],"evidence":"WS 95; WSG 3.5 stars; hot summer"},"2016":{"climate":["偏冷"],"q":"卓越","note":"春季起步稍晚，之後生長季理想；酸度與單寧平衡，陳年潛力長。","src":["s1","s2"],"evidence":"WS 98; WSG 5 stars; cooler year"},"2017":{"climate":["偏熱","少雨"],"q":"佳","note":"夏季又熱又乾、九月降雨緩解；酒款早熟易飲，不宜久存。","src":["s1","s2"],"evidence":"WS 94; WSG 3 stars; hot dry summer"},"2018":{"climate":["偏冷","多雨","病害"],"q":"佳","note":"涼爽多雨、有黴病壓力；酒款優雅、酸度佳，不屬長期窖藏型。","src":["s1","s2"],"evidence":"WS 93; WSG 4 stars; rainy, mold issues"},"2019":{"climate":["偏冷"],"q":"卓越","note":"生長季偏涼、晚收，雖有熱峰與降雨仍結構優異，陳年潛力高。","src":["s1","s2"],"evidence":"WS 97; WSG 4.5 stars; cool, late harvest"},"2020":{"climate":["正常"],"q":"卓越","note":"春季多雨、夏季溫暖但不過熱；酸度明亮，優雅且有層次。","src":["s1","s2"],"evidence":"WS 95; WSG 4.5 stars; warm not hot"},"2021":{"climate":["正常"],"q":"卓越","note":"冬冷、水分充足、九月條件理想；夏季冰雹多數未波及巴羅洛。","src":["s1","s2"],"evidence":"WS 99; WSG 4.5 stars; classic year"},"2022":{"climate":["乾旱","偏熱"],"q":"不均","note":"被形容為當地史上最乾的年份之一；品質參差，適合中期飲用（暫評）。","src":["s2"],"evidence":"WSG 2 stars provisional; driest, hot; mixed"},"2023":{"climate":["多雨","病害","熱浪"],"q":"佳","note":"春雨引發露菌病、八月高溫逾40度；生產者偏好，產地差異大（暫評）。","src":["s2"],"evidence":"WSG 3.5 stars provisional; wet then heat"},"2024":{"climate":["多雨","病害","收穫期下雨"],"q":"弱","note":"全年潮濕、採收期連續降雨；預期酒體輕盈，品質落差大（暫評）。","src":["s2"],"evidence":"WSG 2 stars provisional; wet, mildew, harvest rain"},"2025":{"climate":["偏熱"],"q":null,"note":"僅有生產者聯盟的初步說法（品質佳、夏季偏熱），尚無獨立評分。","src":["s3"],"evidence":"Deditus producers positive; no independent rating"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart – Piedmont","url":"https://www.winespectator.com/vintage-charts/region/piedmont","checked":"2026-10-10"},{"id":"s2","name":"Wine Scholar Guild – Piedmont Vintage Chart (Barolo/Barbaresco; 2022-2024 provisional by Michaela Morris)","url":"https://www.winescholarguild.com/vintage-charts/italian-wine-vintage-chart/piedmont-vintage-chart","checked":"2026-10-10"},{"id":"s3","name":"WineNews – 2025 Barolo harvest, Deditus producers' statement","url":"https://winenews.it/en/?p=571521","checked":"2026-10-10"}],"gaps":"Wine Spectator 皮蒙特圖表僅到 2021，2022–2025 沒有 WS 評分。2022–2024 只有 Wine Scholar Guild（Michaela Morris）的暫評，來源單一且標示為暫評。2025 只找到生產者聯盟 Deditus 的初步說法（經 WineNews 轉述），無獨立評分，q 留空。Decanter 皮蒙特年份指南與 Vinous 為付費牆，讀不到內容。星等換算：WSG 4.5–5 顆星視為卓越、4 顆與 3.5 顆視為佳、3 顆視為普通、2 顆視為弱；WS 與 WSG 相差一級時以 WS 數字評分為準，並在 note 註明。"},{"id":"tuscany","name":"托斯卡尼","en":"Tuscany","tracks":[{"id":"main","label":"奇揚替經典區／蒙塔奇諾（山吉歐維榭）","years":{"2015":{"climate":["正常"],"q":"卓越","note":"夏暖但不過熱、雨水足；酒款濃縮有力又不失純淨優雅。","src":["s1","s2","s3"],"evidence":"WS CC 97, Brunello 97; WSG 5 stars"},"2016":{"climate":["正常"],"q":"卓越","note":"年初偏涼、七月起轉暖，採收條件理想；酒款優雅、平衡。","src":["s1","s2","s3"],"evidence":"WS CC 97, Brunello 99; WSG 5 stars"},"2017":{"climate":["偏熱","乾旱","春霜"],"q":"佳","note":"春夏高溫乾旱、部分地區春霜；最好的酒仍新鮮平衡、單寧緊實。","src":["s1","s2","s3"],"evidence":"WS CC 92, Brunello 92; WSG 3 stars"},"2018":{"climate":["多雨"],"q":"佳","note":"春雨與七月暴雨使成熟較慢、收成較晚；酒款柔順討喜，最好的仍可陳年。","src":["s1","s2","s3"],"evidence":"WS CC 93, Brunello 93; WSG 4.5 stars"},"2019":{"climate":["正常"],"q":"卓越","note":"天氣穩定、日暖夜涼、降雨適時；果味純淨有結構。","src":["s1","s2","s3"],"evidence":"WS CC 95, Brunello 98; WSG 4.5 stars"},"2020":{"climate":["春霜","偏熱"],"q":"佳","note":"春霜減產、夏季偏暖早採；果味成熟飽滿，蒙塔奇諾各酒款不太一致。","src":["s1","s2","s3"],"evidence":"WS CC 94, Brunello 93; WSG 4 stars"},"2021":{"climate":["春霜","偏熱"],"q":"卓越","note":"春霜減產、夏季炎熱後晚收；酒款鮮活集中、單寧成熟。","src":["s1","s2","s3"],"evidence":"WS CC 98, Brunello 99; WSG 4.5 stars"},"2022":{"climate":["偏熱","乾旱"],"q":"佳","note":"炎熱乾旱，八月中旬降雨救回收成；最好的酒款仍新鮮（WSG 為暫評）。","src":["s1","s3"],"evidence":"WS CC 92; WSG Brunello 4 stars provisional"},"2023":{"climate":["多雨","病害","冰雹"],"q":"不均","note":"春雨造成露菌病，品質突出但不一致；蒙塔奇諾八月東南部有冰雹。","src":["s1","s3"],"evidence":"WS CC 92 'inconsistent'; WSG Brunello 3 provisional"},"2024":{"climate":["多雨","熱浪","收穫期下雨"],"q":"不均","note":"奇揚替酒體輕、酒精低，品質參差；蒙塔奇諾暫評偏低（氣候取自蒙塔奇諾）。","src":["s3","s5"],"evidence":"Decanter: light, quality mixed; WSG Brunello 2.5 provisional"},"2025":{"climate":["正常"],"q":null,"note":"奇揚替經典區公會初報：氣候平衡、無嚴重黴病，樂觀但尚無評分。","src":["s4"],"evidence":"Consorzio CC: balanced season; no rating given"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart – Tuscany/Chianti and Chianti Classico (2015-2023)","url":"https://www.winespectator.com/vintage-charts/region/tuscany-chianti-and-chianti-classico","checked":"2026-10-10"},{"id":"s2","name":"Wine Spectator Vintage Chart – Tuscany/Brunello di Montalcino (2015-2021)","url":"https://www.winespectator.com/vintage-charts/region/tuscany-brunello-di-montalcino","checked":"2026-10-10"},{"id":"s3","name":"Wine Scholar Guild – Tuscany vintage chart (Brunello di Montalcino section; 2022-2024 provisional)","url":"https://winescholarguild.com/italian-wine-vintage-charts/tuscany-vintage-chart","checked":"2026-10-10"},{"id":"s4","name":"Consorzio Vino Chianti Classico – 2025 vintage report","url":"https://www.chianticlassico.com/en/news-en/2025-vintage-report/","checked":"2026-10-10"},{"id":"s5","name":"Decanter – Chianti Classico 2024 vintage (low-alcohol vintage article)","url":"https://www.decanter.com/vintage-guides/chillable-and-chuggable-the-low-alcohol-chianti-classico-vintage-everyone-is-talking-about/","checked":"2026-10-10"}],"gaps":"本軌合併奇揚替經典區（WS Chianti/Chianti Classico）與蒙塔奇諾（WS Brunello、WSG Brunello），兩者年份品質大致同向，但並非同一產區的單一評分。WS 奇揚替圖表只到 2023、蒙塔奇諾只到 2021，2024–2025 無 WS 評分。WSG 頁面只有 Brunello 區段，未找到其奇揚替經典區圖表。2024 的『品質參差』來自 Decanter 搜尋結果摘要（頁面內文因付費牆未能讀取），2024 的氣候標籤取自 WSG 蒙塔奇諾描述。2025 只有奇揚替公會的定性初報，無評分，q 留空。蒙塔奇諾公會已停用星等改用 Brunello Forma 描述（僅涵蓋2020年起，且2023/2024 查無），故未用。Jancis Robinson、Vinous 年份頁為付費牆，未能讀取。"},{"id":"rioja","name":"里奧哈","en":"Rioja","tracks":[{"id":"main","label":"里奧哈紅酒（田帕尼優）","years":{"2015":{"climate":["偏熱","少雨"],"q":"佳","note":"炎熱乾燥、採收早而快，果實成熟健康；官方評為『很好』。","src":["s1","s2","s7"],"evidence":"WS 91; WSG 4 stars; Council Very Good"},"2016":{"climate":["偏熱","少雨"],"q":"佳","note":"暖年、夏季極乾，秋夜涼；產量高，官方評為『很好』。","src":["s1","s2"],"evidence":"WS 94; WSG 4 stars; Council Very Good"},"2017":{"climate":["春霜","偏熱","少雨"],"q":"佳","note":"四月晚霜減產、採收創紀錄地早；WS 評分偏低（87），官方評『很好』。","src":["s1","s2"],"evidence":"WS 87; WSG 3.5 stars; Council Very Good"},"2018":{"climate":["偏冷","多雨","病害"],"q":"普通","note":"春季冷濕、有黴病壓力；酒款新鮮高酸。WS 89，WSG 給4顆星。","src":["s1","s2"],"evidence":"WS 89; WSG 4 stars; cold wet spring"},"2019":{"climate":["正常"],"q":"卓越","note":"氣候相對穩定；官方評為『卓越』（近年少見），WS 評分較保守（92）。","src":["s1","s2"],"evidence":"Council Excelente; WS 92; WSG 4.5 stars"},"2020":{"climate":["偏熱","冰雹","病害"],"q":"佳","note":"炎熱、產量較小，部分地區冰雹與黴病；採收期天氣極佳。","src":["s1","s2"],"evidence":"WS 93; WSG 4 stars; Council Very Good"},"2021":{"climate":["少雨","冰雹"],"q":"卓越","note":"夏季溫暖乾燥、採收期涼爽晴朗；部分產區冰雹減產。官方評『很好』。","src":["s1","s2"],"evidence":"WS 97; WSG 5 stars; Council Very Good"},"2022":{"climate":["偏熱","乾旱"],"q":"佳","note":"有紀錄以來最熱的一年，酒款偏輕；官方評為『很好』。","src":["s1","s2","s6"],"evidence":"WS 92; WSG 3.5 stars; Council Very Good"},"2023":{"climate":["熱浪","冰雹","收穫期下雨"],"q":"普通","note":"八月熱浪後九月降雨稀釋果實；WS 暫評88–91，官方評『很好』，說法不一。","src":["s1","s2","s5"],"evidence":"WS 88-91 prelim; WSG 3 stars; Council Very Good"},"2024":{"climate":["多雨","收穫期下雨","病害"],"q":"普通","note":"開花與採收期下雨、產量小；官方評『好』，白酒與粉紅酒優於紅酒。","src":["s2","s4"],"evidence":"WSG 3.5 stars; Council Buena; reds weaker"},"2025":{"climate":["多雨","病害"],"q":"卓越","note":"官方評為『卓越』；春季與開花期多雨、黴病壓力大，產量偏小。","src":["s3"],"evidence":"Council Excelente (Apr 2026); wet spring, mildew"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart – Rioja (2015-2023)","url":"https://www.winespectator.com/vintage-charts/region/rioja","checked":"2026-10-10"},{"id":"s2","name":"Wine Scholar Guild – Rioja Vintage Chart (also relays Consejo Regulador ratings)","url":"https://www.winescholarguild.com/spanish-wine-vintage-charts/rioja-vintage-chart","checked":"2026-10-10"},{"id":"s3","name":"Vinetur – Rioja califica la añada 2025 como excelente","url":"https://www.vinetur.com/2026042499616/rioja-califica-la-anada-2025-como-excelente.html","checked":"2026-10-10"},{"id":"s4","name":"Vinetur – La cosecha 2024 de Rioja recibe la calificación de Buena","url":"https://www.vinetur.com/2025042686993/la-cosecha-2024-de-rioja-recibe-la-calificacion-de-buena-y-los-blancos-y-rosados-logran-el-nivel-de-muy-buenos.html","checked":"2026-10-10"},{"id":"s5","name":"Nueve Cuatro Uno – Rioja bautiza vendimia 2023 como Muy Buena","url":"https://nuevecuatrouno.com/2024/06/14/rioja-bautiza-vendimia-2023-muy-buena-calificacion-anada/","checked":"2026-10-10"},{"id":"s6","name":"Agronews Castilla y León – Rioja califica como muy buena su cosecha de 2022","url":"https://www.agronewscastillayleon.com/rioja-califica-como-muy-buena-su-cosecha-de-2022/","checked":"2026-10-10"},{"id":"s7","name":"BKWine – The official rating for Rioja 2015 is Very Good","url":"https://www.bkwine.com/news/official-rating-rioja-2015-good/","checked":"2026-10-10"}],"gaps":"官方 Consejo Regulador 評等（Excelente／Muy Buena／Buena）2015、2022–2025 來自新聞報導或搜尋摘要，2016、2017、2019–2021 來自 Wine Scholar Guild 轉述；2018 官方評等查無（WSG 與搜尋結果均未提及）。Consejo 官網年份頁（riojawine.com）網址 404、未能直接讀取，Decanter 里奧哈年份指南為付費牆。WS 里奧哈圖表只到 2023（且 2023 為暫評範圍 88–91），2024–2025 無 WS 評分。官方評等換算：Excelente→卓越、Muy Buena→佳、Buena→普通。多來源分歧時取多數，平手以 WS 數字為準（2017 取多數為佳、但 WS 僅 87；2023 三方說法不一，標普通，僅供參考）。2025 僅有官方評等的新聞報導，單一來源；氣候標籤『冰雹』查無穩固來源，未標。"},{"id":"germany","name":"德國","en":"Germany","tracks":[{"id":"riesling","label":"麗絲玲（WS 以麗絲玲評分）","years":{"2015":{"climate":["正常"],"q":"卓越","note":"春夏近乎完美、秋涼，果實熟且酸度高，從乾型到甜酒俱全。","src":["s1"],"evidence":"WS 96; near-perfect spring and summer"},"2016":{"climate":["多雨","偏熱","少雨"],"q":"佳","note":"春濕、夏熱乾、採收天氣好；酒款香氣優雅、適合佐餐。","src":["s1"],"evidence":"WS 93; damp spring, hot dry summer"},"2017":{"climate":["春霜","偏熱","少雨"],"q":"佳","note":"早萌芽後遇嚴霜減產，夏暖乾，八月雨添挑戰；頂尖酒平衡耐陳。","src":["s1"],"evidence":"WS 94; heavy frost, August rain, yields down"},"2018":{"climate":["正常"],"q":"佳","note":"天候有利、產量為1999年來最大，酒款濃熟好入口，陳年力較弱。","src":["s1"],"evidence":"WS 93; largest harvest since 1999"},"2019":{"climate":["偏熱"],"q":"佳","note":"花期不齊、七月創高溫、八月轉涼；需嚴選，酒款精緻準確。","src":["s1"],"evidence":"WS 94; record July heat, smaller crop"},"2020":{"climate":["偏熱","乾旱"],"q":"佳","note":"暖冬暖春、夏季日照足且乾旱；老藤佳，酒款優雅，陳年潛力大。","src":["s1"],"evidence":"WS 94; very sunny, drought"},"2021":{"climate":["偏冷","多雨","病害"],"q":"不均","note":"40年最冷冬春，夏雨多、霉病與水災；品質不一，佳作酸度鮮明。","src":["s1"],"evidence":"WS 90; variable quality; cold, mildew, flooding"},"2022":{"climate":["偏熱","乾旱"],"q":"佳","note":"夏季極熱乾、日照創紀錄，九月降雨帶回新鮮度；酒款柔順好入口。","src":["s1"],"evidence":"WS 93; sunniest summer on record"},"2023":{"climate":["偏熱","病害"],"q":"卓越","note":"春乾夏暖濕、病害壓力大；九月穩定，酒款開放、結構優美。","src":["s1"],"evidence":"WS 96; warm humid summer, stable September"},"2024":{"climate":["春霜","多雨"],"q":"佳","note":"四月嚴霜、全年多雨，產量極低；嚴選之下酒款清晰精準。","src":["s1"],"evidence":"WS 94; April frosts, repeated rain, tiny crop"},"2025":{"climate":["偏熱","收穫期下雨"],"q":null,"note":"果粒小而熟度高，產量低於十年均值；僅機構說法，暫無獨立評分。","src":["s2","s3"],"evidence":"DWI: very good quality; no independent score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Charts — Germany: Riesling","url":"https://www.winespectator.com/vintage-charts/region/germany","checked":"2026-10-10"},{"id":"s2","name":"Wine With Seth — 2025 Germany & Mosel Riesling Vintage","url":"https://www.winewithseth.com/winewiki/2025-germany-mosel-riesling-vintage/","checked":"2026-10-10"},{"id":"s3","name":"Wines of Germany (DWI) — Wine must harvest 2025 greater than estimated","url":"https://www.winesofgermany.com/news-media/news/news/1700/weinmosternte-2025-gr%C3%B6%C3%9Fer-als-gesch%C3%A4tzt","checked":"2026-10-10"}],"gaps":"2015–2024 全部只有 WS 單一來源（Jancis Robinson 被擋 403、Wine Scholar Guild 未提供德國圖表），未做第二來源交叉。WS 只評麗絲玲，且 Prädikat 甜酒與干型酒可能表現不同，此處未區分。2021 因 WS 文字明說 variable quality overall 而標「不均」（分數 90）。2025：WS 尚無條目；s3 只見搜尋結果摘要（頁面未直接開啟），s2 為轉述 DWI 與 VDP Mosel 的早期印象、無數字評分，q 留空；2025 氣候標籤（偏熱、收穫期下雨）出自 s2 的 Mosel 描述，未必代表全德國。"},{"id":"california","name":"美國加州","en":"California","tracks":[{"id":"main","label":"納帕谷卡本內蘇維濃","years":{"2015":{"climate":["乾旱"],"q":"佳","note":"連續第四年乾旱加開花期冷鋒，產量明顯減少；Vinous 認為各酒款一致性較差。","src":["s1","s5"],"evidence":"WS 94; Vinous: less consistent; 4th drought year"},"2016":{"climate":["乾旱"],"q":"卓越","note":"乾旱系列的最後一年、無嚴重熱峰；多家評論人視為極佳年份。","src":["s1","s5"],"evidence":"WS 98; Vinous, Decanter praise"},"2017":{"climate":["熱浪","野火"],"q":"佳","note":"九月初高溫無喘息、十月野火有煙燻疑慮；Suckling 認為品質不齊。","src":["s1","s6"],"evidence":"WS 92; Suckling: mixed bag; heat, October fires"},"2018":{"climate":["正常"],"q":"卓越","note":"冬雨足、生長季乾暖平穩，成熟緩慢、採收拉長。","src":["s1"],"evidence":"WS 99; wet winter, even-keeled season"},"2019":{"climate":["多雨"],"q":"卓越","note":"春雨多使果粒小而集中；八、九月溫和，採收延至十月。","src":["s1"],"evidence":"WS 96; wet spring, moderate Aug-Sep"},"2020":{"climate":["熱浪","野火"],"q":"普通","note":"持續高溫、野火環繞採收，許多酒廠降級處理。","src":["s1"],"evidence":"WS 87; unrelenting heat, wildfires, declassified"},"2021":{"climate":["正常"],"q":"卓越","note":"產量低、無破壞性熱峰，八月涼爽均勻；保有新鮮度。","src":["s1"],"evidence":"WS 97; low crop, no damaging heat spikes"},"2022":{"climate":["偏熱","熱浪"],"q":"弱","note":"勞動節週末熱浪衝擊尚未成熟的葡萄園；一致性差，仍有90分以上酒款。","src":["s1","s4"],"evidence":"WS 84; Labor Day heat wave"},"2023":{"climate":["偏冷"],"q":"卓越","note":"冬雨足、生長季乾涼而穩定，採收期拉長。","src":["s1","s7"],"evidence":"WS 95; dry, cool, very steady season"},"2024":{"climate":["熱浪"],"q":"佳","note":"WS 暫評93–96；多次熱峰（高於100°F 的天數超過一個月），偏果味。","src":["s1"],"evidence":"WS 93-96 provisional; repeated heat spikes"},"2025":{"climate":["偏冷","收穫期下雨"],"q":null,"note":"產業稿稱涼爽溫和、成熟緩慢，十月降雨；尚無獨立評分。","src":["s2","s3"],"evidence":"Industry reports: cool, mild; Oct rain; no rating"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart – California/Cabernet Sauvignon/Franc (Napa; updated Sept 2026)","url":"https://www.winespectator.com/vintage-charts/region/california-cabernet-napa","checked":"2026-10-10"},{"id":"s2","name":"Wine Industry Advisor – California 2025 Harvest Report (based on Wine Institute data)","url":"https://wineindustryadvisor.com/2025/12/15/california-2025-harvest-report-a-mild-season-brings-concentrated-flavors-and-bright-acidity/","checked":"2026-10-10"},{"id":"s3","name":"Decanter – California's 2025 harvest (headline: cooler summer)","url":"https://www.decanter.com/wine/wine-regions/california-wine-region/californias-2025-harvest-564216/","checked":"2026-10-10"},{"id":"s4","name":"Wine Spectator – 2022 California Cabernet: Too Hot to Handle","url":"https://www.winespectator.com/articles/2022-california-cabernet-too-hot-to-handle-111525","checked":"2026-10-10"},{"id":"s5","name":"Vinous – Brilliance in Napa Valley: The 2016 & 2015 Cabernets","url":"https://vinous.com/articles/brilliance-in-napa-valley-the-2016-2015-cabernets-jan-2018","checked":"2026-10-10"},{"id":"s6","name":"James Suckling – 10 outstanding Napa 2017 Cabernets","url":"https://jamessuckling.com/wine-tasting-reports/10-outstanding-napa-2017-cabernets-75","checked":"2026-10-10"},{"id":"s7","name":"Wine Spectator – Back With a Bang: 2023 California Cabernet","url":"https://www.winespectator.com/articles/california-cabernet-sauvignon-napa-2023-tasting-report-wine-111526","checked":"2026-10-10"}],"gaps":"數字評分與氣候主要來自單一來源 Wine Spectator（2015–2024）。s3–s7 為輔助來源，其論點僅取自搜尋結果摘要（Decanter、Vinous、WS 文章、Suckling 頁面本身多為付費牆或未完整讀取），只用於輔助說明，不作為評分依據。Wine Enthusiast 年份表（403 無法讀取）、Napa Valley Vintners 年份表（403）、Vinous 與 Decanter 的完整年份指南未能讀取，故沒有第二份完整數字圖表可交叉驗證。2025 年 WS 尚未列入，只有產業稿與 Decanter 標題，無獨立評分，q 留空；其『偏冷』來自產業稿描述，一位酒莊的『最冷夏季』說法未採用。2024 的 WS 評分為暫評範圍 93–96，取中間偏下標為佳。未做索諾瑪黑皮諾第二軌。"},{"id":"chile","name":"智利","en":"Chile","tracks":[{"id":"main","label":"中央山谷紅酒（邁坡／空加瓜）","years":{"2015":{"climate":["偏熱"],"q":"佳","note":"整季偏暖、提早採收，酸度偏低","src":["s1","s2","s3"],"evidence":"WS 92; WE 90; warm, early"},"2016":{"climate":["多雨"],"q":"不均","note":"聖嬰年雨多、產量大減，品質落差大","src":["s1","s2","s3"],"evidence":"WS 87; WE 83-84; JR variable"},"2017":{"climate":["偏熱","野火"],"q":"普通","note":"夏季偏熱、提早採收，單寧柔順","src":["s1","s2","s3"],"evidence":"WS 88; WE 85-86; hot, fires"},"2018":{"climate":["偏冷"],"q":"佳","note":"略偏涼，紅酒結構佳、酸度新鮮","src":["s1","s2","s3"],"evidence":"WS 93; WE 92; slightly cool"},"2019":{"climate":["偏冷","乾旱"],"q":"佳","note":"涼爽均衡但乾旱，果實小而濃縮","src":["s1","s2","s3"],"evidence":"WS 93; WE 88; cool, drought"},"2020":{"climate":["偏熱","少雨","春霜"],"q":"普通","note":"炎熱乾燥且有霜害，採收期短、酒精偏高","src":["s1","s2","s3"],"evidence":"WS 90; WE 85; hot dry, frost"},"2021":{"climate":["多雨","偏冷"],"q":"佳","note":"近年最多雨，冷涼熟成，酒精低酸度高","src":["s1","s2","s3"],"evidence":"WS 95; WE 88-90; wet, cool"},"2022":{"climate":["少雨","春霜"],"q":"佳","note":"極乾燥且有霜害，紅酒濃縮耐久存","src":["s1","s2","s3"],"evidence":"WS 95; WE 89; dry, spring frost"},"2023":{"climate":["偏熱","春霜","野火"],"q":"普通","note":"高溫、春霜與森林大火，產量約減兩成","src":["s1","s2","s3"],"evidence":"WE 89; WS not yet rated; hot"},"2024":{"climate":["多雨","偏冷"],"q":"佳","note":"聖嬰年冬雨多、春涼，成熟慢酸度高","src":["s2","s3","s4"],"evidence":"WE 92; wet cool; yields lower"},"2025":{"climate":[],"q":null,"note":"僅酒廠自述品質佳，無獨立評分","src":["s5","s6"],"evidence":"producer claims only; no critic score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - Chile: Red Wines","url":"https://www.winespectator.com/vintage-charts/region/chile","checked":"2026-10-10"},{"id":"s2","name":"Wine Enthusiast Vintage Chart 2026 Edition (Maipo/Colchagua Reds)","url":"https://www.wineenthusiast.com/wine-vintage-chart/","checked":"2026-10-10"},{"id":"s3","name":"Jancis Robinson Chile Vintage Chart","url":"https://www.jancisrobinson.com/learn/vintages/chile","checked":"2026-10-10"},{"id":"s4","name":"Decanter - Chile's 2024 harvest: Yields lower but quality high (headline only)","url":"https://www.decanter.com/wine-news/chiles-2024-harvest-yields-lower-but-quality-high-530474","checked":"2026-10-10"},{"id":"s5","name":"Concha y Toro - 2025 vintage statement (producer)","url":"https://conchaytoro.com/en/?p=77410","checked":"2026-10-10"},{"id":"s6","name":"VSPT Wine Group 2025 harvest report (producer, PDF)","url":"https://vsptwinegroup.com/wp/wp-content/uploads/2025/06/VSPT_Reporte-Vendimia_180625_BE-INGLES_compressed.pdf","checked":"2026-10-10"}],"gaps":"2025：無獨立評分，僅酒廠自述（s5,s6），q 留空。2023：WS 尚未評分，q 僅依 WE（單一來源）。2024：WS 無資料，q 僅依 WE；氣候來自 JR、Decanter 標題（內文未讀到）。q 換算法：WS 與 WE（邁坡、空加瓜兩列取平均）兩者平均後 >=95 卓越、90-94.99 佳、85-89.99 普通、<85 弱；僅單一來源時直接換算；來源明說品質參差則標不均（2016）。WS 頁面文字經工具摘要，已盡量只取評分與要點。"},{"id":"argentina","name":"阿根廷","en":"Argentina","tracks":[{"id":"main","label":"門多薩馬爾貝克（紅酒）","years":{"2015":{"climate":["多雨","病害","冰雹"],"q":"普通","note":"較潮濕有灰黴病與冰雹，較適合白酒","src":["s1","s2","s3"],"evidence":"WS 85; WE 85; rot, hail"},"2016":{"climate":["偏冷","多雨","冰雹"],"q":"弱","note":"涼爽多雨有冰雹，產量大減、品質不穩","src":["s1","s2","s3"],"evidence":"WS 84; WE 84; cool, wet, hail"},"2017":{"climate":["偏熱","少雨","春霜"],"q":"佳","note":"溫暖乾燥，春霜減產，酒款精緻","src":["s1","s2","s3"],"evidence":"WS 92; WE 91; dry, frost"},"2018":{"climate":["少雨","偏冷"],"q":"佳","note":"採收期少雨偏涼，單寧細緻酸度新鮮","src":["s1","s2","s3"],"evidence":"WS 93; WE 92; dry, cool harvest"},"2019":{"climate":["偏冷"],"q":"佳","note":"略涼、秋季長熟，酒精適中酸度新鮮","src":["s1","s2","s3"],"evidence":"WS 94; WE 93; cooler"},"2020":{"climate":["春霜","偏熱","少雨"],"q":"普通","note":"春霜減產、夏季炎熱乾燥，提早採收","src":["s1","s2","s3"],"evidence":"WS 91; WE 88; frost, hot dry"},"2021":{"climate":["偏冷","多雨","春霜"],"q":"佳","note":"涼爽多雨、晚採，酒精低風味集中","src":["s1","s2","s3"],"evidence":"WS 94; WE 92; cool, rain, frost"},"2022":{"climate":["春霜","偏冷","收穫期下雨"],"q":"佳","note":"春霜減產，二月白酒採收遇雨，紅酒佳","src":["s1","s2","s3"],"evidence":"WS 94; WE 91; frost; Feb rain"},"2023":{"climate":["偏熱","乾旱","春霜"],"q":"佳","note":"有紀錄以來最熱，霜害使產量極低","src":["s1","s2","s3"],"evidence":"WE 90; WS not yet rated; hottest year"},"2024":{"climate":["少雨"],"q":"佳","note":"冬雪豐沛，焚風使產量銳減，夏季穩定乾暖","src":["s2","s3"],"evidence":"WE 92; Zonda winds cut yields"},"2025":{"climate":["偏熱","收穫期下雨"],"q":null,"note":"早熟高溫後二月降雨，無獨立評分","src":["s4","s5"],"evidence":"no critic score; early heat then rain"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - Argentina/Mendoza","url":"https://www.winespectator.com/vintage-charts/region/argentina","checked":"2026-10-10"},{"id":"s2","name":"Wine Enthusiast Vintage Chart 2026 Edition (Argentina/Mendoza Reds)","url":"https://www.wineenthusiast.com/wine-vintage-chart/","checked":"2026-10-10"},{"id":"s3","name":"Jancis Robinson Argentina Vintage Chart","url":"https://www.jancisrobinson.com/learn/vintages/argentina","checked":"2026-10-10"},{"id":"s4","name":"WineWiki (Wine with Seth) - 2025 Argentina (Mendoza) Vintage","url":"https://www.winewithseth.com/winewiki/2025-argentina-mendoza-vintage/","checked":"2026-10-10"},{"id":"s5","name":"The Drinks Business - Argentina 2025 is a vintage of two halves (search result only; page blocked)","url":"https://www.thedrinksbusiness.com/2025/04/argentina-2025-is-a-vintage-of-two-halves/","checked":"2026-10-10"}],"gaps":"2025：無獨立評分，僅 WineWiki 與 Drinks Business 的搜尋摘要（後者網頁本身讀取被擋，只見搜尋結果內容）。2023：WS 尚未評分，q 僅依 WE。2024：WS 無資料，q 僅依 WE。換算法同智利（WS 與 WE Mendoza Reds 平均）。2020 平均 89.5，落在普通邊界。"},{"id":"australia","name":"澳洲","en":"Australia","tracks":[{"id":"main","label":"巴羅莎谷希哈","years":{"2015":{"climate":["春霜","野火"],"q":"佳","note":"霜害與野火使部分酒廠減產，風味濃郁","src":["s1","s2","s3"],"evidence":"WS 94; WE 91; frost, bushfires"},"2016":{"climate":["偏熱"],"q":"佳","note":"提早採收的暖夏年，產量充裕","src":["s1","s2","s3"],"evidence":"WS 93; WE 92; early, warm"},"2017":{"climate":["偏冷","多雨","病害"],"q":"佳","note":"涼濕開局有病害，採收期乾燥，酒款優雅","src":["s1","s2","s3"],"evidence":"WS 92; WE 94; cool wet start"},"2018":{"climate":["春霜"],"q":"佳","note":"早霜減產，後半季天氣穩定，酒款豐厚","src":["s1","s2","s3"],"evidence":"WS 93; WE 95; frost, steady weather"},"2019":{"climate":["偏熱","少雨","春霜"],"q":"佳","note":"炎熱乾燥加春霜，產量大幅偏低","src":["s1","s2","s3"],"evidence":"WS 92; WE 93; hot dry, frost"},"2020":{"climate":["春霜","偏熱","少雨"],"q":"佳","note":"霜害與高溫乾燥，產量連續第三年下滑","src":["s1","s2","s3"],"evidence":"WS 92; WE 92; frost, heat spikes"},"2021":{"climate":["正常"],"q":"佳","note":"冬雨結束兩年乾旱，氣候近常態，產量回升","src":["s1","s2","s3"],"evidence":"WS 91; WE 96; near-average season"},"2022":{"climate":["冰雹","偏冷"],"q":"佳","note":"涼爽長熟期，酸度鮮明，被譽近年最佳之一","src":["s1","s2","s3"],"evidence":"WS 93; WE 94; cool, hail"},"2023":{"climate":["偏冷","多雨","病害"],"q":"佳","note":"拉尼娜年冷濕晚熟，酒款優雅；JR 對南澳較保守","src":["s1","s2","s3"],"evidence":"WS 91; WE 93; cool, wet, fungal"},"2024":{"climate":["春霜","熱浪"],"q":"佳","note":"春霜減產、採收期熱浪；WS 為初步評分","src":["s1","s2","s3"],"evidence":"WS 88-91 prelim; WE 93; frost, heat"},"2025":{"climate":["乾旱","偏熱","春霜"],"q":null,"note":"連續第二年乾旱、早採；各來源對霜害說法不一","src":["s4","s5"],"evidence":"drought, early harvest; no score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - Barossa and McLaren Vale: Shiraz","url":"https://www.winespectator.com/vintage-charts/region/barossa-and-mclaren-vale","checked":"2026-10-10"},{"id":"s2","name":"Wine Enthusiast Vintage Chart 2026 Edition (Barossa/McLaren Vale Shiraz)","url":"https://www.wineenthusiast.com/wine-vintage-chart/","checked":"2026-10-10"},{"id":"s3","name":"Jancis Robinson South Australia Vintage Chart","url":"https://www.jancisrobinson.com/learn/vintages/south-australia","checked":"2026-10-10"},{"id":"s4","name":"Barossa.com - 2025 Vintage Report","url":"https://www.barossa.com/wine/vintage-reports/2025-vintage-report","checked":"2026-10-10"},{"id":"s5","name":"Halliday Wine Companion - South Australia 2025 vintage notes","url":"https://cd2.winecompanion.com.au/resources/vintage-chart/2025/south-australia","checked":"2026-10-10"}],"gaps":"只做巴羅莎希哈一條軌，未做涼爽產區白酒軌。WS/WE 兩者皆為「Barossa／McLaren Vale」合併列，非純巴羅莎。JR 為南澳整體筆記，非巴羅莎專屬，部分氣候標籤（2016、2019、2020 等）為南澳層級。Halliday 年份表需訂閱未能讀取。2024：WS 為初步區間 88-91，已與 WE 93 平均。2025：無評分；barossa.com 報告只讀到搜尋結果摘要（頁面本身讀取被擋）。"},{"id":"newzealand","name":"紐西蘭","en":"New Zealand","tracks":[{"id":"sb","label":"馬爾堡白蘇維濃","years":{"2015":{"climate":["少雨"],"q":"佳","note":"夏季很乾，產量減兩至兩成半，風味濃縮","src":["s1","s2"],"evidence":"WE 93; very dry summer; yields -20-25%"},"2016":{"climate":[],"q":"佳","note":"產量回升、果粒偏大，百香果風味突出","src":["s1","s2"],"evidence":"WE 92; larger berries, volume up"},"2017":{"climate":["偏冷","多雨"],"q":"普通","note":"較濕冷、晚採收，風格偏內斂","src":["s1","s2"],"evidence":"WE 89; cool wet, late harvest"},"2018":{"climate":["偏熱","收穫期下雨","病害"],"q":"弱","note":"暖夏但採收期下雨致腐爛，品質受影響","src":["s1","s2"],"evidence":"WE 84; rain, rot at harvest"},"2019":{"climate":["正常"],"q":"佳","note":"天氣友善、病害少，酒精適中酸度明亮","src":["s1","s2","s3"],"evidence":"WE 94; balanced, kind weather"},"2020":{"climate":["正常"],"q":"卓越","note":"封城下採收，但生長季理想、果實佳","src":["s1","s2","s3"],"evidence":"WE 95; benign season"},"2021":{"climate":["乾旱"],"q":"佳","note":"花期天氣差、產量低，但品質高","src":["s1","s2","s3"],"evidence":"WE 93; poor flowering, small crop"},"2022":{"climate":["偏冷","多雨","病害"],"q":"佳","note":"冷春濕夏、病害壓力，產量回升","src":["s1","s2","s3"],"evidence":"WE 93; cool wet; higher yields"},"2023":{"climate":["偏冷","多雨"],"q":"卓越","note":"春夏濕冷，長秋季讓果實晚熟，表現亮眼","src":["s1","s2","s3"],"evidence":"WE 95; wet cool, long autumn"},"2024":{"climate":["乾旱","偏熱"],"q":"卓越","note":"極乾暖、產量小，果實乾淨濃縮","src":["s1","s2","s3","s8"],"evidence":"WE 97; very dry, warm, small crop"},"2025":{"climate":["偏冷"],"q":null,"note":"整體偏涼、產量較高；尚無評分","src":["s2","s4","s5","s6"],"evidence":"no score yet; cool; higher yields"}}},{"id":"pinot","label":"黑皮諾（全國／中奧塔哥）","years":{"2015":{"climate":["春霜"],"q":"佳","note":"春霜限制產量，濃縮度與品質佳","src":["s7","s1","s2"],"evidence":"WS 92; WE 92; spring frosts"},"2016":{"climate":["少雨"],"q":"佳","note":"多地乾燥，酒款強勁，產量略回升","src":["s7","s1","s2"],"evidence":"WS 93; WE 92; dry season"},"2017":{"climate":["偏冷","多雨"],"q":"佳","note":"冷濕減產，小產量使部分酒款更濃縮","src":["s7","s1","s2"],"evidence":"WS 90; WE 91; cool, wet"},"2018":{"climate":["偏熱"],"q":"普通","note":"紀錄上最暖季節之一，低產量風味濃縮","src":["s7","s1","s2"],"evidence":"WS 90; WE 89; very warm"},"2019":{"climate":["正常"],"q":"佳","note":"生長季近乎理想，全國酒款均衡","src":["s7","s1","s2"],"evidence":"WS 93; WE 93; balanced"},"2020":{"climate":["正常"],"q":"佳","note":"封城年但生長季理想；中奧塔哥為紀錄最涼","src":["s7","s1","s2"],"evidence":"WS 93; WE 96; ideal season"},"2021":{"climate":["乾旱"],"q":"佳","note":"花期不順減產，中奧塔哥例外，品質高","src":["s7","s1","s2"],"evidence":"WS 92; WE 95; flowering problems"},"2022":{"climate":["多雨","病害"],"q":"佳","note":"產量恢復正常；WS 稱稍暖、JR 稱濕夏","src":["s7","s1","s2"],"evidence":"WS 91; WE 95; sources differ on climate"},"2023":{"climate":["多雨"],"q":"佳","note":"北島風災嚴重，中奧塔哥較乾，南北差異大","src":["s7","s1","s2"],"evidence":"WS 91; WE 94; Cyclone Gabrielle"},"2024":{"climate":["少雨","偏熱"],"q":"卓越","note":"乾暖年，產量偏低但果實純淨（平均剛達95）","src":["s7","s1","s2"],"evidence":"WS 93; WE 97; dry, warm"},"2025":{"climate":["偏冷","春霜"],"q":"佳","note":"品質高但產量大，中奧塔哥花期霜害減產","src":["s7","s2"],"evidence":"WS 91; high yields; Otago frost"}}}],"sources":[{"id":"s1","name":"Wine Enthusiast Vintage Chart 2026 Edition (Marlborough SB / Central Otago PN)","url":"https://www.wineenthusiast.com/wine-vintage-chart/","checked":"2026-10-10"},{"id":"s2","name":"Jancis Robinson New Zealand Vintage Chart","url":"https://www.jancisrobinson.com/learn/vintages/new-zealand","checked":"2026-10-10"},{"id":"s3","name":"Wine Marlborough - Vintage Reports press releases","url":"https://www.marlboroughwinenz.com/press-releases/tag/Vintage%20Reports","checked":"2026-10-10"},{"id":"s4","name":"Decanter - New Zealand 2025 harvest report: A return to form (search result only)","url":"https://www.decanter.com/wine-news/new-zealand-2025-harvest-report-a-return-to-form-555683","checked":"2026-10-10"},{"id":"s5","name":"Saint Clair 2025 Vintage Report (producer; search result only)","url":"https://saintclair.co.nz/blogs/saint-clair-family-estate/2025-saint-clair-vintage-report","checked":"2026-10-10"},{"id":"s6","name":"Wine Marlborough - Smooth and easy vintage (2025)","url":"https://www.marlboroughwinenz.com/press-releases/smooth-and-easy-vintage","checked":"2026-10-10"},{"id":"s7","name":"Wine Spectator Vintage Chart - New Zealand: Pinot Noir","url":"https://www.winespectator.com/vintage-charts/region/new-zealand","checked":"2026-10-10"},{"id":"s8","name":"Indevin Harvest Report 2024 (producer PDF; search result only)","url":"https://www.hatchmansfield.com/wp-content/uploads/2024/04/Indevin-Harvest-Report-2024.pdf","checked":"2026-10-10"}],"gaps":"馬爾堡白蘇維濃軌只有 WE 一個評分來源（WS 只有黑皮諾列），2025 尚無評分，q 留空；2016 無明確天氣描述，climate 留空。黑皮諾軌為 WS 全國黑皮諾與 WE 中奧塔哥黑皮諾平均，2025 僅 WS 單一來源。2024 平均剛好 95 分（卓越邊界）。2024、2025 的部分描述來自搜尋結果摘要（Decanter、Saint Clair、Indevin 頁面本身未能讀取）。"},{"id":"southafrica","name":"南非","en":"South Africa","tracks":[{"id":"main","label":"開普敦／斯泰倫博斯紅酒","years":{"2015":{"climate":["偏熱","少雨"],"q":"佳","note":"溫暖乾燥、成熟均勻，風險是過早採收","src":["s1","s2","s3"],"evidence":"WS 93; WE 95; warm dry"},"2016":{"climate":["偏熱","乾旱","野火"],"q":"不均","note":"酷熱乾旱，斯泰倫博斯有野火，表現不一","src":["s1","s2","s3"],"evidence":"WS 88 inconsistent; WE 91; hot, fires"},"2017":{"climate":["乾旱"],"q":"佳","note":"乾旱低產但無熱浪，夜涼保酸、酒款優雅","src":["s1","s2","s3"],"evidence":"WS 93; WE 95; drought, no heat waves"},"2018":{"climate":["乾旱","偏熱"],"q":"佳","note":"乾旱減產、果實濃縮，頂尖酒廠保有新鮮感","src":["s1","s2","s3"],"evidence":"WS 92; WE 92; drought, hot"},"2019":{"climate":["乾旱"],"q":"佳","note":"近二十年最小產量，頂級酒廠酒款濃郁均衡","src":["s1","s2","s3"],"evidence":"WS 89; WE 93; smallest crop in ~20 yrs"},"2020":{"climate":["正常"],"q":"佳","note":"乾旱後恢復，條件均衡，強風使產量偏低","src":["s1","s2","s3"],"evidence":"WS 93; WE 91; even conditions"},"2021":{"climate":["偏冷","多雨","病害"],"q":"佳","note":"冷涼年、冬雨多，酒精低，紅酒優雅","src":["s1","s2","s3"],"evidence":"WS 92; WE 92; cool, wet winter"},"2022":{"climate":["多雨","偏冷","熱浪"],"q":"佳","note":"冷濕冬春、採收前高溫，卡本內蘇維濃佳","src":["s1","s2","s3"],"evidence":"WS 90; WE 91; wet cold; late heat"},"2023":{"climate":["多雨","偏冷","病害","收穫期下雨"],"q":"佳","note":"多雨潮濕病害壓力高；白酒佳、紅酒較不一","src":["s1","s2","s3"],"evidence":"WS 93; WE 92; wet; JR reds variable"},"2024":{"climate":["春霜","偏熱"],"q":"佳","note":"春霜與季末高溫，成熟不均；白酒突出（WS 88）","src":["s1","s2","s3"],"evidence":"WS 88; WE 92; frost; late heat"},"2025":{"climate":["偏冷","少雨"],"q":null,"note":"涼爽緩慢成熟、夏季乾爽；尚無評分","src":["s3"],"evidence":"JR note only; no score"}}}],"sources":[{"id":"s1","name":"Wine Spectator Vintage Chart - South Africa","url":"https://www.winespectator.com/vintage-charts/region/south-africa","checked":"2026-10-10"},{"id":"s2","name":"Wine Enthusiast Vintage Chart 2026 Edition (South Africa Reds)","url":"https://www.wineenthusiast.com/wine-vintage-chart/","checked":"2026-10-10"},{"id":"s3","name":"Jancis Robinson South Africa Vintage Chart","url":"https://www.jancisrobinson.com/learn/vintages/south-africa","checked":"2026-10-10"}],"gaps":"WS 與 WE 皆為全國／紅酒整體，非單獨斯泰倫博斯。2025：WS、WE 皆無，僅 JR 文字說明，q 留空。2016 標不均依 WS 文字（inconsistent）。2023 紅酒表現 JR 稱較不一，但兩家評分 92-93，仍標佳並於 note 說明。2024 WS 88 與 WE 92 平均剛好 90。"}]}/*VREF_END*/;
+const VQ = ['卓越', '佳', '普通', '不均', '弱'];
+const VQ_CLS = { '卓越': 'q-top', '佳': 'q-good', '普通': 'q-mid', '不均': 'q-var', '弱': 'q-weak' };
+const VQ_ABBR = { '卓越': '卓', '佳': '佳', '普通': '普', '不均': '不', '弱': '弱' };
+const VTAGS = ['偏熱', '偏冷', '多雨', '少雨', '乾旱', '熱浪', '春霜', '冰雹', '病害', '野火', '收穫期下雨', '日照不足', '正常'];
+function refCell(rid, tid, yr) {
+  const r = VINTAGE_REF.regions.find(x => x.id === rid); const tr = r && r.tracks.find(t => t.id === tid);
+  const base = tr && tr.years && tr.years[yr]; const o = refOv[rid + '|' + tid + '|' + yr];
+  if (o) return { climate: arr(o.climate), q: o.q || null, note: o.note || '', src: base ? arr(base.src) : [], evidence: base ? base.evidence : '', mod: true };
+  return base ? Object.assign({ mod: false }, base, { climate: arr(base.climate) }) : null;
+}
+async function saveRefOv() { await Store.put('meta', { k: 'refOverrides', data: JSON.parse(JSON.stringify(refOv)) }); }
+let vsel = { rid: null, tid: null, yr: null };
+function viewVintage(app) {
+  const R = VINTAGE_REF, years = []; for (let y = R.to; y >= R.from; y--) years.push(y);
+  const yAsc = years.slice().reverse();
+  if (!R.regions.length) { app.append(h('div', { class: 'note' }, '年份參考表還沒有資料。')); return; }
+  if (!vsel.rid || !R.regions.some(r => r.id === vsel.rid)) { vsel.rid = R.regions[0].id; vsel.tid = R.regions[0].tracks[0].id; }
+  let have = 0, total = 0;
+  R.regions.forEach(r => r.tracks.forEach(t => yAsc.forEach(y => { total++; const c = refCell(r.id, t.id, y); if (c && c.q) have++; })));
+  app.append(h('div', { class: 'note' }, h('b', null, 'AI 整理參考，待核對，非權威。'), ' 資料取自公開的年份表與評論（Wine Spectator、Wine Enthusiast、Decanter、Jancis Robinson、各產區公會等），查證日期 ' + R.checked + '。無把握或查不到的格留「—」，沒有憑印象補。品質是依來源評分換算（95 分以上＝卓越、90–94＝佳、85–89＝普通、低於 85＝弱；來源文字說參差＝不均），每個產區的來源與限制列在下方。'),
+    h('div', { style: 'height:10px' }));
+  app.append(h('div', { class: 'small muted' }, '涵蓋 ' + R.regions.length + ' 個產區、' + R.from + '–' + R.to + '；' + total + ' 格中有品質判斷的 ' + have + ' 格。點格子看細節，可在本機修改（會標「已修改」，修改只存在這台裝置，可匯出入）。'));
+  const legend = h('div', { class: 'legend small', style: 'margin:8px 0' }, VQ.map(q => h('span', { class: 'pill ' + VQ_CLS[q] }, VQ_ABBR[q] + '＝' + q)), h('span', { class: 'pill q-none' }, '—＝查無可靠資料'), h('span', { class: 'pill' }, '● 已修改'));
+  const mwrap = h('div', { class: 'vm', role: 'region', 'aria-label': '年份品質總覽（可左右捲動）', tabindex: '0' });
+  const detail = h('div', { class: 'stack', id: 'vdetail' });
+  const drawMatrix = () => {
+    const thead = h('thead', null, h('tr', null, h('th', { class: 'rn' }, '產區'), yAsc.map(y => h('th', { scope: 'col' }, String(y)))));
+    const rows = [];
+    R.regions.forEach(r => r.tracks.forEach(t => {
+      const lab = r.tracks.length > 1 ? t.label : '';
+      rows.push(h('tr', null, h('td', { class: 'rn' }, h('button', { type: 'button', onclick: () => { vsel = { rid: r.id, tid: t.id, yr: null }; drawMatrix(); drawDetail(true); } }, r.name, lab ? h('small', null, lab) : null)),
+        yAsc.map(y => {
+          const c = refCell(r.id, t.id, y);
+          const cls = c && c.q ? VQ_CLS[c.q] : 'q-none';
+          return h('td', { class: 'c ' + cls + (vsel.rid === r.id && vsel.tid === t.id && vsel.yr === y ? ' sel' : '') }, h('button', { type: 'button', class: c && c.mod ? 'mod' : '', 'aria-label': r.name + (lab ? ' ' + lab : '') + ' ' + y + ' 年，品質' + (c && c.q ? c.q : '查無資料') + (c && c.mod ? '，已修改' : ''), onclick: () => { vsel = { rid: r.id, tid: t.id, yr: y }; drawMatrix(); drawDetail(true); } }, c && c.q ? VQ_ABBR[c.q] : '—'));
+        })));
+    }));
+    mwrap.innerHTML = ''; mwrap.append(h('table', null, thead, h('tbody', null, rows)));
+  };
+  const drawDetail = scroll => {
+    detail.innerHTML = '';
+    const r = R.regions.find(x => x.id === vsel.rid), tr = r.tracks.find(t => t.id === vsel.tid) || r.tracks[0];
+    const sec = h('section', { class: 'sec' }, h('h2', null, r.name + '（' + r.en + '）', h('small', null, '查證 ' + R.checked)));
+    if (r.tracks.length > 1) sec.append(h('div', { class: 'seg', role: 'group', 'aria-label': '選擇軌' }, r.tracks.map(t => h('button', { type: 'button', class: t.id === tr.id ? 'on' : '', 'aria-pressed': t.id === tr.id, onclick: () => { vsel.tid = t.id; vsel.yr = null; drawMatrix(); drawDetail(); } }, t.label))));
+    else sec.append(h('div', { class: 'small muted' }, tr.label));
+    const list = h('div', { class: 'stack', style: 'gap:0' });
+    years.forEach(y => list.append(rowEl(r, tr, y)));
+    sec.append(list);
+    const srcs = h('ol', { class: 'srcs' }, arr(r.sources).map(x => h('li', { id: 'src_' + r.id + '_' + x.id }, '[' + x.id + '] ', h('a', { href: x.url, target: '_blank', rel: 'noopener noreferrer' }, x.name), '（查證 ' + x.checked + '）')));
+    sec.append(h('details', { class: 'lay' }, h('summary', null, '來源（' + arr(r.sources).length + '）'), h('div', { class: 'body' }, srcs)));
+    if (r.gaps) sec.append(h('details', { class: 'lay' }, h('summary', null, '查證備註：限制與不確定處'), h('div', { class: 'body' }, h('div', { class: 'prose small' }, r.gaps))));
+    detail.append(sec);
+    if (scroll) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const rowEl = (r, tr, y) => {
+    const key = r.id + '|' + tr.id + '|' + y;
+    const row = h('div', { class: 'vrow' + (vsel.yr === y ? ' hl' : '') });
+    const view = () => {
+      row.innerHTML = '';
+      const c = refCell(r.id, tr.id, y);
+      const has = c && (c.q || arr(c.climate).length || (c.note && c.note !== '—'));
+      row.append(h('div', { class: 'yr' }, String(y)),
+        h('div', { class: 'vb' },
+          has ? h('div', { style: 'display:flex;gap:6px;flex-wrap:wrap;align-items:center' },
+            c.q ? h('span', { class: 'pill ' + VQ_CLS[c.q] }, '品質：' + c.q) : h('span', { class: 'pill q-none' }, '品質：—'),
+            arr(c.climate).map(x => h('span', { class: 'pill gray' }, x)), c.mod ? h('span', { class: 'pill warn' }, '已修改') : null) : h('div', { class: 'muted' }, '—（查無可靠資料）'),
+          c && c.note && c.note !== '—' ? h('div', null, c.note) : null,
+          c && (c.evidence || arr(c.src).length) && !c.mod ? h('div', { class: 'small muted' }, (c.evidence && c.evidence !== '查無可靠來源' ? '依據：' + c.evidence + '　' : '') + (arr(c.src).length ? '來源 ' + arr(c.src).map(x => '[' + x + ']').join('') : '')) : null,
+          h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', onclick: edit }, '修改'),
+            c && c.mod ? h('button', { type: 'button', class: 'btn sm', onclick: async () => { delete refOv[key]; await saveRefOv(); drawMatrix(); view(); toast('已還原為查證的原始資料'); } }, '還原原始資料') : null)));
+    };
+    const edit = () => {
+      const c = refCell(r.id, tr.id, y) || { climate: [], q: null, note: '' };
+      const dr = { climate: arr(c.climate).slice(), q: c.q || '', note: c.note && c.note !== '—' ? c.note : '' };
+      const ectx = { t: dr, onChange: () => {} };
+      row.innerHTML = '';
+      row.append(h('div', { class: 'yr' }, String(y)),
+        h('div', { class: 'vb' },
+          grp('氣候標籤', chipsMulti(ectx, 'climate', VTAGS)),
+          grp('品質判斷', seg(ectx, 'q', VQ)),
+          h('label', { class: 'f', for: 'vnote_' + y }, '一句重點', h('input', { type: 'text', id: 'vnote_' + y, value: dr.note, oninput: e => { dr.note = e.target.value; } })),
+          h('div', { class: 'btnrow' },
+            h('button', { type: 'button', class: 'btn primary sm', onclick: async () => { refOv[key] = { climate: dr.climate, q: dr.q || null, note: dr.note, at: Date.now() }; await saveRefOv(); drawMatrix(); view(); toast('已修改（只存在這台裝置）'); } }, '儲存'),
+            h('button', { type: 'button', class: 'btn sm', onclick: view }, '取消'))));
+    };
+    view(); return row;
+  };
+  app.append(legend, mwrap, h('div', { style: 'height:12px' }), detail);
+  drawMatrix(); drawDetail(false);
+}
+
 /* ========= 速查 ========= */
-function viewRef(app, tab) {
-  const tabs = [['region', '產區簡表'], ['aroma', '香氣詞彙'], ['food', '食物原理'], ['frame', '品鑑架構']];
+function viewRef(app, tab, sub) {
+  const tabs = [['region', '產區簡表'], ['aroma', '香氣詞彙'], ['l3', 'L3 詞彙'], ['food', '食物原理'], ['frame', '品鑑架構'], ['vintage', '年份參考表']];
   app.append(h('div', { class: 'subtabs', role: 'tablist' }, tabs.map(([k, l]) => h('button', { type: 'button', role: 'tab', class: tab === k ? 'on' : '', onclick: () => go('/ref/' + k) }, l))));
-  const hd = { region: ['grapes', '產區簡表', '走一趟產區：品種、風格、代表酒款'], aroma: ['glass', '香氣詞彙', '聞到什麼？從果香、發酵香到陳年香，一層層找'], food: ['decanter', '食物原理', '杯裡的酒，遇上桌上的菜會怎麼變'], frame: ['cork', '品鑑架構', '看、聞、嚐、下結論，四步走完一杯'] }[tab];
+  const hd = { region: ['grapes', '產區簡表', '走一趟產區：品種、風格、代表酒款'], aroma: ['glass', '香氣詞彙', '聞到什麼？從果香、發酵香到陳年香，一層層找'], food: ['decanter', '食物原理', '杯裡的酒，遇上桌上的菜會怎麼變'], frame: ['cork', '品鑑架構', '看、聞、嚐、下結論，四步走完一杯'], l3: ['glass', 'L3 詞彙', '第三級的香氣與風味詞彙，中英對照'], vintage: ['drop', '年份參考表', '2015–2025 主要產區：氣候、品質、一句重點'] }[tab];
   if (hd) app.append(h('div', { class: 'refhd' }, art(hd[0], 44), h('div', { class: 'tx' }, h('b', null, hd[1]), h('span', { class: 'small muted' }, hd[2]))));
   if (tab === 'region') {
     const q = h('input', { type: 'search', id: 'rq', placeholder: '搜尋產區、品種、代表酒款（中英文都可以）', 'aria-label': '搜尋產區', style: 'margin-bottom:12px' });
     const g = h('div', { class: 'rgrid' });
     const draw = () => {
       g.innerHTML = ''; const s = q.value.trim().toLowerCase();
-      REGIONS.filter(r => !s || [r.c, r.n, r.en, r.g, r.s, r.e, ...r.a].join(' ').toLowerCase().includes(s)).forEach(r =>
-        g.append(h('div', { class: 'rcard' }, h('span', { class: 'c' }, r.c), h('b', null, r.n + '（' + r.en + '）'), h('dl', null, h('dt', null, '品種'), h('dd', null, r.g), h('dt', null, '風格'), h('dd', null, r.s), h('dt', null, '代表'), h('dd', null, r.e)))));
+      REGIONS.filter(r => !s || [r.c, r.n, r.en, r.g, r.cl, r.s, r.e, ...r.a].join(' ').toLowerCase().includes(s)).forEach(r =>
+        g.append(h('div', { class: 'rcard' }, h('span', { class: 'c' }, r.c), h('b', null, r.n + '（' + r.en + '）'), h('dl', null, h('dt', null, '品種'), h('dd', null, r.g), h('dt', null, '氣候'), h('dd', null, r.cl), h('dt', null, '風格'), h('dd', null, r.s), h('dt', null, '代表'), h('dd', null, r.e)))));
     };
     q.addEventListener('input', draw); draw();
     app.append(h('div', { class: 'note' }, '產區筆記：整理自公開資料，不是課本原文，請以課本為準。'), h('div', { style: 'height:12px' }), q, g);
@@ -1560,6 +1969,18 @@ function viewRef(app, tab) {
     VOC.forEach((layer, i) => st.append(h('section', { class: 'sec' }, h('h2', null, LAYER_TITLE[i]),
       layer.map(([g, items]) => h('div', null, h('div', { class: 'gl' }, groupIcon(g), g), h('div', { class: 'chips' }, items.map(x => h('span', { class: 'chip static' }, groupDot(g), x))))))));
     app.append(st);
+  } else if (tab === 'l3') {
+    const st = h('div', { class: 'stack' }, h('div', { class: 'note' }, '整理自 WSET 官方公開的 Level 3 品鑑表與詞彙表（2016 版 PDF），中文是整理版台灣用語，全部待對課本。已在 L2 出現的詞，記錄時請用 L2 的選項；L3 只補上 L2 沒有的詞。'),
+      h('a', { class: 'btn', href: L3_URL, target: '_blank', rel: 'noopener noreferrer' }, '官方 L3 品鑑表與詞彙表（PDF）↗'));
+    L3LEX.forEach((layer, i) => st.append(h('section', { class: 'sec' }, h('h2', null, LAYER_TITLE[i]),
+      layer.map(c => h('div', null, h('div', { class: 'gl' }, groupIcon(c.l2), c.l2 + (c.sub ? '・' + c.sub : ''), h('span', { class: 'muted' }, ' ' + c.cl)),
+        h('div', { class: 'chips' }, c.items.map(([zh, en]) => h('span', { class: 'chip static' }, groupDot(c.l2), zh, h('span', { class: 'muted' }, ' ' + en)))))))));
+    st.append(h('section', { class: 'sec' }, h('h2', null, 'L3 刻度'),
+      h('dl', { class: 'kv' }, [['香氣／風味濃度', OPT3.inten.join('—')], ['酸度・單寧', OPT3.lmh.join('—')], ['酒體', OPT3.body.join('—')], ['餘味', OPT3.finish.join('—')], ['甜度', OPT3.sweet.join('—')], ['酒精', '低—中—高（L3 官方表仍為三段）'], ['發展程度', OPT3.dev.join('—')], ['氣泡（mousse）', OPT3.mousse.join('—')], ['適飲期／陳年潛力', OPT3.ready.join('／')]].map(([k, v]) => [h('dt', null, k), h('dd', null, v)])),
+      h('div', { class: 'note info small' }, '對應官方 L3 品鑑表：澄清度、純淨度、顏色等其他項目和 L2 相同。用語待對課本。')));
+    app.append(st);
+  } else if (tab === 'vintage') {
+    viewVintage(app, sub);
   } else if (tab === 'food') {
     const st = h('div', { class: 'stack' }, h('div', { class: 'note' }, '標「課本」的 4 列是從 IMG_7081 讀到的，照片模糊，請對課本核對。其餘標「待確認」的，是依 WSET 公開原則建檔，不是教材原文。'));
     FOOD.forEach(x => st.append(h('div', { class: 'card', style: 'display:flex;flex-direction:column;gap:4px' }, h('div', { style: 'display:flex;gap:8px;align-items:center' }, h('b', null, '食物含「' + x.label + '」'), h('span', { class: 'pill ' + (x.src === 'tb' ? 'ok' : 'warn') }, x.src === 'tb' ? '課本・待核對' : '待 Mo 確認')), h('div', null, '葡萄酒會' + x.effect))));
@@ -1578,12 +1999,13 @@ function viewRef(app, tab) {
 async function buildExport() {
   const phs = await Store.all('photos'); const photos = [];
   for (const p of phs) { try { photos.push({ id: p.id, dataUrl: await blobToDataURL(p.blob) }); } catch (e) {} }
-  return { app: APP_ID, schemaVersion: SCHEMA, exportedAt: new Date().toISOString(), settings: { mode: S.mode }, wines: JSON.parse(JSON.stringify(wines)), photos };
+  return { app: APP_ID, schemaVersion: SCHEMA, exportedAt: new Date().toISOString(), settings: { mode: S.mode, l3Vocab: !!S.l3Vocab, l3Cat: S.l3Cat || {}, showTodo: S.showTodo !== false, defLvl: S.defLvl || 2 }, vintageOverrides: JSON.parse(JSON.stringify(refOv)), wines: JSON.parse(JSON.stringify(wines)), photos };
 }
 async function doImport(text) {
   const data = JSON.parse(text);
   if (!data || data.app !== APP_ID || !Array.isArray(data.wines)) throw new Error('這不是本 App 的備份檔');
-  let added = 0, updated = 0, skipped = 0;
+  if (Number(data.schemaVersion) > SCHEMA) throw new Error('這份備份來自較新版本的 App，請先更新 App 再匯入');
+  let added = 0, updated = 0, skipped = 0, ov = 0;
   for (const p of arr(data.photos)) { try { await Store.put('photos', { id: p.id, blob: dataURLToBlob(p.dataUrl), type: 'image/jpeg' }); } catch (e) {} }
   for (const raw of data.wines) {
     const w = normalizeWine(raw); const ex = wines.find(x => x.id === w.id);
@@ -1591,7 +2013,11 @@ async function doImport(text) {
     else if ((w.updatedAt || 0) > (ex.updatedAt || 0)) { wines[wines.indexOf(ex)] = w; await Store.put('wines', w); updated++; }
     else skipped++;
   }
-  return { added, updated, skipped };
+  if (data.vintageOverrides && typeof data.vintageOverrides === 'object') {
+    for (const k in data.vintageOverrides) { const o = data.vintageOverrides[k]; if (o && typeof o === 'object' && (!refOv[k] || (o.at || 0) > (refOv[k].at || 0))) { refOv[k] = o; ov++; } }
+    if (ov) await saveRefOv();
+  }
+  return { added, updated, skipped, ov };
 }
 function viewSettings(app) {
   const st = h('div', { class: 'stack' });
@@ -1602,7 +2028,7 @@ function viewSettings(app) {
     h('ol', { class: 'steps' },
       h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '複製指令，貼到 Gemini'), h('div', { class: 'prose small muted' }, '在「新增」頁的基本資料，打開「酒標辨識」按「複製辨識指令」；到 Gemini 貼上，並附上酒標（背標更好）照片。也可以把同一份指令存成 Gemini 的 Gem，之後只要丟照片。'))),
       h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '把回覆貼回來，按「解析並預覽」'), h('div', { class: 'prose small muted' }, 'Gemini 會回一段 JSON，整段複製貼進文字方塊就好；有多餘文字、圍欄、全形標點都能讀。'))),
-      h('li', null, h('span', { class: 'n' }, '3'), h('div', { class: 't' }, h('div', { class: 'h' }, '核對後套用'), h('div', { class: 'prose small muted' }, '預覽會列出每個欄位。已有內容的欄位預設不覆蓋；標「AI 不確定」的請對照酒標再決定。看不清楚的欄位會留空，不會亂猜。')))),
+      h('li', null, h('span', { class: 'n' }, '3'), h('div', { class: 't' }, h('div', { class: 'h' }, '核對後套用'), h('div', { class: 'prose small muted' }, '預覽會列出每個欄位。已有內容的欄位預設不覆蓋；標「AI 不確定」的請對照酒標再決定。看不清楚的欄位會留空，不會亂猜。另有「產區可能品種（參考）」：是 AI 依產區給的建議，不是標籤資訊，預設不勾，點選的才加進品種欄。')))),
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '範例回覆（試用）'), sampleBox),
     h('div', { class: 'btnrow' },
       h('button', { class: 'btn primary', type: 'button', id: 'trySample', onclick: () => { window._prefillReply = LABEL_SAMPLE; go('/new'); } }, '貼上範例回覆，到新增頁試用'),
@@ -1634,12 +2060,16 @@ function viewSettings(app) {
     out));
   const paste = h('textarea', { class: 'mono', id: 'impin', placeholder: '或把備份文字貼在這裡', 'aria-label': '貼上備份文字' });
   const impMsg = h('div', { class: 'small', id: 'impmsg' });
-  const runImport = async text => { try { const r = await doImport(text); impMsg.textContent = `匯入完成：新增 ${r.added}、更新 ${r.updated}、略過 ${r.skipped}（較舊的不覆蓋）`; toast('匯入完成'); } catch (e) { impMsg.textContent = '匯入失敗：' + e.message; } };
+  const runImport = async text => { try { const r = await doImport(text); impMsg.textContent = `匯入完成：新增 ${r.added}、更新 ${r.updated}、略過 ${r.skipped}（較舊的不覆蓋）` + (r.ov ? `；年份參考表修改 ${r.ov} 格` : ''); toast('匯入完成'); } catch (e) { impMsg.textContent = '匯入失敗：' + e.message; } };
   st.append(h('section', { class: 'sec' }, h('h2', null, '匯入'),
     h('div', { class: 'small muted' }, '以酒款編號合併，只用較新的一筆，不會刪掉現有資料。'),
     h('input', { type: 'file', accept: 'application/json,.json', id: 'impfile', 'aria-label': '選擇備份檔', onchange: async e => { const f = e.target.files[0]; if (f) runImport(await f.text()); e.target.value = ''; } }),
     paste, h('div', { class: 'btnrow' }, h('button', { class: 'btn', type: 'button', onclick: () => { if (paste.value.trim()) runImport(paste.value); } }, '匯入貼上的文字')), impMsg));
   const hasSample = wines.some(w => w.extra && w.extra.sample);
+  st.append(h('section', { class: 'sec', id: 'l3set' }, h('h2', null, 'L3 與顯示', h('small', null, '第三級內容，都標「待對課本」')),
+    toggle('L3 詳細詞彙', '品鑑表的香氣、風味可展開 L3 條目（也可以在記一杯頁直接開關）', !!S.l3Vocab, b => { S.l3Vocab = !S.l3Vocab; saveSettings(); b.setAttribute('aria-checked', S.l3Vocab); }),
+    toggle('顯示「待對課本」小標', 'L3 條目旁的提醒；對完課本後可關掉', !!S.showTodo, b => { S.showTodo = !S.showTodo; saveSettings(); b.setAttribute('aria-checked', S.showTodo); }),
+    h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '新增酒款的預設層級'), h('div', { class: 'seg mode' }, [2, 3].map(n => h('button', { type: 'button', class: S.defLvl === n ? 'on' : '', onclick: e => { S.defLvl = n; saveSettings(); [...e.currentTarget.parentNode.children].forEach((c, i) => c.classList.toggle('on', [2, 3][i] === n)); } }, n === 2 ? 'L2' : 'L3'))))));
   st.append(h('section', { class: 'sec' }, h('h2', null, '其他'),
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '預設顯示模式'), h('div', { class: 'seg mode' }, ['simple', 'full'].map(m => h('button', { type: 'button', class: S.mode === m ? 'on' : '', onclick: e => { S.mode = m; saveSettings(); [...e.currentTarget.parentNode.children].forEach((c, i) => c.classList.toggle('on', ['simple', 'full'][i] === m)); } }, m === 'simple' ? '簡易' : '完整')))),
     h('div', { class: 'btnrow' }, !hasSample ? h('button', { class: 'btn', type: 'button', onclick: async () => { await loadSamples(); toast('範例酒款已放進手冊'); go('/'); } }, '載入範例酒款') : h('button', { class: 'btn', type: 'button', onclick: async () => { for (const w of wines.filter(x => x.extra && x.extra.sample)) await Store.del('wines', w.id); wines = wines.filter(x => !(x.extra && x.extra.sample)); toast('範例酒款已收起來'); renderPath(curPath); } }, '移除範例酒款'))));
@@ -1684,6 +2114,8 @@ async function boot() {
   buildNav();
   await Store.init();
   try { await loadSettings(); } catch (e) {}
+  if (!S.l3Cat || typeof S.l3Cat !== 'object') S.l3Cat = {};
+  try { const o = await Store.get('meta', 'refOverrides'); if (o && o.data && typeof o.data === 'object') refOv = o.data; } catch (e) {}
   try { wines = (await Store.all('wines')).map(normalizeWine); } catch (e) { wines = []; }
   curPath = safe(() => location.hash.slice(1), '') || '/';
   renderPath(curPath);
