@@ -434,6 +434,16 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .nearfr{align-items:stretch}
 #mapDetail .kv{margin-top:4px}
 /*MAP4CSS_END*/
+.vline{font-size:.78rem;line-height:1.5;color:var(--fg);overflow-wrap:anywhere}
+.vline .vy{font-weight:500;font-variant-numeric:tabular-nums}
+.vline .vsep{color:var(--ctl);margin:0 3px 0 1px}
+.vline .vgp{white-space:nowrap}
+.qsw{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid var(--ctl);margin-right:5px;vertical-align:-1px}
+.vline.ref{color:var(--muted)}
+.vline.ref .vy{font-weight:400}
+.vline.ref .qsw{border-style:dashed}
+.vline .vyw{white-space:nowrap}
+.vline .vtag{display:inline-block;margin-left:4px;padding:0 5px;font-size:.7rem;line-height:1.4;border:1px dashed var(--ctl);border-radius:999px;color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1497,6 +1507,42 @@ function renderList() {
   if (!rows.length) list.append(h('div', { class: 'muted' }, '這一頁沒有符合的酒，換個條件翻翻看。'));
 }
 function starsRO(n) { return h('span', { class: 'starsro', 'aria-label': n + ' 星' }, '★'.repeat(n || 0), h('span', { class: 'off' }, '★'.repeat(5 - (n || 0)))); }
+/* 手冊卡片的年份參考一行：自己記的年份天氣優先（實色）；否則依年份參考表對軌取值（淺色＋「參考」）。對不到就回傳 null。 */
+const vlCache = new Map();
+const GQ_CLS = { '極好': 'q-top', '很好': 'q-good', '好': 'q-good', '普通': 'q-mid', '差': 'q-weak' };
+function vintageData(w) {
+  const v = w.vw || {}, vint = String(w.basic.vintage || '').trim(), y = parseInt(vint, 10), hasY = y > 0 && !/nv|無年份/i.test(vint);
+  const filled = k => k === 'events' ? arr(v[k]).length > 0 : !!v[k];
+  const own = ['temp', 'rain', 'events', 'hrain', 'quality'].some(k => filled(k) && !(v.auto && v.auto[k]));
+  let d;
+  if (own) d = { src: 'own', temp: v.temp, rain: v.rain, events: arr(v.events), hrain: v.hrain, q: v.quality, qc: GQ_CLS[v.quality] };
+  else {
+    const inf = refInfo(w); if (inf.st !== 'ok') return null;
+    const x = vwFromCell(inf.cell); d = { src: 'ref', temp: x.temp, rain: x.rain, events: x.events, hrain: x.hrain, q: inf.cell.q, qc: VQ_CLS[inf.cell.q] };
+  }
+  const c = [];
+  if (d.temp && d.temp !== '正常') c.push(d.temp); if (d.rain && d.rain !== '正常') c.push(d.rain);
+  d.events.filter(e => !(e === '乾旱' && d.rain === '少雨')).slice(0, 2).forEach(e => c.push(e));
+  if (d.hrain) c.push('收穫期下雨');
+  if (!c.length && (d.temp === '正常' || d.rain === '正常')) c.push('氣候正常');
+  d.climate = c.join('・'); d.year = hasY ? y : null;
+  return (d.climate || d.q) ? d : null;
+}
+function vintageLine(w) {
+  const key = [w.basic.region, w.basic.vintage, w.type, w.basic.grape, w.basic.name, w.basic.producer, w.basic.note, w.note, JSON.stringify(w.vw || null)].join('');
+  let d = vlCache.get(key);
+  if (d === undefined) { d = safe(() => vintageData(w), null); if (vlCache.size > 2000) vlCache.clear(); vlCache.set(key, d); }
+  if (!d) return null;
+  const sep = () => h('span', { class: 'vsep', 'aria-hidden': 'true' }, '｜');
+  const parts = [];
+  const tag = d.src === 'ref' ? h('span', { class: 'vtag' }, '參考') : null;
+  if (d.year) parts.push(h('span', { class: 'vyw' }, h('b', { class: 'vy' }, String(d.year)), tag));
+  else if (tag) parts.push(tag);
+  if (d.climate) parts.push(h('span', null, d.climate));
+  if (d.q) parts.push(h('span', { class: 'vq' }, h('i', { class: 'qsw ' + (d.qc || '') }), '品質' + d.q));
+  const kids = []; parts.forEach((p, i) => { if (i) kids.push(h('span', { class: 'vgp' }, sep(), p)); else kids.push(p); });
+  return h('div', { class: 'vline ' + d.src, title: d.src === 'ref' ? '年份參考表（AI 整理，待核對）' : '我記的年份天氣' }, kids);
+}
 function wineCard(w) {
   const b = w.basic; const [d, tot] = completeness(w); const hit = wineHit(w);
   const img = h('img', { alt: '', loading: 'lazy' });
@@ -1506,6 +1552,7 @@ function wineCard(w) {
     h('div', { class: 'info' },
       h('div', { class: 'nm' }, b.name || '（未命名）'),
       h('div', { class: 'meta' }, [b.producer, displayRegion(b.region), b.vintage].filter(Boolean).join('・') || '—'),
+      vintageLine(w),
       h('div', { class: 'meta' }, [b.date, arr((w.mood || {}).occ).join('、'), b.lessonNo].filter(Boolean).join('・')),
       h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, starsRO(w.stars), w.type ? h('span', { class: 'pill ' + (w.type === 'red' ? 'wine' : 'gray') }, TYPE_NAME[w.type]) : null, hit && hit.pct != null ? h('span', { class: 'pill ' + (hit.pct >= 70 ? 'ok' : 'warn') }, '命中 ' + hit.pct + '%') : null),
       h('div', { class: 'bar', title: '完整度 ' + d + '/' + tot }, h('i', { style: 'width:' + Math.round(d / tot * 100) + '%' }))));
@@ -2063,7 +2110,7 @@ function refCell(rid, tid, yr) {
   if (o) return { climate: arr(o.climate), q: o.q || null, note: o.note || '', src: base ? arr(base.src) : [], evidence: base ? base.evidence : '', mod: true };
   return base ? Object.assign({ mod: false }, base, { climate: arr(base.climate) }) : null;
 }
-async function saveRefOv() { await Store.put('meta', { k: 'refOverrides', data: JSON.parse(JSON.stringify(refOv)) }); }
+async function saveRefOv() { vlCache.clear(); await Store.put('meta', { k: 'refOverrides', data: JSON.parse(JSON.stringify(refOv)) }); }
 let vsel = { rid: null, tid: null, yr: null };
 const VSEGS = [['2005–2014', 2005, 2014], ['1995–2004', 1995, 2004], ['1985–1994', 1985, 1994], ['1980–1984', 1980, 1984]];
 const vseg = new Set();   /* 總覽矩陣額外展開的年代（預設只看 2015 起） */
