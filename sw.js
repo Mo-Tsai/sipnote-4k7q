@@ -1,5 +1,5 @@
 /* 離線快取。改版時把 VERSION 加 1，舊快取會自動清掉。 */
-const VERSION = 'wset-notes-v8';
+const VERSION = 'wset-notes-v9';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()).catch(() => self.skipWaiting()));
