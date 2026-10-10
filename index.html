@@ -360,6 +360,9 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .pill.q-top{color:var(--q-top-fg)}
 .srcs{margin:0;padding-left:1.2em;font-size:.8rem}
 .srcs li{overflow-wrap:anywhere;padding:4px 0}
+.autotag{margin-left:8px;font-size:.8rem;color:var(--info-fg);font-weight:400;letter-spacing:0}
+.vwsum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 0}
+#vwd > summary{padding-block:6px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (prefers-reduced-motion:reduce){.toast.mini{opacity:.92}}
 </style>
@@ -593,7 +596,7 @@ const VW_HRAIN = ['收穫期有下雨', '收穫期沒下雨'];
 const VW_YIELD = ['少', '正常', '多'];
 const VW_RIPE = ['未熟', '成熟', '過熟'];
 const VW_Q = ['差', '普通', '好', '很好', '極好'];
-const vwEmpty = () => ({ temp: '', rain: '', events: [], harvest: '', hrain: '', yield: '', ripe: '', quality: '', note: '', ref: '' });
+const vwEmpty = () => ({ temp: '', rain: '', events: [], harvest: '', hrain: '', yield: '', ripe: '', quality: '', note: '', ref: '', auto: {}, man: {}, track: '', autoOff: false });
 /* 預期風味提示：葡萄栽培的一般原則，僅供對照；不納入完整度與老師版命中率 */
 function vwHints(v) {
   const o = [];
@@ -805,7 +808,7 @@ function normalizeWine(w) {
     if (to && !w.mood.occ.length) w.mood.occ = [to];
   }
   w.t = w.t || {}; w.t3 = w.t3 || {}; w.lvl = w.lvl === 3 ? 3 : 2;
-  w.vw = Object.assign(vwEmpty(), w.vw || {}); w.vw.events = arr(w.vw.events); w.refGrapes = arr(w.refGrapes);
+  w.vw = Object.assign(vwEmpty(), w.vw || {}); w.vw.events = arr(w.vw.events); w.vw.auto = Object.assign({}, w.vw.auto); w.vw.man = Object.assign({}, w.vw.man); w.refGrapes = arr(w.refGrapes);
   w.teacher = arr(w.teacher).map(x => Object.assign({}, x, { t: (x && x.t) || {}, t3: (x && x.t3) || {} }));
   w.photos = arr(w.photos); w.extra = w.extra || {};
   return w;
@@ -1466,7 +1469,8 @@ function viewForm(app, id) {
     h('span', { class: 'ttl' }, isNew ? '記下一杯' : '編輯這杯'), prog, h('span', { class: 'sp' }), h('span', { class: 'saved', id: 'savedLabel' }, isNew ? '尚未記下' : ''),
     modeSeg,
     h('button', { class: 'btn primary', type: 'button', onclick: () => { if (!wines.includes(w)) touch(w); go('/wine/' + w.id); } }, '完成'));
-  const set = (obj, k) => e => { obj[k] = e.target.value; touch(w); updProg(); };
+  let vwRefresh = () => {};
+  const set = (obj, k) => e => { obj[k] = e.target.value; touch(w); updProg(); if (obj === w.basic && k === 'vintage') vwRefresh(); };
   const fin = (label, k, type = 'text', extra = {}) => h('label', { class: 'f' + (extra.full ? ' full' : ''), for: 'b_' + k }, label,
     h('input', Object.assign({ type, id: 'b_' + k, value: w.basic[k] || '', oninput: set(w.basic, k) }, extra.attrs || {})));
 
@@ -1482,7 +1486,7 @@ function viewForm(app, id) {
     const r = findRegion(w.basic.region);
     if (r) regionCard.append(regionBox(r));
   };
-  const regionInput = h('input', { type: 'text', id: 'b_region', list: 'dl_region', placeholder: '從簡表選或自己輸入', value: w.basic.region || '', autocomplete: 'off', oninput: e => { w.basic.region = e.target.value; touch(w); updProg(); showRegion(); } });
+  const regionInput = h('input', { type: 'text', id: 'b_region', list: 'dl_region', placeholder: '從簡表選或自己輸入', value: w.basic.region || '', autocomplete: 'off', oninput: e => { w.basic.region = e.target.value; touch(w); updProg(); showRegion(); vwRefresh(); } });
   const photoBox = h('div', { class: 'photos' });
   const drawPhotos = () => {
     photoBox.innerHTML = '';
@@ -1509,7 +1513,7 @@ function viewForm(app, id) {
   const aiApplied = keys => {
     const setv = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
     keys.forEach(k => { if (k === 'note') setv('note', w.note); else setv('b_' + k, w.basic[k]); });
-    touch(w); updProg(); showRegion(); showRefLine();
+    touch(w); updProg(); showRegion(); showRefLine(); vwRefresh();
     toast('已填入 ' + keys.length + ' 個欄位');
   };
   const prefill = window._prefillReply || ''; window._prefillReply = '';
@@ -1570,7 +1574,9 @@ function viewForm(app, id) {
       starPicker(w, () => touch(w)),
       h('label', { class: 'f', for: 'note' }, '備註', h('textarea', { id: 'note', placeholder: '想記的任何事', oninput: e => { w.note = e.target.value; touch(w); } }, w.note || ''))));
 
+  if (!isNew && autoVw(w)) touch(w);   /* 編輯舊筆記：產區＋年份對得上就補上年份天氣 */
   const vwSec = buildVwSection(w, mode(), () => touch(w));
+  vwRefresh = vwSec._refresh;
   app.append(top, h('div', { class: 'grid2f' }, h('div', { class: 'stack area-a' }, secA, moodSec, vwSec), secB, secC));
   updProg();
 }
@@ -1590,65 +1596,162 @@ function refMatch(w) {
   return { ref, year: y };
 }
 const Q2GRAPE = { '卓越': '極好', '佳': '很好', '普通': '普通', '弱': '差' };
-function fillVwFromRef(v, cell, key) {
+const VW_AUTOF = ['temp', 'rain', 'events', 'hrain', 'quality', 'note'];   /* 可自動帶入的欄位（年份表只有這些） */
+const vwTxt = w => String([w.basic.region, w.basic.name, w.basic.producer, w.basic.grape, w.basic.note || '', w.note || '', TYPE_NAME[w.type] || ''].join(' ')).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+/* 同產區多軌時，依酒種、品種、產區／次級產區字串挑軌。回傳軌 id；挑不出來回傳 null（不亂選）。 */
+function pickTrack(w, ref) {
+  const tr = ref.tracks; if (tr.length === 1) return tr[0].id;
+  if (w.vw && w.vw.track && tr.some(t => t.id === w.vw.track)) return w.vw.track;
+  const t = vwTxt(w), is = re => re.test(t), type = w.type;
+  let id = null;
+  if (ref.id === 'bordeaux') {
+    if (is(/蘇玳|sauternes|barsac|巴薩克|loupiac|sainte-croix|貴腐|甜白/)) id = 'sweet';
+    else if (type === 'red' || is(/梅多克|medoc|聖愛美濃|saint-emilion|波美侯|pomerol|margaux|瑪歌|pauillac|波雅克|saint-julien|聖朱利安|saint-estephe|聖艾斯泰夫|pessac|佩薩克|卡本內|梅洛|cabernet|merlot/)) id = 'red';
+  } else if (ref.id === 'burgundy') {
+    if (is(/夏布利|chablis|蒙哈榭|montrachet|梅索|meursault|普里尼|puligny|夏山|chassagne|馬貢|macon|普依|pouilly-fuisse|夏多內|chardonnay|阿里哥特|aligote/) && type !== 'red') id = 'white';
+    else if (type === 'white') id = 'white';
+    else if (type === 'red' || is(/黑皮諾|pinot noir|夜丘|nuits|香波|chambolle|哲維瑞|gevrey|沃恩|vosne|玻瑪|pommard|渥爾內|volnay|薄酒萊|加美|gamay/)) id = 'red';
+  } else if (ref.id === 'rhone') {
+    if (is(/北隆河|羅第丘|cote-rotie|cote rotie|艾米達吉|hermitage|克羅茲|crozes|聖約瑟|saint-joseph|康納斯|cornas|孔得里奧|condrieu|聖佩雷|saint-peray|維歐尼|viognier/)) id = 'north';
+    else if (is(/南隆河|教皇新堡|chateauneuf|吉恭達斯|gigondas|瓦給拉斯|vacqueyras|塔維|tavel|隆河丘|cotes du rhone|ventoux|旺杜|luberon|慕維得爾|mourvedre|格那希|grenache|lirac|rasteau|cairanne/)) id = 'south';
+    else if (is(/希哈|syrah|shiraz/) && !is(/格那希|grenache|慕維得爾/)) id = 'north';
+  } else if (ref.id === 'newzealand') {
+    if (is(/白蘇維濃|sauvignon blanc/) || (is(/馬爾堡|marlborough/) && type === 'white')) id = 'sb';
+    else if (is(/黑皮諾|pinot noir|中奧塔哥|central otago|馬丁堡|martinborough/) || type === 'red') id = 'pinot';
+    else if (type === 'white') id = 'sb';
+  }
+  return id && tr.some(x => x.id === id) ? id : null;
+}
+/* 這杯能不能對到年份參考表；回傳 { st, ref, year, tid, cell, msg } */
+function refInfo(w) {
+  const R = VINTAGE_REF, rng = R.from + '–' + R.to;
+  const reg = String(w.basic.region || '').trim(), vint = String(w.basic.vintage || '').trim();
+  if (!reg || !vint) return { st: 'wait', msg: '填好產區與年份，年份天氣就會自動依年份參考表帶入（涵蓋 ' + rng + ' 的主要產區）。' };
+  const y = parseInt(vint, 10);
+  if (!(y > 0) || /nv|無年份/i.test(vint)) return { st: 'noyear', msg: '沒有年份（NV）的酒對不到年份天氣，請自己記錄。' };
+  if (y < R.from) return { st: 'noyear', msg: '年份表從 ' + R.from + ' 起，這個年份請自己記錄。' };
+  if (y > R.to) return { st: 'noyear', msg: '年份表到 ' + R.to + ' 為止，這個年份請自己記錄。' };
+  const r = findRegion(reg);
+  if (!r) return { st: 'noreg', msg: '產區不在內建簡表，對不到年份參考表，請自己記錄。' };
+  const ref = R.regions.find(x => x.id === REF_MAP[r.n]);
+  if (!ref) return { st: 'noreg', msg: '年份參考表還沒有「' + r.n + '」這個產區，請自己記錄。' };
+  const tid = pickTrack(w, ref);
+  if (!tid) return { st: 'pick', ref, year: y, msg: '「' + ref.name + '」在年份參考表有多個軌道，這杯挑不出來，請選一個。' };
+  const cell = refCell(ref.id, tid, y);
+  if (!cell || !(cell.q || arr(cell.climate).length)) return { st: 'empty', ref, year: y, tid, msg: '年份參考表在這格沒有資料（' + ref.name + '・' + y + '），請自己記錄。' };
+  return { st: 'ok', ref, year: y, tid, cell };
+}
+function vwFromCell(cell) {
   const c = arr(cell.climate);
-  v.temp = c.includes('偏熱') ? '偏熱' : c.includes('偏冷') ? '偏冷' : c.includes('正常') ? '正常' : '';
-  v.rain = c.includes('多雨') ? '多雨' : (c.includes('少雨') || c.includes('乾旱')) ? '少雨' : c.includes('正常') ? '正常' : '';
-  v.events = ['春霜', '冰雹', '乾旱', '熱浪', '病害', '日照不足', '野火'].filter(x => c.includes(x));
-  v.hrain = c.includes('收穫期下雨') ? '收穫期有下雨' : '';
-  v.quality = Q2GRAPE[cell.q] || '';
-  v.note = (cell.note && cell.note !== '—' ? cell.note : '') + (cell.q === '不均' ? '（年份參考表：品質不均）' : '');
-  v.ref = key;
+  return {
+    temp: c.includes('偏熱') ? '偏熱' : c.includes('偏冷') ? '偏冷' : c.includes('正常') ? '正常' : '',
+    rain: c.includes('多雨') ? '多雨' : (c.includes('少雨') || c.includes('乾旱')) ? '少雨' : c.includes('正常') ? '正常' : '',
+    events: ['春霜', '冰雹', '乾旱', '熱浪', '病害', '日照不足', '野火'].filter(x => c.includes(x)),
+    hrain: c.includes('收穫期下雨') ? '收穫期有下雨' : '',
+    quality: Q2GRAPE[cell.q] || '',
+    note: (cell.note && cell.note !== '—' ? cell.note : '') + (cell.q === '不均' ? '（年份參考表：品質不均）' : '')
+  };
+}
+/* 自動帶入：只動「空白的」或「仍是自動帶入、Mo 沒改過」的欄位；Mo 手改過的（man）與先前自己填的不蓋。回傳有沒有變動。 */
+function autoVw(w, force) {
+  const v = w.vw; const before = JSON.stringify(v);
+  if (force) { v.autoOff = false; v.man = {}; }
+  if (v.autoOff) return false;
+  const inf = refInfo(w);
+  const isEmpty = k => k === 'events' ? !arr(v[k]).length : !v[k];
+  const blank = k => { v[k] = k === 'events' ? [] : ''; };
+  if (inf.st !== 'ok') {      /* 對不到：撤掉還是自動值的欄位，其餘保留 */
+    VW_AUTOF.forEach(k => { if (v.auto[k]) { blank(k); delete v.auto[k]; } });
+    v.ref = v.ref && !VW_AUTOF.some(k => v.auto[k]) ? '' : v.ref;
+  } else {
+    const vals = vwFromCell(inf.cell);
+    VW_AUTOF.forEach(k => {
+      if (v.man[k] && !force) return;
+      if (!force && !v.auto[k] && !isEmpty(k)) return;
+      const nv = vals[k]; const has = Array.isArray(nv) ? nv.length : !!nv;
+      if (has) { v[k] = Array.isArray(nv) ? nv.slice() : nv; v.auto[k] = true; delete v.man[k]; }
+      else if (v.auto[k] || force) { blank(k); delete v.auto[k]; }
+    });
+    v.ref = inf.ref.id + '|' + inf.tid + '|' + inf.year;
+  }
+  if (!VW_AUTOF.some(k => v.auto[k])) v.ref = inf.st === 'ok' && VW_AUTOF.some(k => !isEmpty(k)) ? v.ref : '';
+  return JSON.stringify(v) !== before;
 }
 const refLabel = key => { const [rid, tid, y] = String(key).split('|'); const r = VINTAGE_REF.regions.find(x => x.id === rid); const t = r && r.tracks.find(x => x.id === tid); return r ? r.name + (t && r.tracks.length > 1 ? '・' + t.label : '') + '・' + y : key; };
+const vwAutoAny = v => VW_AUTOF.some(k => v.auto && v.auto[k]);
+function vwSummaryChips(v) {
+  const o = [];
+  if (v.temp) o.push(v.temp); if (v.rain) o.push(v.rain === '正常' ? '降雨正常' : v.rain);
+  arr(v.events).forEach(x => o.push(x)); if (v.hrain) o.push(v.hrain);
+  if (v.quality) o.push('品質' + v.quality);
+  return o;
+}
 function buildVwSection(w, mode, cb) {
   const v = w.vw;
   const det = h('details', { class: 'lay', id: 'vwd' });
-  det.open = mode === 'full' || vwHas(v);
   const body = h('div', { class: 'body' });
-  det.append(h('summary', null, vwHas(v) ? '已記錄・點開查看或修改' : '點開記錄這個年份的天氣'), body);
+  const sum = h('summary', null);
   const hintBox = h('div', { class: 'note info vwhint' });
+  const trackBar = h('div', { class: 'stack', id: 'vwTrackBar' });
+  const drawSum = () => {
+    sum.innerHTML = '';
+    const ch = vwSummaryChips(v);
+    if (!ch.length && !vwHas(v)) { sum.append('點開記錄這個年份的天氣'); return; }
+    sum.append(h('span', { class: 'vwsum' }, ch.map(x => h('span', { class: 'pill gray' }, x)), v.note && !ch.length ? h('span', { class: 'pill gray' }, '有備註') : null, vwAutoAny(v) ? h('span', { class: 'pill info' }, '已依年份參考表帶入') : null));
+  };
   const drawHints = () => {
     const hs = vwHints(v); hintBox.innerHTML = '';
     hintBox.classList.toggle('hidden', !hs.length);
     if (!hs.length) return;
     hintBox.append(h('b', null, '預期風味提示'), h('ul', null, hs.map(x => h('li', null, x))), h('div', { class: 'small muted' }, '葡萄栽培的一般原則，僅供和實際喝到的對照；不列入完整度與老師版命中率。'));
   };
-  const cx = { t: v, onChange: () => { cb(); drawHints(); } };
-  let trackId = null;
-  const draw = () => {
+  const tag = k => v.auto[k] ? h('span', { class: 'autotag' }, '依年份參考表帶入，可修改') : null;
+  const manual = k => {     /* Mo 手動改了：不再被自動值蓋掉 */
+    v.man[k] = true; delete v.auto[k];
+    const e = body.querySelector('[data-k="' + k + '"] .autotag'); if (e) e.remove();
+    cb(); drawHints(); drawSum();
+  };
+  const cx = { t: v, onChange: manual };
+  const fg = (k, label, ...kids) => { const g = grp(label, ...kids); g.dataset.k = k; if (v.auto[k]) g.firstChild.append(tag(k)); return g; };
+  const redo = () => { if (autoVw(w)) cb(); drawAll(); };
+  const drawTrack = inf => {
+    trackBar.innerHTML = '';
+    const ref = inf.ref; if (!ref || ref.tracks.length < 2) return;
+    const chosen = v.track && ref.tracks.some(t => t.id === v.track) ? v.track : '';
+    trackBar.append(h('div', { class: 'small', style: inf.st === 'pick' ? 'font-weight:500' : '' }, inf.st === 'pick' ? '選一個年份表軌道（' + ref.name + '）：' : '年份表軌道（' + ref.name + '，' + (chosen ? '你選的' : '依酒種與品種自動選') + '）：'),
+      h('div', { class: 'chips', role: 'group', 'aria-label': '年份表軌道' }, ref.tracks.map(t => {
+        const on = t.id === (chosen || inf.tid);
+        const b = h('button', { type: 'button', class: 'chip' + (on && inf.st !== 'pick' ? ' on' : ''), 'aria-pressed': on && inf.st !== 'pick', onclick: () => { v.track = chosen === t.id ? '' : t.id; if (autoVw(w, false)) { /* 換軌：自動欄位跟著換 */ } cb(); drawAll(); } }, t.label);
+        return b;
+      })));
+  };
+  const drawAll = () => {
+    const inf = refInfo(w);
     body.innerHTML = '';
     body.append(h('div', { class: 'small muted' }, '記下這個年份的天氣，再對照杯中的酸度、酒精和果味。不列入完整度與老師版命中率。'));
-    const m = refMatch(w);
-    if (m) {
-      const tr = m.ref.tracks; if (!trackId || !tr.some(t => t.id === trackId)) trackId = (tr.find(t => w.type === 'white' && /white|白/.test(t.id + t.label)) || tr.find(t => w.type === 'red' && /red|紅|north|main/.test(t.id + t.label)) || tr[0]).id;
-      const cell = refCell(m.ref.id, trackId, m.year);
-      const bar = h('div', { class: 'stack' });
-      if (tr.length > 1) bar.append(h('label', { class: 'f' }, '年份參考表的哪一條', h('select', { id: 'vwTrack', onchange: e => { trackId = e.target.value; draw(); } }, tr.map(t => h('option', { value: t.id, selected: t.id === trackId }, t.label)))));
-      const has = cell && (cell.q || arr(cell.climate).length);
-      bar.append(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'vwFill', disabled: !has, onclick: () => { fillVwFromRef(v, cell, m.ref.id + '|' + trackId + '|' + m.year); cb(); draw(); toast('已帶入年份參考，可以再修改'); } },
-        has ? '帶入年份參考表（' + m.ref.name + '・' + m.year + '）' : '年份參考表在這格沒有資料（' + m.ref.name + '・' + m.year + '），請自己記錄')));
-      if (has) bar.append(h('div', { class: 'small muted' }, '參考內容：' + [arr(cell.climate).join('、'), cell.q ? '品質' + cell.q : '', cell.note && cell.note !== '—' ? cell.note : ''].filter(Boolean).join('；') + '。會取代下面的欄位，待核對。'));
-      body.append(bar);
-    } else {
-      const yy = parseInt(w.basic.vintage, 10), rr = findRegion(w.basic.region);
-      body.append(h('div', { class: 'small muted' }, yy > 0 && yy < VINTAGE_REF.from ? '年份表從 ' + VINTAGE_REF.from + ' 起，這個年份請自己記錄。'
-        : yy > VINTAGE_REF.to ? '年份表到 ' + VINTAGE_REF.to + ' 為止，這個年份請自己記錄。'
-        : rr && !REF_MAP[rr.n] ? '年份參考表還沒有「' + rr.n + '」這個產區，請自己記錄。'
-        : '年份參考表涵蓋 ' + VINTAGE_REF.from + '–' + VINTAGE_REF.to + ' 的主要產區；請先填好產區與年份，就能一鍵帶入。'));
-    }
-    if (v.ref) body.append(h('div', { class: 'small' }, h('span', { class: 'pill info' }, '帶入自年份參考表：' + refLabel(v.ref))));
-    body.append(grp('溫度', seg(cx, 'temp', VW_TEMP)), grp('降雨', seg(cx, 'rain', VW_RAIN)),
-      grp('重大事件', chipsMulti(cx, 'events', VW_EVENTS)),
-      grp('收穫', seg(cx, 'harvest', VW_HARV)), grp('收穫期有沒有下雨', seg(cx, 'hrain', VW_HRAIN)),
-      grp('產量', seg(cx, 'yield', VW_YIELD)), grp('成熟度', seg(cx, 'ripe', VW_RIPE)),
-      grp('葡萄品質判斷', seg(cx, 'quality', VW_Q)),
-      h('label', { class: 'f', for: 'vwNote' }, '一行備註', h('input', { type: 'text', id: 'vwNote', value: v.note || '', placeholder: '例：夏天很熱，9 月初就收了', oninput: e => { v.note = e.target.value; cb(); } })),
-      hintBox);
-    drawHints();
+    if (inf.st === 'ok') {
+      const row = h('div', { class: 'btnrow' });
+      if (vwAutoAny(v)) row.append(h('button', { type: 'button', class: 'btn sm', id: 'vwClear', onclick: () => { VW_AUTOF.forEach(k => { if (v.auto[k]) { v[k] = k === 'events' ? [] : ''; delete v.auto[k]; } }); v.autoOff = true; v.ref = ''; cb(); drawAll(); toast('已清除自動帶入的欄位'); } }, '清除自動帶入'));
+      row.append(h('button', { type: 'button', class: 'btn sm', id: 'vwRedo', onclick: () => { if (autoVw(w, true)) cb(); drawAll(); toast('已重新依年份參考表帶入'); } }, v.autoOff ? '重新依年份參考表帶入' : '全部重新帶入（取代我改過的）'));
+      body.append(h('div', { class: 'small' }, h('span', { class: 'pill info' }, '依年份參考表：' + refLabel(v.ref || (inf.ref.id + '|' + inf.tid + '|' + inf.year)) + '（待核對）')), row);
+    } else if (v.autoOff && inf.st !== 'wait') body.append(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', id: 'vwRedo', onclick: () => { if (autoVw(w, true)) cb(); drawAll(); } }, '重新依年份參考表帶入')));
+    else body.append(h('div', { class: 'small muted', id: 'vwWhy' }, inf.msg));
+    body.append(fg('temp', '溫度', seg(cx, 'temp', VW_TEMP)), fg('rain', '降雨', seg(cx, 'rain', VW_RAIN)),
+      fg('events', '重大事件', chipsMulti(cx, 'events', VW_EVENTS)),
+      fg('harvest', '收穫', seg(cx, 'harvest', VW_HARV)), fg('hrain', '收穫期有沒有下雨', seg(cx, 'hrain', VW_HRAIN)),
+      fg('yield', '產量', seg(cx, 'yield', VW_YIELD)), fg('ripe', '成熟度', seg(cx, 'ripe', VW_RIPE)),
+      fg('quality', '葡萄品質判斷', seg(cx, 'quality', VW_Q)));
+    const ni = h('label', { class: 'f', for: 'vwNote', 'data-k': 'note' }, h('span', null, '一行備註', tag('note')), h('input', { type: 'text', id: 'vwNote', value: v.note || '', placeholder: '例：夏天很熱，9 月初就收了', oninput: e => { v.note = e.target.value; v.man.note = true; delete v.auto.note; const t = ni.querySelector('.autotag'); if (t) t.remove(); cb(); drawSum(); } }));
+    body.append(ni, hintBox);
+    drawHints(); drawSum(); drawTrack(inf);
+    if (inf.st === 'pick' || vwAutoAny(v)) det.open = true;
   };
-  draw();
-  return h('section', { class: 'sec', id: 'vwSec' }, h('h2', null, '年份天氣', h('small', null, '這一年的天氣怎麼影響葡萄')), det);
+  det.append(sum, body);
+  det.open = mode === 'full' || vwHas(v);
+  const sec = h('section', { class: 'sec', id: 'vwSec' }, h('h2', null, '年份天氣', h('small', null, '這一年的天氣怎麼影響葡萄')), trackBar, det);
+  sec._refresh = redo;
+  drawAll();
+  return sec;
 }
 function starPicker(w, cb) {
   const wrap = h('div', { class: 'stars', role: 'group', 'aria-label': '個人喜好星數' });
@@ -1698,8 +1801,24 @@ function findRegion(s) {
   s = String(s || '').trim(); if (!s) return null;
   for (const p of regParts(s).map(gKey)) { const r = REGIONS.find(r => regNames(r).includes(p)); if (r) return r; }   /* 精確：某一段等於某個名稱或別名 */
   const k = gKey(s);
-  return REGIONS.find(r => regNames(r).some(a => a.length >= 2 && k.includes(a))) || null;                         /* 退回：字串包含 */
+  const hit = REGIONS.find(r => regNames(r).some(a => a.length >= 2 && k.includes(a)));                          /* 退回：字串包含 */
+  if (hit) return hit;
+  for (const n in SUBREG) { if (SUBREG[n].some(x => k.includes(gKey(x)))) return REGIONS.find(r => r.n === n); }     /* 再退回：次級產區／法定產區名稱 */
+  return null;
 }
+/* 次級產區、法定產區名稱 → 所屬產區（只用來辨識，不影響顯示名稱） */
+const SUBREG = {
+  '波爾多': ['Sauternes', '蘇玳', 'Barsac', 'Pauillac', 'Margaux', 'Saint-Julien', 'Saint-Estèphe', 'Saint-Émilion', '聖愛美濃', 'Pomerol', '波美侯', 'Médoc', '梅多克', 'Pessac', 'Graves', 'Haut-Médoc'],
+  '勃根地': ['Chablis', '夏布利', 'Gevrey', 'Nuits-Saint-Georges', '夜丘', 'Beaune', 'Meursault', 'Montrachet', 'Pommard', 'Volnay', 'Chambolle', 'Vosne', 'Puligny', 'Chassagne', 'Mâcon', '馬貢', 'Pouilly-Fuissé', 'Santenay', 'Mercurey', 'Givry'],
+  '隆河': ['Côte-Rôtie', 'Hermitage', 'Châteauneuf', 'Gigondas', 'Vacqueyras', 'Cornas', 'Crozes', 'Condrieu', 'Saint-Joseph', 'Tavel', 'Lirac', 'Ventoux', '北隆河', '南隆河', '教皇新堡', '羅第丘', '艾米達吉'],
+  '羅亞爾河': ['Sancerre', '松塞爾', 'Vouvray', 'Muscadet', 'Chinon', 'Pouilly-Fumé', 'Saumur', 'Anjou', 'Savennières', 'Bourgueil'],
+  '皮蒙特': ['Barolo', 'Barbaresco', '巴羅洛', '巴巴瑞斯科', 'Langhe', 'Roero', 'Gattinara', 'Gavi', 'Dolcetto d'],
+  '托斯卡尼': ['Chianti', '奇揚替', 'Brunello', 'Montalcino', '蒙塔奇諾', 'Bolgheri', 'Vino Nobile', 'Maremma'],
+  '威尼托': ['Prosecco', '普賽克', 'Soave', '索阿維', 'Valpolicella', 'Amarone', '阿瑪羅內', 'Bardolino'],
+  '里奧哈': ['Rioja Alta', 'Rioja Alavesa', 'Rioja Baja'],
+  '加州': ['Napa', '納帕', 'Sonoma', '索諾瑪', 'Paso Robles', 'Santa Barbara', 'Russian River', 'Carneros'],
+  '德國': ['Mosel', 'Rheingau', 'Pfalz', 'Nahe', 'Rheinhessen', '摩澤爾', '萊茵高']
+};
 function regionBox(r) {
   return h('div', { class: 'regioncard' }, h('b', null, regionLabel(r)), h('div', null, h('span', { class: 'muted' }, '品種：'), r.g), h('div', null, h('span', { class: 'muted' }, '氣候：'), r.cl), h('div', null, h('span', { class: 'muted' }, '風格：'), r.s), h('div', null, h('span', { class: 'muted' }, '代表：'), r.e),
     h('div', { class: 'small muted' }, '簡表，請以課本為準'));
@@ -1799,7 +1918,7 @@ function vwDetail(w) {
   const pairs = [['溫度', v.temp], ['降雨', v.rain], ['重大事件', arr(v.events).join('、')], ['收穫', v.harvest], ['收穫期下雨', v.hrain], ['產量', v.yield], ['成熟度', v.ripe], ['葡萄品質', v.quality]].filter(x => x[1]);
   if (pairs.length) ms.append(h('dl', { class: 'kv' }, pairs.map(([k, x]) => [h('dt', null, k), h('dd', null, x)])));
   if (v.note) ms.append(h('div', null, v.note));
-  if (v.ref) ms.append(h('div', { class: 'small' }, h('span', { class: 'pill info' }, '帶入自年份參考表：' + refLabel(v.ref) + '（待核對）')));
+  if (v.ref && vwAutoAny(v)) ms.append(h('div', { class: 'small' }, h('span', { class: 'pill info' }, '依年份參考表帶入：' + refLabel(v.ref) + '（待核對，可在編輯頁修改）')));
   const hs = vwHints(v);
   if (hs.length) ms.append(h('div', { class: 'note info vwhint' }, h('b', null, '預期風味提示'), h('ul', null, hs.map(x => h('li', null, x))), h('div', { class: 'small muted' }, '一般原則，僅供對照實際喝到的風味。')));
   return ms;
@@ -1889,7 +2008,7 @@ function viewVintage(app) {
   app.append(h('div', { class: 'note' }, h('b', null, 'AI 整理參考，待核對，非權威。'), ' 資料取自公開的年份表與評論（Wine Spectator、Wine Enthusiast、Decanter、Jancis Robinson、各產區公會等），查證日期 ' + R.checked + '。無把握或查不到的格留「—」，沒有憑印象補。品質是依來源評分換算（95 分以上＝卓越、90–94＝佳、85–89＝普通、低於 85＝弱；來源文字說參差＝不均），每個產區的來源與限制列在下方。2015 年以前（尤其 2000 年以前）的格多半只有單一或二手來源，部分品質是把星等（Decanter、K&L）或 /20 分數換算而來，可信度比近年低，請先看各產區的「查證備註」；南半球與羅亞爾河、阿爾薩斯老年份有不少空格。'),
     h('div', { style: 'height:10px' }));
   app.append(h('div', { class: 'small muted' }, '涵蓋 ' + R.regions.length + ' 個產區、' + R.from + '–' + R.to + '；' + total + ' 格中有品質判斷的 ' + have + ' 格。點格子看細節，可在本機修改（會標「已修改」，修改只存在這台裝置，可匯出入）。'));
-  const segBar = segs.length ? h('div', { class: 'stack', style: 'gap:6px;margin:8px 0' }, h('div', { class: 'small muted' }, '總覽預設只看 2015 起；要看更早的年份，按十年展開（細節頁一律可看 ' + R.from + '–' + R.to + '）：'),
+  const segBar = segs.length ? h('div', { class: 'stack', style: 'gap:6px;margin:8px 0' }, h('div', { class: 'small muted' }, '總覽預設顯示 2015–' + R.to + '；要看更早的年份，按十年展開（細節頁一律可看 ' + R.from + '–' + R.to + '）：'),
     h('div', { class: 'chips', id: 'vsegs', role: 'group', 'aria-label': '顯示更早年份' }, segs.map(g => { const b = h('button', { type: 'button', class: 'chip' + (vseg.has(g[0]) ? ' on' : ''), 'aria-pressed': vseg.has(g[0]), onclick: () => { if (vseg.has(g[0])) vseg.delete(g[0]); else vseg.add(g[0]); b.classList.toggle('on', vseg.has(g[0])); b.setAttribute('aria-pressed', vseg.has(g[0])); drawMatrix(); } }, g[0]); return b; }))) : null;
   const legend = h('div', { class: 'legend small', style: 'margin:8px 0' }, VQ.map(q => h('span', { class: 'pill ' + VQ_CLS[q] }, VQ_ABBR[q] + '＝' + q)), h('span', { class: 'pill q-none' }, '—＝查無可靠資料'), h('span', { class: 'pill' }, '● 已修改'));
   const mwrap = h('div', { class: 'vm', role: 'region', 'aria-label': '年份品質總覽（可左右捲動）', tabindex: '0' });
@@ -2118,7 +2237,7 @@ async function loadSamples() {
     w.t = { clarity: '清澈', depth: '淡', colour: '檸檬色', mousse: '泡沫細緻、持續久', clean: '純淨', nInt: '中', aroma1: ['柑橘類水果|檸檬', '綠色水果|蘋果'], aroma2: ['酵母（酒渣、酵母自溶、酒花）|餅乾', '酵母（酒渣、酵母自溶、酒花）|烤麵包'], sweet: '干', acid: '高', alc: '中', body: '輕盈', fInt: '中', flav1: ['柑橘類水果|檸檬'], finish: '長', quality: '很好' };
     w.food = { text: '炸物與生蠔', comp: ['salty', 'sour'], feel: ['果味更明顯'], spice: '', foodInt: '淡', acidFat: '' };
   });
-  for (const w of [a, b, c]) { wines.unshift(w); await Store.put('wines', JSON.parse(JSON.stringify(w))); }
+  for (const w of [a, b, c]) { autoVw(w); wines.unshift(w); await Store.put('wines', JSON.parse(JSON.stringify(w))); }
 }
 
 /* ========= 啟動 ========= */
