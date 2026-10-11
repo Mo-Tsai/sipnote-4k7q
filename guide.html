@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<title>品飲手冊 收件說明</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500&display=swap">
+<style>
+/* 版面概念：一張直式的「步驟長卷」，每一步左文右圖（手機窄版上下排），圖是手繪的 iPhone 畫面示意，用 App 的酒莊紙感色系 */
+:root{
+  --paper:#F6F0E1; --card:#FBF7EC; --sub:#EDE4CE;
+  --ink:#2A2118; --ink2:#66594A; --line:#D9CDB3;
+  --wine:#5A1F2B; --wine-soft:#EBD9DA; --leaf:#46532A; --leaf-soft:#E8EBD6;
+  --gold:#8A733F; --ok:#46532A;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --screen:#FFFFFF; --screen-ink:#1c1c1e; --screen-sub:#8a8a8e; --screen-line:#e5e5ea;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1A0F12; --card:#241519; --sub:#2F1C21; --ink:#F1E8D8; --ink2:#B8A794; --line:#4a3036;
+  --wine:#C9707F; --wine-soft:#3A1C22; --leaf:#BCCB92; --leaf-soft:#1F2415; --gold:#C8AE7C; --ok:#BCCB92;
+  --screen:#1c1c1e; --screen-ink:#f2f2f7; --screen-sub:#9a9aa0; --screen-line:#38383a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#1A0F12; --card:#241519; --sub:#2F1C21; --ink:#F1E8D8; --ink2:#B8A794; --line:#4a3036;
+  --wine:#C9707F; --wine-soft:#3A1C22; --leaf:#BCCB92; --leaf-soft:#1F2415; --gold:#C8AE7C; --ok:#BCCB92;
+  --screen:#1c1c1e; --screen-ink:#f2f2f7; --screen-sub:#9a9aa0; --screen-line:#38383a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-weight:400;line-height:1.8;margin:0;padding-inline:16px;padding-block:28px 56px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-weight:300;font-size:30px;line-height:1.35;margin:0;text-wrap:balance}
+h2{font-weight:500;font-size:20px;margin:0;line-height:1.4}
+p{margin:0}
+.lead{color:var(--ink2);font-size:16px;max-width:36em}
+.hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.hero svg{flex:none;width:64px;height:64px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pill{font-size:13px;padding:2px 12px;border-radius:99px;background:var(--sub);color:var(--ink2);border:1px solid var(--line)}
+.need{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:8px}
+.need h2{font-size:16px}
+.need ul{margin:0;padding-left:1.2em;color:var(--ink2)}
+.url{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.url code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:var(--sub);padding:4px 10px;border-radius:8px;overflow-wrap:anywhere;min-width:0}
+button{font:inherit;font-size:14px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--wine);background:var(--wine);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button,:root:not([data-theme="light"]) button{color:#1A0F12}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) button{color:#fff}}
+button.ghost{background:transparent;color:var(--wine)}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.step{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:22px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.step .txt{display:grid;gap:10px;min-width:0}
+.step .tag{font-size:13px;color:var(--gold);letter-spacing:.08em}
+.step ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.step .note{font-size:14px;color:var(--ink2);background:var(--sub);border-radius:10px;padding:8px 12px}
+.step .done{display:flex;gap:10px;align-items:center;margin-top:4px}
+.step .done input{width:24px;height:24px;accent-color:var(--wine)}
+.step .done label{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--ink2);font-size:15px}
+.step.is-done{background:var(--leaf-soft);border-color:var(--leaf)}
+@media (max-width:640px){.step{grid-template-columns:minmax(0,1fr)}.step .shot{justify-self:center}}
+/* 手機示意 */
+.shot{width:232px;max-width:100%}
+.phone{background:var(--screen);color:var(--screen-ink);border:2px solid var(--ink2);border-radius:26px;padding:12px 10px 10px;font-size:12px;line-height:1.5;position:relative;overflow:hidden;font-family:system-ui,"PingFang TC","Noto Sans TC",sans-serif}
+.phone .bar{height:16px;display:flex;justify-content:space-between;color:var(--screen-sub);font-size:10px;margin-bottom:8px;padding-inline:8px}
+.cap{font-size:12px;color:var(--ink2);text-align:center;margin-top:6px}
+.hl{outline:3px solid var(--wine);outline-offset:2px;border-radius:8px;position:relative}
+.pin{position:absolute;right:-8px;top:-10px;background:var(--wine);color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;display:grid;place-items:center;font-weight:500}
+:root[data-theme="dark"] .pin,:root:not([data-theme="light"]) .pin{color:#1A0F12}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .pin{color:#fff}}
+.row{display:flex;align-items:center;gap:8px;padding:9px 8px;border-bottom:1px solid var(--screen-line)}
+.row:last-child{border-bottom:0}
+.sheet{background:var(--screen);border-top:1px solid var(--screen-line);border-radius:12px;margin-top:10px}
+.safari-bar{display:flex;justify-content:space-around;align-items:center;padding:8px 0;color:var(--screen-sub);border-top:1px solid var(--screen-line);margin-top:8px}
+.safari-bar svg{width:22px;height:22px}
+.page-mini{height:70px;background:linear-gradient(180deg,var(--wine-soft),transparent);border-radius:10px;display:grid;place-items:center;color:var(--wine);font-weight:500;font-size:13px}
+.bubble{background:var(--leaf-soft);border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;margin:6px 0 0 18px}
+.fileico{width:34px;height:40px;border-radius:6px;background:var(--wine);color:#fff;display:grid;place-items:center;font-size:9px;flex:none}
+.tabbar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--screen-line);margin-top:10px;padding-top:6px;text-align:center;color:var(--screen-sub);font-size:10px}
+.tabbar div{padding:4px 0}
+.tabbar .on{color:var(--wine);font-weight:500}
+.setcard{border:1px solid var(--screen-line);border-radius:12px;padding:10px;margin-top:8px}
+.btnfake{display:inline-block;background:var(--wine);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px}
+:root[data-theme="dark"] .btnfake,:root:not([data-theme="light"]) .btnfake{color:#1A0F12}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .btnfake{color:#fff}}
+.wine{border:1px solid var(--screen-line);border-radius:10px;padding:8px 10px;margin-top:8px;border-left:4px solid var(--wine)}
+.wine small{color:var(--screen-sub)}
+.ribbon{display:inline-block;background:var(--sub);color:var(--ink2);border-radius:99px;padding:1px 10px;font-size:10px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px}
+summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:500}
+details p{padding-bottom:12px;color:var(--ink2)}
+.safe{color:var(--ink2);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#5A1F2B"/><g fill="none" stroke="#BEA578" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 14h20c0 10-1 17-10 19-9-2-10-9-10-19z"/><path d="M32 33v15M24 49h16"/></g></svg>
+    <div>
+      <h1>收到「品飲手冊」的分享檔了，怎麼打開</h1>
+      <p class="lead">照著這五步做，大約三分鐘。你收到的是一份只能看、不能改的手冊，不會動到你自己的任何資料。</p>
+      <div class="pills"><span class="pill">iPhone</span><span class="pill">只讀不寫</span><span class="pill">約三分鐘</span></div>
+    </div>
+  </header>
+
+  <section class="need" aria-label="先準備">
+    <h2>先準備好這兩樣</h2>
+    <ul>
+      <li>對方用 LINE 傳給你的那個檔案，檔名像「品飲手冊分享_20261011.html」。</li>
+      <li>手機上的 Safari。下面的網址要用 Safari 開。</li>
+    </ul>
+    <div class="url"><code id="u">https://mo-tsai.github.io/sipnote-4k7q/</code><button type="button" id="copy">複製網址</button><span id="copied" role="status" style="color:var(--ok);font-size:14px"></span></div>
+  </section>
+
+  <section class="step" id="s1" data-step="1">
+    <div class="txt">
+      <span class="tag">第 1 步・把 App 放到主畫面</span>
+      <h2>用 Safari 開網址，加入主畫面</h2>
+      <ol>
+        <li>用 <b>Safari</b> 打開上面的網址。</li>
+        <li>按螢幕下方中間的<b>分享鍵</b>（方框加向上的箭頭）。</li>
+        <li>往下找到<b>「加入主畫面」</b>，按右上角的「加入」。</li>
+      </ol>
+      <p class="note">主畫面會多一個酒紅色、有酒杯的圖示。之後都從這個圖示打開。</p>
+      <div class="done"><label><input type="checkbox" data-done="1"> 這一步完成了</label></div>
+    </div>
+    <div class="shot"><div class="phone" role="img" aria-label="Safari 的分享選單，加入主畫面被框起來">
+      <div class="bar"><span>9:41</span><span>5G ▮</span></div>
+      <div class="page-mini">我的品飲手冊</div>
+      <div class="sheet">
+        <div class="row"><span>拷貝</span></div>
+        <div class="row"><span>加入書籤</span></div>
+        <div class="row hl"><span>加入主畫面</span><span class="pin">3</span></div>
+        <div class="row"><span>加入閱讀列表</span></div>
+      </div>
+      <div class="safari-bar"><span>‹</span><span>›</span>
+        <span class="hl" style="padding:2px 6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11H5a1 1 0 00-1 1v7a1 1 0 001 1h14a1 1 0 001-1v-7a1 1 0 00-1-1h-1"/></svg><span class="pin">2</span></span>
+        <span>▭</span><span>⧉</span></div>
+    </div><div class="cap">示意圖，實際畫面略有不同</div></div>
+  </section>
+
+  <section class="step" id="s2" data-step="2">
+    <div class="txt">
+      <span class="tag">第 2 步・把檔案存起來</span>
+      <h2>在 LINE 裡，把檔案存到「檔案」App</h2>
+      <ol>
+        <li>回到 LINE，找到對方傳的那個檔案。</li>
+        <li>點一下檔案打開，再按<b>分享圖示</b>（方框加向上的箭頭）。</li>
+        <li>選<b>「儲存到『檔案』」</b>，位置選「在我的 iPhone」，按右上角「儲存」。</li>
+      </ol>
+      <p class="note">LINE 的畫面會依版本略有不同，找「儲存到檔案」或「分享」類的選項就對了。<b>不要直接點開檔案閱讀</b>，iPhone 常常打不開裡面的功能。</p>
+      <div class="done"><label><input type="checkbox" data-done="2"> 這一步完成了</label></div>
+    </div>
+    <div class="shot"><div class="phone" role="img" aria-label="LINE 聊天裡的檔案與儲存到檔案選項">
+      <div class="bar"><span>9:42</span><span>5G ▮</span></div>
+      <div style="color:var(--screen-sub);font-size:11px">LINE　對方</div>
+      <div class="bubble hl"><div class="fileico">HTML</div><div><div>品飲手冊分享_20261011.html</div><small style="color:var(--screen-sub)">0.9 MB</small></div><span class="pin">1</span></div>
+      <div class="sheet" style="margin-top:14px">
+        <div class="row"><span>轉傳</span></div>
+        <div class="row"><span>儲存到 Keep</span></div>
+        <div class="row hl"><span>儲存到「檔案」</span><span class="pin">3</span></div>
+        <div class="row"><span>取消</span></div>
+      </div>
+    </div><div class="cap">示意圖，選項名稱可能略有不同</div></div>
+  </section>
+
+  <section class="step" id="s3" data-step="3">
+    <div class="txt">
+      <span class="tag">第 3 步・打開 App</span>
+      <h2>從主畫面打開，點右下角「設定」</h2>
+      <ol>
+        <li>點主畫面那個酒杯圖示。</li>
+        <li>你會看到一本<b>空的手冊</b>，這是正常的，因為它還沒有你的資料。</li>
+        <li>點最右邊的<b>「設定」</b>。</li>
+      </ol>
+      <div class="done"><label><input type="checkbox" data-done="3"> 這一步完成了</label></div>
+    </div>
+    <div class="shot"><div class="phone" role="img" aria-label="App 底部分頁，設定被框起來">
+      <div class="bar"><span>9:43</span><span>5G ▮</span></div>
+      <div style="font-weight:500;font-size:14px;color:var(--wine)">🍇 我的品飲手冊</div>
+      <div style="text-align:center;padding:34px 8px;color:var(--screen-sub)">還沒有開瓶的紀錄</div>
+      <div class="tabbar"><div>手冊</div><div>記一杯</div><div>速查</div><div class="on hl">設定<span class="pin">3</span></div></div>
+    </div><div class="cap">空的手冊是正常的</div></div>
+  </section>
+
+  <section class="step" id="s4" data-step="4">
+    <div class="txt">
+      <span class="tag">第 4 步・選擇檔案</span>
+      <h2>找到「查看分享來的手冊（唯讀）」</h2>
+      <ol>
+        <li>在設定頁往下捲，找到<b>「查看分享來的手冊（唯讀）」</b>。</li>
+        <li>按<b>「選擇檔案」</b>。</li>
+        <li>在跳出的畫面，選剛剛存好的「品飲手冊分享_….html」。</li>
+      </ol>
+      <p class="note">這個檔案只會被拿來顯示，不會寫進你自己的筆記。</p>
+      <div class="done"><label><input type="checkbox" data-done="4"> 這一步完成了</label></div>
+    </div>
+    <div class="shot"><div class="phone" role="img" aria-label="設定頁的唯讀檢視區塊與選擇檔案按鈕">
+      <div class="bar"><span>9:44</span><span>5G ▮</span></div>
+      <div class="setcard"><b>分享手冊（唯讀）</b><div style="color:var(--screen-sub);margin-top:2px">匯出給別人看的版本</div></div>
+      <div class="setcard hl"><b>查看分享來的手冊（唯讀）</b><div style="color:var(--screen-sub);margin:4px 0 8px">不會混進你自己的筆記</div><span class="btnfake">選擇檔案</span><span class="pin">2</span></div>
+      <div class="sheet" style="margin-top:12px">
+        <div class="row" style="color:var(--screen-sub)">最近項目</div>
+        <div class="row hl"><div class="fileico" style="width:24px;height:28px">HTML</div><span>品飲手冊分享_20261011.html</span><span class="pin">3</span></div>
+      </div>
+    </div><div class="cap">示意圖</div></div>
+  </section>
+
+  <section class="step" id="s5" data-step="5">
+    <div class="txt">
+      <span class="tag">第 5 步・翻閱</span>
+      <h2>開始看，看完按「清除並關閉」</h2>
+      <ol>
+        <li>會出現一本和對方一樣的手冊，標著「唯讀」。</li>
+        <li>可以搜尋酒名、產區、年份，點一支酒看詳細內容與照片。</li>
+        <li>看完按畫面上的<b>「清除並關閉」</b>，分享的內容就會從手機消失。</li>
+      </ol>
+      <p class="note">想自己也記酒的話，到「記一杯」開始就好，你的筆記是你自己的，和分享來的手冊分開。</p>
+      <div class="done"><label><input type="checkbox" data-done="5"> 這一步完成了</label></div>
+    </div>
+    <div class="shot"><div class="phone" role="img" aria-label="唯讀手冊的酒款列表與清除並關閉按鈕">
+      <div class="bar"><span>9:45</span><span>5G ▮</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><b style="color:var(--wine)">分享來的手冊</b><span class="ribbon">唯讀</span></div>
+      <div class="wine"><b>Bourgogne Pinot Noir</b><br><small>Domaine 示範酒莊・勃根地・2022</small></div>
+      <div class="wine" style="border-left-color:var(--leaf)"><b>Marlborough Sauvignon Blanc</b><br><small>示範・紐西蘭・2023</small></div>
+      <div style="margin-top:12px;text-align:center"><span class="btnfake hl" style="background:transparent;color:var(--wine);border:1px solid var(--wine)">清除並關閉<span class="pin">3</span></span></div>
+    </div><div class="cap">酒款是示範用的虛構內容</div></div>
+  </section>
+
+  <section style="display:grid;gap:10px" aria-label="常見問題">
+    <h2>卡住了？</h2>
+    <details><summary>第 3 步打開是空的，沒有任何酒</summary><p>正常。分享來的手冊不會放進你的手冊，要到第 4 步用「查看分享來的手冊」才看得到。</p></details>
+    <details><summary>第 4 步在檔案選單找不到那個檔案</summary><p>回到第 2 步，確認有存到「在我的 iPhone」。選檔案畫面左下角若顯示「最近項目」沒有，改點「瀏覽」，進「在我的 iPhone」找。</p></details>
+    <details><summary>可以直接點 LINE 裡的檔案打開看嗎</summary><p>iPhone 多半只會顯示一堆程式碼或空白頁，搜尋和點詳情都不能用。請照上面的步驟，用 App 打開。</p></details>
+    <details><summary>收到的是副檔名 .json 的檔案</summary><p>這是備份檔。做法完全一樣：到「設定」的「查看分享來的手冊（唯讀）」選它，就能唯讀檢視，不會改到你自己的筆記。</p></details>
+    <details><summary>看完之後，裡面的內容會留在我的手機嗎</summary><p>按「清除並關閉」就沒有了。分享的內容只在 App 暫時顯示，沒有存進你的手冊。</p></details>
+  </section>
+
+  <p class="safe">這份說明只是教學，裡面的酒款是虛構的示範，沒有任何人的真實筆記。檔案裡有什麼，取決於傳檔案給你的人當初選了哪些內容。</p>
+</div>
+
+<script>
+(function(){
+  var u=document.getElementById('u'),b=document.getElementById('copy'),m=document.getElementById('copied');
+  function sel(){var r=document.createRange();r.selectNodeContents(u);var s=window.getSelection();s.removeAllRanges();s.addRange(r)}
+  b.addEventListener('click',function(){
+    var t=u.textContent;
+    function ok(){m.textContent='已複製';setTimeout(function(){m.textContent=''},2000)}
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){sel();m.textContent='已選取，請長按拷貝'});return} }catch(e){}
+    sel();m.textContent='已選取，請長按拷貝';
+  });
+  var KEY='sipnote-guide-done';
+  var saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  document.querySelectorAll('input[data-done]').forEach(function(cb){
+    var n=cb.getAttribute('data-done'),step=cb.closest('.step');
+    function apply(){step.classList.toggle('is-done',cb.checked)}
+    if(saved[n]){cb.checked=true}
+    apply();
+    cb.addEventListener('change',function(){apply();saved[n]=cb.checked;try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}});
+  });
+})();
+</script>
+
+</body>
+</html>
