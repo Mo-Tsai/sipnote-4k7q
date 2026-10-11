@@ -8,14 +8,14 @@
 <meta name="theme-color" content="#1A0F12" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="品飲筆記">
+<meta name="apple-mobile-web-app-title" content="品飲手冊">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@200;300;400;500&display=swap">
-<title>WSET 品飲筆記</title>
+<title>品飲手冊</title>
 <style>
 /* 酒莊紙感風（v3，2026-10-07；獨立 App，不掛任何公司標示）
    字型：Noto Sans TC 單一家族（中英共用，離線退回系統字型）；字級走 12.8 / 16 / 20 / 25 級數；字重依字級（<20px Regular、20px+ Light、強調 Medium），不用 Bold、不用 Thin。
@@ -511,7 +511,8 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 'use strict';
 /* ========= 基本工具 ========= */
 const SCHEMA = 2;   /* 2：第三輪新增 lvl／t3／vw／refGrapes 等欄位；都是另存的新欄位，v1 資料與備份照常可匯入 */
-const APP_ID = 'wset-notes';
+const APP_ID = 'pinyin-notes';   /* 備份檔的 app 欄位；舊版備份是 'wset-notes'，匯入兩種都接受 */
+const APP_IDS = ['pinyin-notes', 'wset-notes'];
 const $ = (s, r = document) => r.querySelector(s);
 function h(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -664,7 +665,7 @@ const VOC = [
 ];
 const REASONS = [['balance', '平衡度'], ['finish', '餘味長度'], ['intensity', '風味濃度'], ['complexity', '複雜度']];
 
-/* ========= 第三輪：WSET L3 ========= */
+/* ========= 第三輪：第三級（L3）========= */
 /* L3 刻度（5 段）。來源：WSET Level 3 Systematic Approach to Tasting Wine（官方 SAT 表）。中文用語為整理版，全部「待對課本」。
    酒精在 L3 官方表仍是低／中／高三段，所以沿用 OPT.lmh。甜度 L3 為六段。 */
 const OPT3 = {
@@ -1558,8 +1559,8 @@ function buildAiPanel(w, onApply, prefill, hooks) {
     } catch (e) { if (!det.isConnected) return; apiStat.innerHTML = ''; apiStat.append(gapiFailBox(e)); }
     finally { apiBusy = false; if (det.isConnected) drawApi(); }
   };
-  const onPh = () => { if (!det.isConnected) { document.removeEventListener('wsetphotos', onPh); return; } if (!apiBusy) drawApi(); };
-  document.addEventListener('wsetphotos', onPh);
+  const onPh = () => { if (!det.isConnected) { document.removeEventListener('photoschanged', onPh); return; } if (!apiBusy) drawApi(); };
+  document.addEventListener('photoschanged', onPh);
   det.addEventListener('toggle', () => { if (det.open && !apiBusy) drawApi(); });
   drawApi();
   const copyBtn = h('button', { type: 'button', class: 'btn', id: 'aicopy', onclick: async () => {
@@ -1977,7 +1978,7 @@ function viewForm(app, id) {
         h('button', { type: 'button', class: 'x', 'aria-label': '移除照片', onclick: async () => { w.photos.splice(i, 1); await Store.del('photos', p.id); touch(w); drawPhotos(); } }, '×'),
         h('select', { 'aria-label': '照片類別', onchange: e => { p.kind = e.target.value; touch(w); } }, ['酒標', '酒瓶', '菜色', '其他'].map(k => h('option', { value: k, selected: p.kind === k }, k)))));
     });
-    document.dispatchEvent(new CustomEvent('wsetphotos'));
+    document.dispatchEvent(new CustomEvent('photoschanged'));
   };
   const addFiles = async files => {
     const ids = [];
@@ -2042,7 +2043,7 @@ function viewForm(app, id) {
     drawSheet(); touch(w); updProg();
   } }, n === 2 ? 'L2（第二級）' : 'L3（第三級）'));
   const secB = h('section', { class: 'sec area-b' },
-    h('h2', null, 'WSET 品鑑', h('small', null, mode() === 'simple' ? '簡易：只顯示重點項目，切到「完整」可補填' : '完整：全部項目')),
+    h('h2', null, '品鑑', h('small', null, mode() === 'simple' ? '簡易：只顯示重點項目，切到「完整」可補填' : '完整：全部項目')),
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '酒種'), typeSeg),
     h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '品鑑層級（L3 為 5 段刻度，可隨時切換）'), h('div', { class: 'seg' }, lvlBtns)),
     sheetHolder);
@@ -2381,7 +2382,7 @@ function viewDetail(app, id) {
     arr(w.refGrapes).length ? h('div', { class: 'small muted' }, '產區常見品種（參考，非標籤）：' + w.refGrapes.join('、')) : null);
   const two = h('div', { class: 'grid2f' });
   /* 品鑑摘要 */
-  const sum = h('section', { class: 'sec area-b' }, h('h2', null, 'WSET 品鑑'));
+  const sum = h('section', { class: 'sec area-b' }, h('h2', null, '品鑑'));
   const groups = ['視覺', '嗅覺', '味覺', '結論'];
   groups.forEach(g => {
     const items = [];
@@ -3620,7 +3621,7 @@ function viewRef(app, tab, sub) {
 /* ========= 第七輪：匯出「唯讀分享頁」（單一自包含 HTML，用 LINE 傳給只看不記的人）=========
    輸出：內嵌 CSS、JS、base64 照片；沒有外部資源、沒有 service worker、沒有 API／金鑰／設定、沒有編輯功能。
    內容先在這裡整理成「可直接顯示」的資料（label／value），分享頁的檢視程式只負責畫，不含任何筆記邏輯。
-   檢視程式 wsetShareViewer 是一般函式，用 toString() 嵌進輸出檔，所以不能引用外面的任何變數。 */
+   檢視程式 shareViewer 是一般函式，用 toString() 嵌進輸出檔，所以不能引用外面的任何變數。 */
 const SHARE_CSS = `
 :root{--bg:#F6F0E1;--surface:#FBF7EC;--surface2:#EDE4CE;--fg:#2A2118;--muted:#66594A;--line:#D8CCAE;--ctl:#857760;--gold:#BEA578;--star:#A9741A;--accent:#5A1F2B;--wine-soft:#EED8D2;--wine-tx:#5A1F2B;--ok-soft:#E8EBD6;--ok-fg:#46532A;--warn-soft:#F5ECD2;--warn-fg:#6B4F12;--info-soft:#E6ECF1;--info-fg:#3F5266;--q-top:#CFDDA6;--q-top-fg:#2F3B16;--q-good:#E8EBD6;--q-mid:#EDE4CE;--q-var:#F5ECD2;--q-weak:#F4E1DC;--font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,-apple-system,"Segoe UI",sans-serif;--r:10px;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#1A0F12;--surface:#241519;--surface2:#2F1C21;--fg:#F1E8D8;--muted:#B8A794;--line:#46292F;--ctl:#947680;--gold:#C8AE7C;--star:#D9B25A;--accent:#E8B0B8;--wine-soft:#3C1B24;--wine-tx:#EDB8C0;--ok-soft:#1F2415;--ok-fg:#BCCB92;--warn-soft:#2A2214;--warn-fg:#E2C27A;--info-soft:#18222C;--info-fg:#A9BCD0;--q-top:#2C3A18;--q-top-fg:#D3E0A8;--q-good:#232B15;--q-mid:#2F1C21;--q-var:#2A2214;--q-weak:#3A1C1A;color-scheme:dark}}
@@ -3674,8 +3675,8 @@ tr.same td:last-child{color:var(--ok-fg)}tr.diff td:last-child{color:var(--warn-
 .empty{padding:24px 8px;text-align:center;color:var(--muted)}
 `;
 /* 分享頁的檢視程式（只讀、只用 DOM textContent 顯示資料）。會被 toString() 嵌進輸出檔，不能引用外面的變數。 */
-function wsetShareViewer() {
-  var D = JSON.parse(document.getElementById('wsetdata').textContent);
+function shareViewer() {
+  var D = JSON.parse(document.getElementById('sharedata').textContent);
   var root = document.getElementById('app');
   function add(el, c) { if (c == null || c === false) return; if (Array.isArray(c)) { c.forEach(function (x) { add(el, x); }); return; } el.appendChild(c.nodeType ? c : document.createTextNode(String(c))); }
   function E(tag, a) {
@@ -3737,13 +3738,13 @@ function wsetShareViewer() {
       kv(w.kv), w.rg ? E('div', { class: 'small muted' }, '產區常見品種（參考，非標籤）：' + w.rg) : null, w.vl ? vline(w.vl) : null);
     root.appendChild(head);
     if (w.sec.length) {
-      var sum = E('section', { class: 'sec' }, E('h2', null, 'WSET 品鑑'));
+      var sum = E('section', { class: 'sec' }, E('h2', null, '品鑑'));
       w.sec.forEach(function (s) { sum.appendChild(E('div', { class: 'sub' }, s.h)); sum.appendChild(kv(s.rows)); (s.chips || []).forEach(function (c) { sum.appendChild(E('div', null, E('div', { class: 'small muted' }, c[0]), chips(c[1], c[2]))); }); });
       root.appendChild(sum);
     }
     if (w.vw) { var v = E('section', { class: 'sec' }, E('h2', null, '年份天氣'), kv(w.vw.rows), w.vw.note ? E('div', null, w.vw.note) : null); root.appendChild(v); }
     if (w.mood) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '這杯的心情'), kv([['場合', w.mood.occ], ['和誰喝', w.mood.with]]), w.mood.note ? E('div', null, w.mood.note) : null));
-    if (w.food) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '食物搭配'), w.food.text ? E('div', null, w.food.text) : null, (w.food.eff || []).map(function (x) { return E('div', { class: 'note' }, E('b', null, x[0] + '：'), '酒會' + x[1]); }), w.food.feel.length ? E('div', null, E('div', { class: 'small muted' }, '我的實際感覺'), chips(w.food.feel.map(function (x) { return [x, '#8A8A92']; }))) : null, w.food.other ? E('div', { class: 'small' }, w.food.other) : null));
+    if (w.food) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '食物搭配'), w.food.text ? E('div', null, w.food.text) : null, (w.food.comp && w.food.comp.length) ? E('div', null, E('div', { class: 'small muted' }, '食物成分'), chips(w.food.comp.map(function (x) { return [x, '#8A8A92']; }))) : null, w.food.feel.length ? E('div', null, E('div', { class: 'small muted' }, '我的實際感覺'), chips(w.food.feel.map(function (x) { return [x, '#8A8A92']; }))) : null, w.food.other ? E('div', { class: 'small' }, w.food.other) : null));
     if (w.note) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '備註'), E('div', { style: 'white-space:pre-wrap' }, w.note)));
     (w.tc || []).forEach(function (t) {
       root.appendChild(E('section', { class: 'sec' }, E('h2', null, '對照老師的杯子'), E('div', { class: 'row' }, E('b', null, t.by || '老師版'), t.pct != null ? E('span', { class: 'pill' }, '單選命中率 ' + t.pct + '%（' + t.same + '/' + t.n + '）') : null),
@@ -3763,7 +3764,17 @@ function wsetShareViewer() {
 }
 
 /* ---- 整理資料（顯示用）---- */
-const shareStarStr = n => n;
+/* 只用自己記的欄位組出卡片上的年份行（不查年份參考表） */
+function shareOwnVintageLine(vint, v) {
+  const y = parseInt(vint, 10), hasY = y > 0 && !/nv|無年份/i.test(String(vint || ''));
+  const c = [];
+  if (v.temp && v.temp !== '正常') c.push(v.temp); if (v.rain && v.rain !== '正常') c.push(v.rain);
+  arr(v.events).filter(e => !(e === '乾旱' && v.rain === '少雨')).slice(0, 2).forEach(e => c.push(e));
+  if (v.hrain === '收穫期有下雨') c.push('收穫期下雨');
+  if (!c.length && (v.temp === '正常' || v.rain === '正常')) c.push('氣候正常');
+  if (!c.length && !v.quality) return null;
+  return { src: 'own', y: hasY ? y : null, c: c.join('・'), q: v.quality || '', qc: GQ_CLS[v.quality] || '', tag: '' };
+}
 const chipColor = it => ((GROUP_ART[String(it).split('|')[0]] || [])[1]) || '#8A8A92';
 function shareColourHex(type, name) { const c = (type && COLOURS[type] || [].concat(...Object.values(COLOURS))).find(x => x[0] === name); return c ? c[1] : null; }
 const shareTxt = (r, v) => r.bool ? (v ? '✓' : '—') : r.multi ? (arr(v).map(vlabel).join('、') || '—') : (v || '—');
@@ -3786,16 +3797,19 @@ function shareWineData(w, o) {
     if (rows.length || chips.length) d.sec.push({ h: g, rows, chips });
   });
   if (o.vint) {
-    const vd = safe(() => vintageData(w), null);
-    if (vd) d.vl = { src: vd.src, y: vd.year, c: vd.climate, q: vd.q, qc: vd.qc || '', tag: vd.src === 'ref' ? '參考' : vd.src === 'gem' ? 'Gemini' : '' };
-    const v = w.vw || {};
-    if (vwHas(v)) { const rows = [['溫度', v.temp], ['降雨', v.rain], ['重大事件', arr(v.events).join('、')], ['收穫', v.harvest], ['收穫期下雨', v.hrain], ['產量', v.yield], ['成熟度', v.ripe], ['葡萄品質', v.quality]].filter(x => x[1]); if (rows.length || v.note) d.vw = { rows, note: v.note || '' }; }
+    /* 只帶 Mo 自己手動記的年份天氣。由年份參考表自動帶入（auto）或 Gemini 查詢套用（gsrc）的欄位，視為第三方資料衍生，一律不帶；也不輸出依年份表算出的「參考」行 */
+    const v0 = w.vw || {}, v = {};
+    ['temp', 'rain', 'events', 'harvest', 'hrain', 'yield', 'ripe', 'quality', 'note'].forEach(k => { const x = v0[k]; if ((Array.isArray(x) ? x.length : !!x) && !(v0.auto && v0.auto[k]) && !(v0.gsrc && v0.gsrc[k])) v[k] = x; });
+    d.vl = shareOwnVintageLine(b.vintage, v);
+    const rows = [['溫度', v.temp], ['降雨', v.rain], ['重大事件', arr(v.events).join('、')], ['收穫', v.harvest], ['收穫期下雨', v.hrain], ['產量', v.yield], ['成熟度', v.ripe], ['葡萄品質', v.quality]].filter(x => x[1]);
+    if (rows.length || v.note) d.vw = { rows, note: v.note || '' };
   }
   if (o.food) {
     const f = w.food || {};
     if (f.text || arr(f.comp).length || arr(f.feel).length) {
-      const eff = arr(f.comp).map(k => FOOD.find(y => y.k === k)).filter(Boolean).map(x => [x.label, x.effect]);
-      d.food = { text: f.text || '', eff, feel: arr(f.feel), other: FOOD_OTHER.filter(([k]) => f[k]).map(([k, l]) => l + '：' + f[k]).join('　') };
+      /* 只帶 Mo 自己勾的成分名稱與感覺，不帶課本的食物原理說明文字 */
+      const comp = arr(f.comp).map(k => FOOD.find(y => y.k === k)).filter(Boolean).map(x => x.label);
+      d.food = { text: f.text || '', comp, feel: arr(f.feel), other: FOOD_OTHER.filter(([k]) => f[k]).map(([k, l]) => l + '：' + f[k]).join('　') };
     }
   }
   if (o.notes) d.note = w.note || '';
@@ -3812,9 +3826,9 @@ const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').repl
 function shareHtml(data) {
   return '<!doctype html>\n<html lang="zh-Hant"><head><meta charset="utf-8">\n'
     + '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'">\n'
-    + '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="robots" content="noindex,nofollow">\n<meta name="color-scheme" content="light dark">\n<meta name="wset-share" content="1">\n'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="robots" content="noindex,nofollow">\n<meta name="color-scheme" content="light dark">\n<meta name="share-viewer" content="1">\n'
     + '<title>' + escHtml(data.title) + '</title>\n<style>' + SHARE_CSS + '</style></head>\n<body><div id="app"></div>\n<noscript><p style="padding:16px">這個唯讀手冊需要開啟 JavaScript 才能翻閱。</p></noscript>\n'
-    + '<script type="application/json" id="wsetdata">' + shareJson(data) + '<\/script>\n<script>(' + wsetShareViewer.toString() + ')();<\/script></body></html>';
+    + '<script type="application/json" id="sharedata">' + shareJson(data) + '<\/script>\n<script>(' + shareViewer.toString() + ')();<\/script></body></html>';
 }
 /* 照片再壓：長邊 ≤1024、JPEG 0.7 */
 async function sharePhotoURL(id) {
@@ -3882,13 +3896,14 @@ function viewShare(app) {
   const tg = (key, label, sub) => toggle(label, sub, !!o[key], b => { o[key] = !o[key]; b.setAttribute('aria-checked', String(o[key])); upd(); });
   box.append(h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('/') }, '← 手冊'), h('h2', { style: 'font-size:1.25rem' }, '匯出唯讀分享頁')),
     h('div', { class: 'note', role: 'alert', id: 'sharePrivacy' }, h('b', null, '收到檔案的人可以看到你勾選的所有內容（含照片與評分）。'), '這個檔案會用 LINE 等方式傳出去，請只勾你願意讓對方看到的。匯出的是複本，你的筆記不會改變；檔案裡沒有金鑰、API 設定或任何備份設定。'),
+    h('div', { class: 'small muted', id: 'shareExcl' }, '年份表資料與課本詞彙不會被帶出，只帶你自己的筆記。'),
     h('section', { class: 'sec' }, h('h2', null, '1. 範圍'), scopeRow, pickCount, pickBox),
     h('section', { class: 'sec' }, h('h2', null, '2. 照片'), tg('photos', '含照片', '照片會再壓小（長邊 1024px、JPEG 約 0.7）。照片多時檔案會變大，LINE 傳不動就取消這項')),
     h('section', { class: 'sec' }, h('h2', null, '3. 內容'),
-      tg('stars', '含我的個人評分星等', '你給的 1–5 星（和 WSET 品質水平分開）'),
+      tg('stars', '含我的個人評分星等', '你給的 1–5 星（和「品質水平」分開）'),
       tg('mood', '含心情（場合與和誰喝）', '這杯的場合、和誰喝與心情備註'),
-      tg('vint', '含我記的年份天氣與年份參考行', '卡片上的「2019｜偏熱・少雨｜品質卓越」那一行與你記的年份天氣'),
-      tg('food', '含食物搭配', '吃了什麼、食物原理提醒與你的實際感覺'),
+      tg('vint', '含我自己記的年份天氣', '只帶你手動填的欄位。由年份參考表（或 Gemini 查詢）帶入的不會帶出'),
+      tg('food', '含食物搭配', '吃了什麼、你勾的食物成分與實際感覺（不含課本的原理說明）'),
       tg('teacher', '含老師版', '老師版勾選與兩邊對照表'),
       tg('price', '含價格與購買處', '預設不含'),
       tg('notes', '含備註', '「備註」欄位的文字，預設不含')),
@@ -3934,18 +3949,19 @@ function drawShareResult(box) {
 }
 /* ---- 查看分享來的手冊（唯讀；不合併進自己的筆記，只在記憶體裡，關掉就清除）---- */
 async function shareFromBackup(j) {
-  if (!j || j.app !== APP_ID || !Array.isArray(j.wines)) throw new Error('這不是本 App 的備份檔');
+  if (!j || !APP_IDS.includes(j.app) || !Array.isArray(j.wines)) throw new Error('這不是本 App 的備份檔');
   const ph = new Map(arr(j.photos).map(p => [p.id, p.dataUrl]));
   const list = j.wines.map(normalizeWine);
   const o = { photos: true, stars: true, mood: true, vint: true, food: true, teacher: true, price: true, notes: true, title: '分享來的手冊（備份檔）', note: '' };
   return buildShareData(list, o, id => ph.get(id) || null);
 }
 function shareFromHtml(text) {
-  const m = String(text).match(/<script type="application\/json" id="wsetdata">([\s\S]*?)<\/script>/);
+  const m = String(text).match(/<script type="application\/json" id="(?:sharedata|wsetdata)">([\s\S]*?)<\/script>/);
   if (!m) throw new Error('這不是「我的品飲手冊」的分享檔');
   const d = JSON.parse(m[1]);
   if (!d || !Array.isArray(d.W) || !Array.isArray(d.P)) throw new Error('分享檔的內容不完整');
   /* 只取資料，重新用本 App 的檢視程式輸出，不執行檔案裡的任何腳本；字串欄位再保險轉成字串 */
+  d.W.forEach(w => { if (w && w.food) delete w.food.eff; if (w && w.vl && w.vl.src !== 'own') w.vl = null; });
   d.title = String(d.title || '分享來的手冊'); d.note = String(d.note || ''); d.foot = String(d.foot || ''); d.P = d.P.map(x => String(x).startsWith('data:image/') ? String(x) : '');
   return d;
 }
@@ -3983,7 +3999,7 @@ async function buildExport() {
 }
 async function doImport(text) {
   const data = JSON.parse(text);
-  if (!data || data.app !== APP_ID || !Array.isArray(data.wines)) throw new Error('這不是本 App 的備份檔');
+  if (!data || !APP_IDS.includes(data.app) || !Array.isArray(data.wines)) throw new Error('這不是本 App 的備份檔');
   if (Number(data.schemaVersion) > SCHEMA) throw new Error('這份備份來自較新版本的 App，請先更新 App 再匯入');
   let added = 0, updated = 0, skipped = 0, ov = 0;
   for (const p of arr(data.photos)) { try { await Store.put('photos', { id: p.id, blob: dataURLToBlob(p.dataUrl), type: 'image/jpeg' }); } catch (e) {} }
@@ -4108,7 +4124,7 @@ function gapiSection() {
 function viewSettings(app) {
   const st = h('div', { class: 'stack' });
   st.append(h('section', { class: 'sec' }, h('div', { style: 'display:flex;align-items:center;gap:16px' }, art('grapes', 64),
-    h('div', { class: 'prose' }, h('div', { style: 'font-size:1.25rem;font-weight:300;letter-spacing:.06em' }, '我的品飲手冊'), h('div', { class: 'small muted' }, 'WSET 第二級葡萄酒・個人學習筆記')))));
+    h('div', { class: 'prose' }, h('div', { style: 'font-size:1.25rem;font-weight:300;letter-spacing:.06em' }, '我的品飲手冊'), h('div', { class: 'small muted' }, '葡萄酒第二級・個人學習筆記')))));
   const sampleBox = h('textarea', { class: 'mono', readonly: true, rows: 6, 'aria-label': '範例回覆' }, LABEL_SAMPLE);
   st.append(h('section', { class: 'sec', id: 'geminiHelp' }, h('h2', null, '怎麼用 Gemini 辨識酒標', h('small', null, '複製貼上版，不用金鑰')),
     h('ol', { class: 'steps' },
@@ -4134,7 +4150,7 @@ function viewSettings(app) {
       h('button', { class: 'btn primary', type: 'button', onclick: async () => {
         try {
           const data = JSON.stringify(await buildExport());
-          const blob = new Blob([data], { type: 'application/json' }); const a = h('a', { href: URL.createObjectURL(blob), download: 'wset-notes-' + today().replace(/-/g, '') + '.json' });
+          const blob = new Blob([data], { type: 'application/json' }); const a = h('a', { href: URL.createObjectURL(blob), download: 'pinyin-notes-' + today().replace(/-/g, '') + '.json' });
           document.body.append(a); a.click(); a.remove(); markBackup(); toast('已產生備份檔，請確認有下載');
         } catch (e) { toast('匯出失敗：' + e.message); }
       } }, '下載備份檔'),
@@ -4163,6 +4179,7 @@ function viewSettings(app) {
     h('div', { class: 'btnrow' }, !hasSample ? h('button', { class: 'btn', type: 'button', onclick: async () => { await loadSamples(); toast('範例酒款已放進手冊'); go('/'); } }, '載入範例酒款') : h('button', { class: 'btn', type: 'button', onclick: async () => { for (const w of wines.filter(x => x.extra && x.extra.sample)) await Store.del('wines', w.id); wines = wines.filter(x => !(x.extra && x.extra.sample)); toast('範例酒款已收起來'); renderPath(curPath); } }, '移除範例酒款'))));
   st.append(h('section', { class: 'sec' }, h('h2', null, '關於'),
     h('div', { class: 'small muted' }, '地圖圖資：Natural Earth（公有領域）國家輪廓，已簡化；等距圓柱投影；產區位置為概略位置，非精確座標。'),
+    h('div', { class: 'small muted' }, '這是個人學習用的工具，不是 WSET 官方產品，與 WSET 沒有隸屬或授權關係。'),
     h('div', { class: 'small muted' }, '個人學習用，不公開。筆記都在本機，沒有帳號、沒有後端；只有你自己設了 Gemini API 金鑰並按下功能時，酒標照片或查詢文字才會直接送到 Google。課本詞彙與表格取自個人教材；產區簡表與標「待確認」的食物原理為整理資料，請以課本為準。資料結構版本 ' + SCHEMA + '。')));
   app.append(st);
   if (window._gapiFocus) { window._gapiFocus = false; setTimeout(() => { const e = $('#gapiSec'); if (e) { e.scrollIntoView(); const k = $('#gapiKey'); if (k) k.focus({ preventScroll: true }); } }, 0); }

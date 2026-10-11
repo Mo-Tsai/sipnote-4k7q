@@ -1,7 +1,7 @@
 {
-  "name": "WSET 品飲筆記",
-  "short_name": "品飲筆記",
-  "description": "WSET 葡萄酒品飲勾選筆記（個人學習用）",
+  "name": "品飲手冊",
+  "short_name": "品飲手冊",
+  "description": "葡萄酒品飲勾選筆記（個人學習用）",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
