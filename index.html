@@ -493,6 +493,7 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .gmodal .box h3{margin:0;font-weight:500;font-size:1.1rem}
 .keyline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .keyline input{flex:1 1 220px}
+.dimmed{opacity:.55}
 .mcur{font-size:1.05rem;padding:2px 0}.mcur b{color:var(--accent);font-weight:500}
 .srcs .pill{margin-left:6px;min-height:24px;padding:0 8px}
 </style>
@@ -1064,15 +1065,13 @@ function buildBrand() {
    預設走 Interactions API（官方文件現行推薦）；格式被拒時自動改用 generateContent（官方標為 legacy 但仍完整支援）。
    呼叫失敗一律回報友善說明，原本的「複製指令→貼回」流程照舊可用。 */
 const GAPI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-const GAPI_DEF = { model: 'gemini-3.8-flash', vmodel: 'gemini-3.8-flash', ground: true, fmt: 'auto' };
+const GAPI_DEF = { model: 'gemini-3.1-flash-lite', vmodel: 'gemini-3.8-flash', ground: true, fmt: 'auto' };
 /* [模型名稱, 選單短提示, 完整說明]；依 Google 官方模型頁與定價頁整理（查證日 2026-10-11）；更新清單後會併入你帳號實際有的模型 */
 const GAPI_MODELS = [
-  ['gemini-3.8-flash', '新一代・免費層無接地', '新一代主力 Flash，速度快、讀圖沒問題。免費層可用，但免費層不含 Google 搜尋接地（官方定價頁）。'],
+  ['gemini-3.8-flash', '新一代・每日上限較低', '新一代主力 Flash，速度快、讀圖沒問題（你實測這個帳號可用）。免費層可用，但每日上限比輕量款低，且免費層沒有 Google 搜尋接地。'],
   ['gemini-3.6-flash', '上一代・免費層無接地', '上一代 Flash。免費層可用，免費層不含 Google 搜尋接地。'],
   ['gemini-3.5-flash-lite', '輕量省額度・免費層無接地', '輕量款，較省額度。免費層可用，免費層不含 Google 搜尋接地。'],
-  ['gemini-3.1-flash-lite', '輕量・免費層無接地', '輕量款。免費層可用，免費層不含 Google 搜尋接地。'],
-  ['gemini-2.5-flash', '免費層含接地・依帳號開放', '免費層含 Google 搜尋接地（每日有上限，與 2.5 Flash-Lite 共用）。Google 說 2.5 系列只開放給用過的帳號，沒開放的話會顯示找不到模型。'],
-  ['gemini-2.5-flash-lite', '輕量・免費層含接地・依帳號開放', '輕量款，免費層含 Google 搜尋接地（每日有上限，與 2.5 Flash 共用）。同樣只開放給用過的帳號。']
+  ['gemini-3.1-flash-lite', '輕量・免費層每日上限較高', '輕量款，較省額度，免費層的每日上限比 3.8 Flash 高（具體次數看你專案的額度頁）；你實測這個帳號可用。免費層沒有 Google 搜尋接地。']
 ];
 const gapiMInfo = id => GAPI_MODELS.find(m => m[0] === id);
 /* 模型清單：只留名稱含 gemini、支援 generateContent，排除 embedding／tts／圖片生成／live／robotics／音訊等不適用者 */
@@ -1098,7 +1097,7 @@ const GAPI = {
   modelOk: m => /^[a-z0-9][a-z0-9._-]{2,60}$/i.test(m || ''),
   cfg() {
     const a = S.api || {}; const mo = x => { x = String(x || '').trim().replace(/^models\//, ''); return GAPI.modelOk(x) ? x : ''; };
-    return { model: mo(a.model) || GAPI_DEF.model, vmodel: mo(a.vmodel) || GAPI_DEF.vmodel, ground: a.ground !== false, fmt: a.fmt === 'interactions' || a.fmt === 'generateContent' ? a.fmt : 'auto', consent: a.consent || 0, gOK: a.gOK };
+    return { model: mo(a.model) || GAPI_DEF.model, vmodel: mo(a.vmodel) || GAPI_DEF.vmodel, ground: a.ground !== false, fmt: a.fmt === 'interactions' || a.fmt === 'generateContent' ? a.fmt : 'auto', consent: a.consent || 0, gOK: a.gOK, vapi: a.vapi === true };
   },
   setCfg(p) { S.api = Object.assign({}, S.api || {}, p); saveSettings(); },
   scrub(s) { s = String(s == null ? '' : s); return this.key ? s.split(this.key).join('[金鑰]') : s; },
@@ -1133,9 +1132,9 @@ const GAPI = {
       if (/ground|google[_ ]?search|search (tool|grounding)|tool.*(not|unsupported|available)/i.test(m)) return new GErr('ground', '這把金鑰（或免費層）不能使用「Google 搜尋接地」。', status, D);
     }
     if (status === 403) return new GErr('denied', 'Google 拒絕了這個請求（403）：這把金鑰沒有 Gemini API 的使用權限，或這個帳號／地區不能用。', status, D);
-    if (status === 404) return /model/i.test(m) ? new GErr('model', '找不到這個模型（可能名稱打錯、已下架，或這個帳號用不到）。請到「設定 → Gemini API」改模型名稱。', status, D) : new GErr('format', '這個端點或格式 Google 不認得（404）。', status, D);
+    if (status === 404) return /model/i.test(m) ? new GErr('model', '這個帳號沒有這個模型（404），請改選別的模型。', status, D) : new GErr('format', '這個端點或格式 Google 不認得（404）。', status, D);
     if (status === 429) return new GErr('quota', '額度用完或呼叫太頻繁（429）。免費層有每分鐘與每日上限，等幾分鐘或明天再試，或先用下面的複製貼上。', status, D);
-    if (status === 400) return /model/i.test(m) && /not found|not supported|unsupported|invalid/i.test(m) ? new GErr('model', '這個模型不能這樣用（名稱不對，或不支援圖片／搜尋）。請到「設定 → Gemini API」改模型名稱。', status, D) : new GErr('format', 'Google 說這個請求的格式不對（400）。', status, D);
+    if (status === 400) return /model/i.test(m) && /not found|not supported|unsupported|invalid/i.test(m) ? new GErr('model', '這個模型不能這樣用（不支援圖片或搜尋），請改選別的模型。', status, D) : new GErr('format', 'Google 說這個請求的格式不對（400）。', status, D);
     if (status >= 500) return new GErr('busy', 'Google 那邊暫時忙線或出錯（' + status + '）。稍後再按一次，或先用下面的複製貼上。', status, D);
     return new GErr('http', 'Google 回了預料之外的狀態（' + status + '）。', status, D);
   },
@@ -1240,8 +1239,8 @@ const GAPI = {
         p.why = p.grounded ? '' : (p.queries.length ? '模型有搜尋，但回覆沒有附任何接地來源。' : '模型這次沒有實際搜尋（沒有任何接地來源）。');
         return p;
       } catch (e) {
-        if (e.kind !== 'ground' && !(e.kind === 'quota' && /limit:\s*0/i.test(e.detail))) throw e;
-        this.gBlocked = true; why = '這把金鑰（或免費層）不能使用 Google 搜尋接地。';
+        if (e.kind !== 'ground' && e.kind !== 'quota') throw e;
+        this.gBlocked = true; why = e.kind === 'quota' ? '搜尋接地回 429（免費層沒有接地額度）。' : '這把金鑰（或免費層）不能使用 Google 搜尋接地。';
       }
     }
     const nogr = '\n\n【重要：這次沒有開啟上網搜尋，你無法上網】不能假裝查過。請只用你確定記得的資訊；不確定就留空；「來源」一律給 []；「信心」一律填「低」；「備註」開頭寫「未接地：憑模型記憶，未上網查證」。';
@@ -1268,7 +1267,7 @@ const GAPI = {
     if (o.ground === false) return out;
     const mine = m2 === cfg.vmodel;
     try { const p = await this.run({ model: m2, system: 'You are a connectivity test.', text: 'Who won the euro 2024? Answer in one short sentence.', images: [], search: true, ms: 90000 }); out.ground = { ok: true, grounded: p.cites.length > 0, model: m2 }; if (mine) { this.setCfg({ gOK: true }); this.gBlocked = false; } }
-    catch (e) { out.ground = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; if (e.kind === 'ground' && mine) { this.setCfg({ gOK: false }); this.gBlocked = true; } }
+    catch (e) { if (e.kind === 'quota') { e.kind = 'ground'; e.msg = '搜尋接地回 429：免費層沒有接地額度。'; } out.ground = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; if (e.kind === 'ground' && mine) { this.setCfg({ gOK: false }); this.gBlocked = true; } }
     return out;
   }
 };
@@ -1308,10 +1307,10 @@ function gapiConsent() {
 }
 function gapiToSettings() { window._gapiFocus = true; go('/settings'); }
 /* 失敗訊息：友善中文＋可展開的 Google 原話（已去除金鑰）；並提醒複製貼上照常可用 */
-function gapiFailBox(e) {
+function gapiFailBox(e, quiet) {
   const kids = [h('div', null, e && e.msg ? e.msg : '呼叫 Gemini 失敗了：' + GAPI.scrub(e && e.message || '')), e && e.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, e.detail)) : null,
-    h('div', { class: 'small' }, '沒關係，什麼都沒有丟：下面的「複製指令 → 貼回來」流程照常可以用。')];
-  if (e && (e.kind === 'key' || e.kind === 'referrer' || e.kind === 'model' || e.kind === 'denied')) kids.push(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', onclick: gapiToSettings }, '到設定檢查')));
+    quiet ? null : h('div', { class: 'small' }, '沒關係，什麼都沒有丟：下面的「複製指令 → 貼回來」流程照常可以用。')];
+  if (e && (e.kind === 'key' || e.kind === 'referrer' || e.kind === 'denied')) kids.push(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', onclick: gapiToSettings }, '到設定檢查')));
   return h('div', { class: 'note err', role: 'alert' }, kids);
 }
 const gapiBusy = txt => h('div', { class: 'apistat', role: 'status' }, h('span', { class: 'spin', 'aria-hidden': 'true' }), txt);
@@ -2876,13 +2875,13 @@ function buildGemPanel(w, primary, onApply) {
     const d = res.d, v = w.vw;
     const have = d.temp || d.rain || d.events.length || d.harvest || d.hrain || d.yield || d.ripe || d.q || d.feel;
     if (!have) { showErr('有讀到格式，但每個欄位都是空的（Gemini 可能沒查到可靠資料）。這不是壞事：沒有資料就不要硬填。'); return; }
-    const warn = [];
+    const warn = []; let strong = '';
     let srcInfo = null;
     if (meta) {
       srcInfo = gapiMergeSources(d.sources, meta.ground, meta.grounded);
       d.sources = srcInfo.map(x => x.u);
       if (!meta.grounded) {
-        warn.push('這次沒有接地（沒有實際上網搜尋）' + (meta.why ? '：' + meta.why : '') + '內容憑模型記憶，可信度較低，來源網址全部未驗證。只當線索，建議改用複製貼上到 Gemini 網頁版查。');
+        strong = '沒有接地＝憑模型記憶，可能是編的。' + (meta.why ? meta.why : '這次沒有實際上網搜尋。') + '來源網址全部未驗證。下面的欄位預設都沒勾，要自己確認過再勾；建議改用「複製查詢指令」貼到 Gemini 網頁版查。';
         if (d.conf && d.conf !== '低') warn.push('信心已從「' + d.conf + '」降為「低」。');
         d.conf = '低';
       } else if (srcInfo.some(x => x.ok !== true)) warn.push('有 ' + srcInfo.filter(x => x.ok !== true).length + ' 個網址是模型自己填的、不在 Google 接地來源內，標為「未驗證」或「同網站」。');
@@ -2905,25 +2904,27 @@ function buildGemPanel(w, primary, onApply) {
     const noteOk = d.feel && !String(v.note || '').trim();
     const list = h('div', { class: 'prev' }), checks = [];
     rows.forEach(r => {
-      const cb = h('input', { type: 'checkbox', id: 'gvc_' + r.k, 'aria-label': '套用' + r.label, checked: !r.ownKept && !r.same, disabled: r.same });
+      const cb = h('input', { type: 'checkbox', id: 'gvc_' + r.k, 'aria-label': '套用' + r.label, checked: !r.ownKept && !r.same && !strong, disabled: r.same });
       checks.push([r, cb]);
       list.append(h('label', { class: 'prow' + (r.same ? ' same' : ''), for: 'gvc_' + r.k }, cb, h('div', { class: 'pc' },
         h('div', { class: 'pk' }, r.label, r.same ? h('span', { class: 'pill gray' }, '已相同') : null, r.ownKept ? h('span', { class: 'pill warn' }, '你已經記了') : null),
         h('div', { class: 'pv' }, r.txt), r.old && !r.same ? h('div', { class: 'po' }, '目前：' + r.old + (r.ownKept ? '（勾選才會覆蓋你記的）' : '（來自年份表或先前的 Gemini，勾選會換掉）')) : null)));
     });
     let noteCb = null;
-    if (d.feel) { noteCb = h('input', { type: 'checkbox', id: 'gvc_note', 'aria-label': '把一句感受放進我的備註', checked: noteOk });
+    if (d.feel) { noteCb = h('input', { type: 'checkbox', id: 'gvc_note', 'aria-label': '把一句感受放進我的備註', checked: noteOk && !strong });
       list.append(h('label', { class: 'prow', for: 'gvc_note' }, noteCb, h('div', { class: 'pc' }, h('div', { class: 'pk' }, '一句感受（也放進「一行備註」）'), h('div', { class: 'pv' }, d.feel), String(v.note || '').trim() ? h('div', { class: 'po' }, '目前備註：' + v.note + '（勾選會換掉）') : null))); }
     const apply = h('button', { type: 'button', class: 'btn primary', id: 'gemvapply', onclick: () => {
       const done = [];
       v.gsrc = v.gsrc || {};
       checks.forEach(([r, cb]) => { if (!cb.checked || r.same) return; v[r.k] = Array.isArray(r.val) ? r.val.slice() : r.val; v.man[r.k] = true; delete v.auto[r.k]; v.gsrc[r.k] = true; done.push(r.label); });
       if (noteCb && noteCb.checked) { v.note = d.feel; v.man.note = true; delete v.auto.note; done.push('一行備註'); }
+      if (strong && !done.length) { toast('沒有勾選任何欄位，所以沒有套用（沒接地的結果要自己勾才會套用）'); return; }
       v.gem = { src: 'gemini', region: d.region, year: d.year, temp: d.temp, rain: d.rain, events: d.events, harvest: d.harvest, hrain: d.hrain, yield: d.yield, ripe: d.ripe, q: d.q, feel: d.feel, sources: d.sources, conf: d.conf, note: d.note, at: Date.now() };
       if (meta) { v.gem.srcInfo = srcInfo; v.gem.api = { model: meta.model, grounded: !!meta.grounded, queries: arr(meta.queries).slice(0, 6), why: meta.why || '' }; }
       onApply(done); toast('已套用 Gemini 查詢結果（待核對）');
     } }, '套用勾選的欄位（並留下這筆查詢紀錄）');
     out.append(h('div', { class: 'small muted' }, '解析方式：' + res.mode + '。已經有你自己記的欄位預設不覆蓋，要換就勾選。'),
+      strong ? h('div', { class: 'note err', role: 'alert', id: 'gemvStrong' }, h('b', null, '沒有接地＝憑模型記憶，可能是編的。'), strong.replace('沒有接地＝憑模型記憶，可能是編的。', '')) : null,
       warn.map(t => h('div', { class: 'note' }, t)),
       d.conf ? h('div', { class: 'small' }, '信心：', h('span', { class: 'pill ' + gemConfCls(d.conf) }, d.conf), d.sources.length ? h('span', { class: 'muted' }, '　來源 ' + d.sources.length + ' 個') : null) : null,
       meta ? h('div', { class: 'small' }, meta.grounded ? '接地：有（' + meta.model + '，用 Google 搜尋）' : '接地：沒有', arr(meta.queries).length ? h('span', { class: 'muted' }, '；搜尋了：' + meta.queries.slice(0, 4).join('、')) : null) : null,
@@ -2931,6 +2932,7 @@ function buildGemPanel(w, primary, onApply) {
       meta ? gemSugg(meta.suggest) : null,
       rows.length || d.feel ? list : h('div', { class: 'note info' }, '沒有可以套用的天氣欄位。'), h('div', { class: 'btnrow' }, apply));
   };
+  const vapiOn = GAPI.cfg().vapi;   /* 預設關：實測免費層沒有接地額度；關閉時只留「複製查詢指令」流程 */
   const apiBlk = h('div', { class: 'apiblk', id: 'gapiVint' }), apiStat = h('div', { class: 'stack' }); let apiBusy = false;
   const drawApi = () => {
     apiBlk.innerHTML = '';
@@ -2956,9 +2958,9 @@ function buildGemPanel(w, primary, onApply) {
     } catch (e) { if (!det.isConnected) return; apiStat.innerHTML = ''; apiStat.append(gapiFailBox(e)); }
     finally { apiBusy = false; if (det.isConnected) drawApi(); }
   };
-  drawApi();
-  det.append(h('div', { class: 'aibody' }, h('div', { class: 'small muted' }, primary ? '年份表沒有這一格的資料，可以請 Gemini 上網查：有設金鑰就按下面的按鈕直接查；沒有金鑰（或失敗）就用複製貼上。結果都會標「待核對」。' : '年份表已有這一年；想多一個說法時，可以請 Gemini 交叉查證。結果另外存，不會蓋掉年份表。'),
-    apiBlk, h('div', { class: 'small muted' }, GAPI.key ? '或者用複製貼上（不花 API 額度）：' : '沒有金鑰也能用，照下面三步：'),
+  if (vapiOn) drawApi();
+  det.append(h('div', { class: 'aibody' }, h('div', { class: 'small muted' }, primary ? (vapiOn ? '年份表沒有這一格的資料，可以請 Gemini 上網查：有設金鑰就按下面的按鈕直接查；沒有金鑰（或失敗）就用複製貼上。結果都會標「待核對」。' : '年份表沒有這一格的資料，可以請 Gemini 網頁版上網查：複製查詢指令、貼到 Gemini、再把回覆貼回來。結果會標「待核對」。') : '年份表已有這一年；想多一個說法時，可以請 Gemini 交叉查證。結果另外存，不會蓋掉年份表。'),
+    vapiOn ? apiBlk : null, h('div', { class: 'small muted' }, vapiOn ? (GAPI.key ? '或者用複製貼上（不花 API 額度）：' : '沒有金鑰也能用，照下面三步：') : '照下面三步（Gemini 網頁版會上網搜尋，來源比較可靠）：'),
     h('ol', { class: 'steps' },
       h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '複製查詢指令，貼到 Gemini'), h('pre', { class: 'gemq' }, gemQuery(w)),
         h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'gemvcopy', onclick: () => cp(gemFullPrompt(w), '已複製查詢指令') }, '複製查詢指令'), h('button', { type: 'button', class: 'btn', id: 'gemvcopy2', onclick: () => cp(gemOnlyPrompt(w), '已複製這次的問題') }, '只複製這次的問題（已建 Gem）')), box)),
@@ -3641,17 +3643,17 @@ function gapiSection() {
   /* 測試結果（綠＝可用、黃＝不能用）；wantGround＝要不要顯示接地那一行 */
   const renderTest = (tb, r, wantGround) => {
     tb.innerHTML = '';
-    if (!r.key.ok) { tb.append(gapiFailBox({ msg: r.key.msg, detail: r.key.detail, kind: r.key.kind })); return; }
+    if (!r.key.ok) { tb.append(gapiFailBox({ msg: r.key.msg, detail: r.key.detail, kind: r.key.kind }, true)); return; }
     tb.append(h('div', { class: 'note ok', role: 'status' }, '金鑰與模型可用：' + r.key.model + ' 回應正常（格式：' + (r.key.fmt === 'interactions' ? 'Interactions API' : 'generateContent') + '）。'));
     if (!wantGround) return;
     if (r.ground && r.ground.ok) tb.append(h('div', { class: 'note ok' }, 'Google 搜尋接地可用（' + r.ground.model + '）：查年份會上網搜尋，來源以接地資訊為準。'));
-    else tb.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。想要接地：年份查詢模型改成 gemini-2.5-flash（免費層含接地，若帳號開放），或開啟付費，或改用複製貼上到 Gemini 網頁版。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
+    else tb.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。免費層通常沒有接地額度；要可靠的年份資料，請用「複製查詢指令」貼到 Gemini 網頁版（它會上網搜尋），或開啟付費。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
   };
   const modelOpts = cur => {
     const f = arr((S.api || {}).mlist), fset = new Set(f.map(m => m.id));
     const o = GAPI_MODELS.map(([id, sh]) => ({ id, text: id + '（' + sh + (f.length ? (fset.has(id) ? '・你的帳號有' : '・你的帳號清單沒有') : '') + '）' }));
     f.filter(m => !gapiMInfo(m.id)).forEach(m => o.push({ id: m.id, text: m.id + '（從你的帳號取得）' }));
-    if (cur && !o.some(x => x.id === cur)) o.push({ id: cur, text: '目前設定：' + cur + '（不在清單內）' });
+    if (cur && !o.some(x => x.id === cur)) o.push({ id: cur, text: '目前設定：' + cur + '（不在清單內' + (/gemini-2\.5/.test(cur) ? '，你的帳號可能沒有這個模型' : '') + '）' });
     return o;
   };
   const draw = () => {
@@ -3664,7 +3666,7 @@ function gapiSection() {
         h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '建一把專屬這個 App 的新金鑰'), h('div', { class: 'prose small muted' }, '到 Google AI Studio 的 API 金鑰頁（aistudio.google.com/apikey）建立新金鑰。不要和 Judge 共用同一把，這樣哪個出問題都能單獨關掉。'))),
         h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '限制只能從你的網址使用'), h('div', { class: 'prose small muted' }, '到 Google Cloud 主控台 → API 和服務 → 憑證 → 點這把金鑰 → 「應用程式限制」選「網站」→ 新增 ' + GAPI_REFERER + '；「API 限制」選「限制金鑰」，只勾 Generative Language API。金鑰存在你這台裝置、由瀏覽器直接送出。網站限制能擋掉大部分亂用，但不是絕對安全（有技術的人拿到金鑰仍可偽造來源），所以才建議用專屬金鑰；一發現用量異常，就到 Google 把它刪掉重建。'))),
         h('li', null, h('span', { class: 'n' }, '3'), h('div', { class: 't' }, h('div', { class: 'h' }, '貼在下面，儲存後按「測試金鑰」'), h('div', { class: 'prose small muted' }, '設了網站限制後，從本機檔案或其他網址開啟 App 會被拒絕（403）；要用就從 ' + GAPI_REFERER.replace('/*', '/') + ' 開。')))),
-        h('div', { class: 'note' }, h('b', null, '免費層的限制：'), '有每分鐘與每日上限（到 AI Studio 看自己的數字）。照 Google 官方定價頁，Gemini 3 以上的模型免費層「不含」Google 搜尋接地，付費層才有（每月 5,000 次內免費）；Gemini 2.5 Flash 免費層含接地（每日 500 次），但 Google 說 2.5 系列現在只開放給用過的帳號。所以免費金鑰查年份時，可能只能「不接地」查：結果憑模型記憶、可信度較低，App 會明確標示。需要可靠來源時，用複製貼上到 Gemini 網頁版查。'))));
+        h('div', { class: 'note' }, h('b', null, '免費層的限制：'), '有每分鐘與每日上限（到 AI Studio 看自己的數字）。照 Google 官方定價頁，Gemini 3 以上的模型免費層「不含」Google 搜尋接地，付費層才有（每月 5,000 次內免費）。所以免費金鑰查年份時，可能只能「不接地」查：結果憑模型記憶、可信度較低，App 會明確標示。需要可靠來源時，用複製貼上到 Gemini 網頁版查。'))));
     /* 金鑰 */
     const kin = h('input', { type: 'password', id: 'gapiKey', 'aria-label': 'Gemini API 金鑰', placeholder: GAPI.key ? '要換金鑰時貼在這裡' : '貼上金鑰', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', name: 'gapi-' + Math.random().toString(36).slice(2) });
     const kmsg = h('div', { class: 'small', role: 'status', id: 'gapiKeyMsg' });
@@ -3681,28 +3683,28 @@ function gapiSection() {
           const btn = $('#gapiTest'), tb = $('#gapiTestOut'); btn.disabled = true; tb.innerHTML = ''; tb.append(gapiBusy('正在測試…（約 5–60 秒）'));
           let r; try { r = await GAPI.test(); } catch (e) { r = { key: { ok: false, msg: GAPI.scrub(e && e.message) } }; }
           const tb2 = $('#gapiTestOut'); if (!tb2) return; const btn2 = $('#gapiTest'); if (btn2) btn2.disabled = false; tb2.innerHTML = '';
-          if (!r.key.ok) tb2.append(gapiFailBox({ msg: r.key.msg, detail: r.key.detail, kind: r.key.kind }));
+          if (!r.key.ok) tb2.append(gapiFailBox({ msg: r.key.msg, detail: r.key.detail, kind: r.key.kind }, true));
           else {
             tb2.append(h('div', { class: 'note ok', role: 'status' }, '金鑰可用：模型 ' + r.key.model + ' 回應正常（格式：' + (r.key.fmt === 'interactions' ? 'Interactions API' : 'generateContent') + '）。'));
             if (r.ground && r.ground.ok) tb2.append(h('div', { class: 'note ok' }, 'Google 搜尋接地可用（' + r.ground.model + '）：查年份會上網搜尋，來源以接地資訊為準。'));
-            else tb2.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。想要接地：把「年份查詢模型」改成 gemini-2.5-flash（免費層含接地，若帳號開放），或開啟付費，或改用複製貼上到 Gemini 網頁版。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
+            else tb2.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。免費層通常沒有接地額度；要可靠的年份資料，請用「複製查詢指令」貼到 Gemini 網頁版（它會上網搜尋），或開啟付費。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
           }
         } }, '測試金鑰'),
         h('button', { type: 'button', class: 'btn danger', id: 'gapiKeyClear', disabled: !GAPI.key, onclick: async () => { if (!confirm('清除這台裝置上的 Gemini 金鑰？（不影響 Google 那邊的金鑰；要作廢請到 Google 刪掉它）')) return; await GAPI.clearKey(); listMsg = null; reset({ mlist: [], mlistAt: 0 }); toast('金鑰已清除'); redraw(); } }, '清除金鑰')),
       h('div', { id: 'gapiTestOut', class: 'stack' })));
     /* 模型：下拉選單＋更新清單＋進階手動輸入 */
-    const mlist = arr(raw.mlist), has25 = mlist.some(m => m.id === 'gemini-2.5-flash');
+    const mlist = arr(raw.mlist);
     const listBox = h('div', { class: 'stack', id: 'gapiListOut' });
     if (listMsg) listBox.append(listMsg.err ? h('div', { class: 'note err', role: 'alert' }, listMsg.err.msg || '更新失敗', listMsg.err.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, listMsg.err.detail)) : null, h('div', { class: 'small' }, '原本的清單沒有動，選單照常能用。')) : h('div', { class: 'note ok', role: 'status' }, listMsg.ok));
-    const picker = (id, label, key, isV) => {
+    const picker = (id, label, key, isV, dim) => {
       const cur = cfg[key], info = gapiMInfo(cur);
       const sel = h('select', { id, 'aria-label': label, onchange: e => { reset({ [key]: e.target.value }); toast('已改成 ' + e.target.value); redraw(); } }, modelOpts(cur).map(o => h('option', { value: o.id, selected: o.id === cur }, o.text)));
       const tb = h('div', { class: 'stack', id: id + 'Out' });
-      return h('div', { class: 'grp' }, h('div', { class: 'lbl' }, label),
+      return h('div', { class: 'grp' + (dim ? ' dimmed' : ''), id: id + 'Grp' }, h('div', { class: 'lbl' }, label),
+        dim ? h('div', { class: 'note info' }, '已關閉 API 年份查詢（見上面的開關），這個選單目前不會用到。') : null,
         h('div', { class: 'mcur' }, '目前選用：', h('b', null, cur)),
         sel,
-        h('div', { class: 'small muted' }, info ? info[2] : (mlist.some(m => m.id === cur) ? '這是從你的帳號取得的模型，沒有內建說明；按「測試這個模型」確認能不能用。' : '這個名稱不在清單內（先前手動輸入的）。按「測試這個模型」確認能不能用。')),
-        isV && has25 && cur !== 'gemini-2.5-flash' ? h('div', { class: 'note info', id: 'gapiHint25' }, '你的帳號有 gemini-2.5-flash：這個模型的免費層含搜尋接地，建議年份查詢改用它（不會自動幫你切換）。') : null,
+        h('div', { class: 'small muted' }, info ? info[2] : (mlist.some(m => m.id === cur) ? '這是從你的帳號取得的模型，沒有內建說明；按「測試這個模型」確認能不能用。' : (/gemini-2\.5/.test(cur) ? '你的帳號可能沒有這個模型（Google 對 2.5 系列只開放給用過的帳號，你的帳號測試回 404）。按「測試這個模型」確認，或改選別的。' : '這個名稱不在清單內（先前手動輸入的）。按「測試這個模型」確認能不能用。'))),
         h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: id + 'Test', disabled: !GAPI.key, onclick: async () => {
           const b = $('#' + id + 'Test'), o = $('#' + id + 'Out'); b.disabled = true; o.innerHTML = ''; o.append(gapiBusy('正在測試 ' + cur + '…（約 5–60 秒）'));
           let r; try { r = await GAPI.test({ model: cur, vmodel: cur, ground: isV }); } catch (e) { r = { key: { ok: false, msg: GAPI.scrub(e && e.message) } }; }
@@ -3723,7 +3725,8 @@ function gapiSection() {
         redraw();
       } }, '更新可用模型清單')), listBox),
       picker('gapiModelSel', '酒標辨識用的模型', 'model', false),
-      picker('gapiVModelSel', '年份查詢用的模型（要支援 Google 搜尋接地才可靠）', 'vmodel', true),
+      toggle('啟用 API 年份查詢（需要搜尋接地；免費層通常不支援）', '預設關。實測免費層沒有接地額度（接地一律回 429），沒接地查出來是憑模型記憶、可能是編的。年份查詢請用「複製查詢指令」貼到 Gemini 網頁版，那邊會上網搜尋；有付費或確定能接地再打開。', cfg.vapi, b => { reset({ vapi: !cfg.vapi }); redraw(); }),
+      picker('gapiVModelSel', '年份查詢用的模型（要支援 Google 搜尋接地才可靠）', 'vmodel', true, !cfg.vapi),
       h('div', { class: 'small muted' }, '預設：酒標辨識 ' + GAPI_DEF.model + '、年份查詢 ' + GAPI_DEF.vmodel + '。Google 改名或下架時，更新清單再重選就好。'),
       adv,
       toggle('查年份時使用 Google 搜尋接地', '關掉就一律不接地（可信度較低）；打開但金鑰不支援時，會自動退回不接地並提醒', cfg.ground, b => { reset({ ground: !cfg.ground }); redraw(); }),
