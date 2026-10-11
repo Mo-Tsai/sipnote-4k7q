@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<title>品飲手冊 安裝說明</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500&display=swap">
+<style>
+/* 版面概念：一張直式的「步驟長卷」，每一步左文右圖（手機窄版上下排），圖是手繪的 iPhone 畫面示意，用 App 的酒莊紙感色系 */
+:root{
+  --paper:#F6F0E1; --card:#FBF7EC; --sub:#EDE4CE;
+  --ink:#2A2118; --ink2:#66594A; --line:#D9CDB3;
+  --wine:#5A1F2B; --wine-soft:#EBD9DA; --leaf:#46532A; --leaf-soft:#E8EBD6;
+  --gold:#8A733F; --ok:#46532A;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --screen:#FFFFFF; --screen-ink:#1c1c1e; --screen-sub:#8a8a8e; --screen-line:#e5e5ea;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1A0F12; --card:#241519; --sub:#2F1C21; --ink:#F1E8D8; --ink2:#B8A794; --line:#4a3036;
+  --wine:#C9707F; --wine-soft:#3A1C22; --leaf:#BCCB92; --leaf-soft:#1F2415; --gold:#C8AE7C; --ok:#BCCB92;
+  --screen:#1c1c1e; --screen-ink:#f2f2f7; --screen-sub:#9a9aa0; --screen-line:#38383a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#1A0F12; --card:#241519; --sub:#2F1C21; --ink:#F1E8D8; --ink2:#B8A794; --line:#4a3036;
+  --wine:#C9707F; --wine-soft:#3A1C22; --leaf:#BCCB92; --leaf-soft:#1F2415; --gold:#C8AE7C; --ok:#BCCB92;
+  --screen:#1c1c1e; --screen-ink:#f2f2f7; --screen-sub:#9a9aa0; --screen-line:#38383a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-weight:400;line-height:1.8;margin:0;padding-inline:16px;padding-block:28px 56px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-weight:300;font-size:30px;line-height:1.35;margin:0;text-wrap:balance}
+h2{font-weight:500;font-size:20px;margin:0;line-height:1.4}
+p{margin:0}
+.lead{color:var(--ink2);font-size:16px;max-width:36em}
+.hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.hero svg{flex:none;width:64px;height:64px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pill{font-size:13px;padding:2px 12px;border-radius:99px;background:var(--sub);color:var(--ink2);border:1px solid var(--line)}
+.need{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:8px}
+.need h2{font-size:16px}
+.need ul{margin:0;padding-left:1.2em;color:var(--ink2)}
+.url{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.url code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:var(--sub);padding:4px 10px;border-radius:8px;overflow-wrap:anywhere;min-width:0}
+button{font:inherit;font-size:14px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--wine);background:var(--wine);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button,:root:not([data-theme="light"]) button{color:#1A0F12}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) button{color:#fff}}
+button.ghost{background:transparent;color:var(--wine)}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.step{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:22px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.step .txt{display:grid;gap:10px;min-width:0}
+.step .tag{font-size:13px;color:var(--gold);letter-spacing:.08em}
+.step ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.step .note{font-size:14px;color:var(--ink2);background:var(--sub);border-radius:10px;padding:8px 12px}
+.step .done{display:flex;gap:10px;align-items:center;margin-top:4px}
+.step .done input{width:24px;height:24px;accent-color:var(--wine)}
+.step .done label{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--ink2);font-size:15px}
+.step.is-done{background:var(--leaf-soft);border-color:var(--leaf)}
+@media (max-width:640px){.step{grid-template-columns:minmax(0,1fr)}.step .shot{justify-self:center}}
+/* 手機示意 */
+.shot{width:232px;max-width:100%}
+.phone{background:var(--screen);color:var(--screen-ink);border:2px solid var(--ink2);border-radius:26px;padding:12px 10px 10px;font-size:12px;line-height:1.5;position:relative;overflow:hidden;font-family:system-ui,"PingFang TC","Noto Sans TC",sans-serif}
+.phone .bar{height:16px;display:flex;justify-content:space-between;color:var(--screen-sub);font-size:10px;margin-bottom:8px;padding-inline:8px}
+.cap{font-size:12px;color:var(--ink2);text-align:center;margin-top:6px}
+.hl{outline:3px solid var(--wine);outline-offset:2px;border-radius:8px;position:relative}
+.pin{position:absolute;right:-8px;top:-10px;background:var(--wine);color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;display:grid;place-items:center;font-weight:500}
+:root[data-theme="dark"] .pin,:root:not([data-theme="light"]) .pin{color:#1A0F12}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .pin{color:#fff}}
+.row{display:flex;align-items:center;gap:8px;padding:9px 8px;border-bottom:1px solid var(--screen-line)}
+.row:last-child{border-bottom:0}
+.sheet{background:var(--screen);border-top:1px solid var(--screen-line);border-radius:12px;margin-top:10px}
+.safari-bar{display:flex;justify-content:space-around;align-items:center;padding:8px 0;color:var(--screen-sub);border-top:1px solid var(--screen-line);margin-top:8px}
+.safari-bar svg{width:22px;height:22px}
+.page-mini{height:70px;background:linear-gradient(180deg,var(--wine-soft),transparent);border-radius:10px;display:grid;place-items:center;color:var(--wine);font-weight:500;font-size:13px}
+.bubble{background:var(--leaf-soft);border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;margin:6px 0 0 18px}
+.fileico{width:34px;height:40px;border-radius:6px;background:var(--wine);color:#fff;display:grid;place-items:center;font-size:9px;flex:none}
+.tabbar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--screen-line);margin-top:10px;padding-top:6px;text-align:center;color:var(--screen-sub);font-size:10px}
+.tabbar div{padding:4px 0}
+.tabbar .on{color:var(--wine);font-weight:500}
+.setcard{border:1px solid var(--screen-line);border-radius:12px;padding:10px;margin-top:8px}
+.btnfake{display:inline-block;background:var(--wine);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px}
+:root[data-theme="dark"] .btnfake,:root:not([data-theme="light"]) .btnfake{color:#1A0F12}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .btnfake{color:#fff}}
+.wine{border:1px solid var(--screen-line);border-radius:10px;padding:8px 10px;margin-top:8px;border-left:4px solid var(--wine)}
+.wine small{color:var(--screen-sub)}
+.ribbon{display:inline-block;background:var(--sub);color:var(--ink2);border-radius:99px;padding:1px 10px;font-size:10px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px}
+summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:500}
+details p{padding-bottom:12px;color:var(--ink2)}
+.safe{color:var(--ink2);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+
+<style>
+.qrtile{background:#FBF7EC;border:1px solid var(--line);border-radius:16px;padding:14px;width:200px;height:200px;flex:none;display:grid;place-items:center}
+.qrtile svg{width:100%;height:100%;display:block}
+.top{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.top .t{display:grid;gap:10px;min-width:0;flex:1 1 260px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:10px;align-content:start;min-width:0}
+.card ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.warn{background:var(--wine-soft);border:1px solid var(--wine);border-radius:12px;padding:12px 16px;display:grid;gap:4px}
+.warn b{color:var(--wine)}
+.fine{font-size:13px;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#5A1F2B"/><g fill="none" stroke="#BEA578" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 14h20c0 10-1 17-10 19-9-2-10-9-10-19z"/><path d="M32 33v15M24 49h16"/></g></svg>
+    <div>
+      <h1>我的品飲手冊　安裝說明</h1>
+      <p class="lead">一個給上課用的葡萄酒品飲筆記工具。不用到商店下載，用手機瀏覽器開網址、加到主畫面就能用，約一分鐘。</p>
+      <div class="pills"><span class="pill">測試中</span><span class="pill">免費</span><span class="pill">iPhone／Android</span></div>
+    </div>
+  </header>
+
+  <section class="step" style="grid-template-columns:minmax(0,1fr)">
+    <div class="top">
+      <div class="qrtile"><svg role="img" aria-label="品飲手冊網址的 QR code" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" class="segno"><path class="qrline" stroke="#2a2118" d="M2 2.5h7m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h7m-29 1h1m5 0h1m2 0h1m1 0h1m1 0h2m1 0h3m3 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h3m1 0h2m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h3m4 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h4m8 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-19 1h1m3 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m1 0h1m3 0h2m1 0h3m2 0h2m3 0h1m3 0h1m2 0h1m1 0h1m-28 1h2m1 0h2m2 0h3m1 0h2m1 0h1m1 0h1m1 0h5m3 0h2m-29 1h1m2 0h1m1 0h3m2 0h1m4 0h1m3 0h8m1 0h1m-29 1h1m7 0h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h3m1 0h1m-24 1h1m1 0h6m3 0h2m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1m-29 1h3m1 0h1m2 0h4m4 0h1m1 0h1m1 0h2m1 0h2m3 0h2m-29 1h2m4 0h1m2 0h1m1 0h1m1 0h3m3 0h4m1 0h1m3 0h1m-29 1h1m1 0h1m1 0h2m1 0h2m1 0h1m5 0h1m1 0h1m1 0h2m1 0h2m-25 1h1m3 0h3m3 0h2m1 0h4m2 0h1m2 0h2m4 0h1m-26 1h1m1 0h1m2 0h2m2 0h2m1 0h2m1 0h3m1 0h1m3 0h3m-29 1h13m2 0h2m1 0h2m1 0h1m3 0h1m2 0h1m-26 1h1m1 0h1m3 0h2m2 0h1m2 0h1m1 0h1m2 0h1m1 0h2m-25 1h2m3 0h3m3 0h3m1 0h1m4 0h6m1 0h1m-20 1h2m2 0h1m2 0h3m2 0h1m3 0h3m1 0h1m-29 1h7m1 0h2m2 0h4m1 0h2m1 0h1m1 0h1m1 0h1m3 0h1m-29 1h1m5 0h1m3 0h2m2 0h3m1 0h3m3 0h1m2 0h2m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m2 0h7m2 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h4m1 0h3m3 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h4m1 0h2m2 0h1m2 0h2m-29 1h1m5 0h1m2 0h1m1 0h1m2 0h3m3 0h4m1 0h1m-26 1h7m1 0h2m2 0h1m3 0h1m3 0h2m3 0h1m2 0h1"/></svg></div>
+      <div class="t">
+        <h2>掃 QR code，或複製網址</h2>
+        <div class="url"><code id="u">https://mo-tsai.github.io/sipnote-4k7q/</code><button type="button" id="copy">複製網址</button><span id="copied" role="status" style="color:var(--ok);font-size:14px"></span></div>
+        <p class="note" style="font-size:14px;color:var(--ink2);background:var(--sub);border-radius:10px;padding:8px 12px"><b>請用 Safari（iPhone）或 Chrome（Android）打開。</b>從 LINE 裡直接點開的內建瀏覽器，沒有「加入主畫面」這個選項。長按連結選「在瀏覽器開啟」，或把網址貼到 Safari／Chrome。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="two">
+    <section class="card" aria-label="iPhone">
+      <span class="tag" style="font-size:13px;color:var(--gold);letter-spacing:.08em">iPhone</span>
+      <h2>用 Safari 加入主畫面</h2>
+      <ol>
+        <li>用 <b>Safari</b> 打開網址。</li>
+        <li>按螢幕下方中間的<b>分享鍵</b>（方框加向上箭頭）。</li>
+        <li>往下找到<b>「加入主畫面」</b>，按右上角「加入」。</li>
+        <li>主畫面多了一個酒紅色酒杯圖示，之後從那裡打開。</li>
+      </ol>
+      <div class="shot" style="width:100%"><div class="phone" role="img" aria-label="Safari 的分享選單，加入主畫面被框起來">
+        <div class="bar"><span>9:41</span><span>5G ▮</span></div>
+        <div class="page-mini">我的品飲手冊</div>
+        <div class="sheet">
+          <div class="row"><span>拷貝</span></div>
+          <div class="row"><span>加入書籤</span></div>
+          <div class="row hl"><span>加入主畫面</span><span class="pin">3</span></div>
+        </div>
+        <div class="safari-bar"><span>‹</span><span>›</span>
+          <span class="hl" style="padding:2px 6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11H5a1 1 0 00-1 1v7a1 1 0 001 1h14a1 1 0 001-1v-7a1 1 0 00-1-1h-1"/></svg><span class="pin">2</span></span>
+          <span>▭</span><span>⧉</span></div>
+      </div><div class="cap">示意圖，實際畫面略有不同</div></div>
+    </section>
+    <section class="card" aria-label="Android">
+      <span class="tag" style="font-size:13px;color:var(--gold);letter-spacing:.08em">Android</span>
+      <h2>用 Chrome 安裝</h2>
+      <ol>
+        <li>用 <b>Chrome</b> 打開網址。</li>
+        <li>按右上角的<b>「⋮」選單</b>。</li>
+        <li>選<b>「安裝應用程式」</b>（有些手機寫「加到主畫面」），再按「安裝」。</li>
+        <li>主畫面會出現圖示，之後從那裡打開。</li>
+      </ol>
+      <h2 style="margin-top:8px">電腦（Chrome／Edge）</h2>
+      <p>網址列右側會有「安裝」的小圖示，按下去就會變成一個獨立視窗的 App。</p>
+    </section>
+  </div>
+
+  <section class="warn" aria-label="先看這個">
+    <b>用之前請記得兩件事</b>
+    <p>1. 你的筆記<b>只存在自己的手機裡</b>，沒有上傳到任何地方。換手機、清掉瀏覽器資料、或移除 App，筆記就會不見。</p>
+    <p>2. 請固定到<b>「設定」按「匯出備份」</b>，把檔案存到雲端硬碟或寄給自己。建議一個月一次。</p>
+  </section>
+
+  <section style="display:grid;gap:10px" aria-label="常見問題">
+    <h2>常見問題</h2>
+    <details><summary>可以用電腦打開嗎</summary><p>可以，用 Chrome 或 Edge。手機和電腦的筆記不會自動同步，要靠「匯出備份」和「匯入備份」搬。</p></details>
+    <details><summary>酒標辨識要自己申請金鑰嗎</summary><p>那是選用功能，用 Gemini 的免費 API，要自己建一把金鑰才能用。不用也完全可以，所有勾選和記錄都照常。想用的話，在 App「設定」頁有圖文教學。</p></details>
+    <details><summary>會收集我的資料嗎</summary><p>不會。這個 App 沒有帳號、沒有上傳，筆記只存在你的手機。如果你用酒標辨識，被選的照片會直接送到 Google Gemini（你自己的金鑰），不會經過其他地方。</p></details>
+    <details><summary>怎麼回報問題或給意見</summary><p>直接跟傳這頁給你的同學說，或等他提供意見表單。</p></details>
+  </section>
+
+  <p class="safe">這是學員自製的個人學習工具，<b>不是 WSET 官方產品</b>，與 WSET 沒有隸屬或授權關係。「WSET」是其所有人的註冊商標。App 內的年份與產區資料是整理的參考，請以課本與官方資料為準。</p>
+</div>
+
+<script>
+(function(){
+  var u=document.getElementById('u'),b=document.getElementById('copy'),m=document.getElementById('copied');
+  function sel(){var r=document.createRange();r.selectNodeContents(u);var s=window.getSelection();s.removeAllRanges();s.addRange(r)}
+  b.addEventListener('click',function(){
+    var t=u.textContent;
+    function ok(){m.textContent='已複製';setTimeout(function(){m.textContent=''},2000)}
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){sel();m.textContent='已選取，請長按拷貝'});return} }catch(e){}
+    sel();m.textContent='已選取，請長按拷貝';
+  });
+  var KEY='sipnote-install-done';
+  var saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  document.querySelectorAll('input[data-done]').forEach(function(cb){
+    var n=cb.getAttribute('data-done'),step=cb.closest('.step');
+    function apply(){step.classList.toggle('is-done',cb.checked)}
+    if(saved[n]){cb.checked=true}
+    apply();
+    cb.addEventListener('change',function(){apply();saved[n]=cb.checked;try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}});
+  });
+})();
+</script>
+</body>
+</html>
