@@ -493,6 +493,7 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .gmodal .box h3{margin:0;font-weight:500;font-size:1.1rem}
 .keyline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .keyline input{flex:1 1 220px}
+.mcur{font-size:1.05rem;padding:2px 0}.mcur b{color:var(--accent);font-weight:500}
 .srcs .pill{margin-left:6px;min-height:24px;padding:0 8px}
 </style>
 </head>
@@ -1064,7 +1065,28 @@ function buildBrand() {
    呼叫失敗一律回報友善說明，原本的「複製指令→貼回」流程照舊可用。 */
 const GAPI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const GAPI_DEF = { model: 'gemini-3.8-flash', vmodel: 'gemini-3.8-flash', ground: true, fmt: 'auto' };
-const GAPI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
+/* [模型名稱, 選單短提示, 完整說明]；依 Google 官方模型頁與定價頁整理（查證日 2026-10-11）；更新清單後會併入你帳號實際有的模型 */
+const GAPI_MODELS = [
+  ['gemini-3.8-flash', '新一代・免費層無接地', '新一代主力 Flash，速度快、讀圖沒問題。免費層可用，但免費層不含 Google 搜尋接地（官方定價頁）。'],
+  ['gemini-3.6-flash', '上一代・免費層無接地', '上一代 Flash。免費層可用，免費層不含 Google 搜尋接地。'],
+  ['gemini-3.5-flash-lite', '輕量省額度・免費層無接地', '輕量款，較省額度。免費層可用，免費層不含 Google 搜尋接地。'],
+  ['gemini-3.1-flash-lite', '輕量・免費層無接地', '輕量款。免費層可用，免費層不含 Google 搜尋接地。'],
+  ['gemini-2.5-flash', '免費層含接地・依帳號開放', '免費層含 Google 搜尋接地（每日有上限，與 2.5 Flash-Lite 共用）。Google 說 2.5 系列只開放給用過的帳號，沒開放的話會顯示找不到模型。'],
+  ['gemini-2.5-flash-lite', '輕量・免費層含接地・依帳號開放', '輕量款，免費層含 Google 搜尋接地（每日有上限，與 2.5 Flash 共用）。同樣只開放給用過的帳號。']
+];
+const gapiMInfo = id => GAPI_MODELS.find(m => m[0] === id);
+/* 模型清單：只留名稱含 gemini、支援 generateContent，排除 embedding／tts／圖片生成／live／robotics／音訊等不適用者 */
+function gapiFilterModels(models) {
+  const BAD = /embed|tts|image|live|robotics|transcrib|audio|omni|computer-use|aqa|translat|veo|imagen|banana|vision/i;
+  const seen = new Set(), out = [];
+  arr(models).forEach(m => {
+    const id = String((m && m.name) || '').replace(/^models\//, '');
+    if (!/gemini/i.test(id) || BAD.test(id) || !GAPI.modelOk(id) || seen.has(id)) return;
+    if (!arr(m.supportedGenerationMethods).includes('generateContent')) return;
+    seen.add(id); out.push({ id, label: String(m.displayName || '') });
+  });
+  return out.sort((a, b) => b.id.localeCompare(a.id));
+}
 const GAPI_REFERER = 'https://mo-tsai.github.io/*';
 class GErr extends Error { constructor(kind, msg, status, detail) { super(msg); this.kind = kind; this.msg = msg; this.status = status || 0; this.detail = detail || ''; } }
 const GAPI = {
@@ -1082,11 +1104,12 @@ const GAPI = {
   scrub(s) { s = String(s == null ? '' : s); return this.key ? s.split(this.key).join('[金鑰]') : s; },
 
   /* 一次 HTTP 呼叫。金鑰只放標頭（x-goog-api-key），不放網址。回傳解析後的 JSON；失敗丟 GErr。 */
-  async post(path, body, ms, retried) {
+  post(path, body, ms) { return this.req('POST', path, body, ms); },
+  async req(method, path, body, ms, retried) {
     const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), ms || 60000);
     let res, txt = '';
     try {
-      res = await fetch(GAPI_BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(body), signal: ctl.signal, cache: 'no-store' });
+      res = await fetch(GAPI_BASE + path, { method, headers: Object.assign(body ? { 'Content-Type': 'application/json' } : {}, { 'x-goog-api-key': this.key }), body: body ? JSON.stringify(body) : undefined, signal: ctl.signal, cache: 'no-store' });
       txt = await res.text();
     } catch (e) {
       if (e && e.name === 'AbortError') throw new GErr('timeout', 'Gemini 等太久沒有回應（超過 ' + Math.round((ms || 60000) / 1000) + ' 秒），已先停下來。可以再按一次，或改用下面的複製貼上。');
@@ -1095,7 +1118,7 @@ const GAPI = {
     let j = null; try { j = JSON.parse(txt); } catch (e) {}
     if (!res.ok) {
       const er = this.httpErr(res.status, j);
-      if (er.kind === 'busy' && !retried) { await new Promise(r => setTimeout(r, 1800)); return this.post(path, body, ms, true); }
+      if (er.kind === 'busy' && !retried) { await new Promise(r => setTimeout(r, 1800)); return this.req(method, path, body, ms, true); }
       throw er;
     }
     if (!j || typeof j !== 'object') throw new GErr('parse', 'Google 回的內容不是預期的格式，讀不懂。', res.status);
@@ -1226,13 +1249,26 @@ const GAPI = {
     p.grounded = false; p.why = why; p.cites = []; p.queries = []; p.suggest = '';
     return p;
   },
-  /* 測試：1. 純文字呼叫（驗證金鑰、模型）2. 接地呼叫（看免費層能不能用搜尋接地） */
-  async test() {
-    const cfg = this.cfg(); const out = { key: null, ground: null };
-    try { const p = await this.run({ model: cfg.model, system: 'You are a connectivity test.', text: 'Reply with the single word OK.', images: [], search: false, ms: 40000 }); out.key = { ok: true, fmt: p.fmt, model: cfg.model }; }
+  /* 官方 models.list（含分頁）：金鑰只放標頭，網址沒有金鑰 */
+  async listModels() {
+    if (!this.key) throw new GErr('nokey', '還沒設定金鑰。');
+    const all = []; let tok = '';
+    for (let i = 0; i < 8; i++) {
+      const j = await this.req('GET', '/models?pageSize=1000' + (tok ? '&pageToken=' + encodeURIComponent(tok) : ''), null, 30000);
+      arr(j.models).forEach(m => all.push(m));
+      tok = (j && j.nextPageToken) || ''; if (!tok) break;
+    }
+    return gapiFilterModels(all);
+  },
+  /* 測試：1. 純文字呼叫（驗證金鑰、模型）2. 接地呼叫（看免費層能不能用搜尋接地）。o：{model, vmodel, ground} 可指定模型 */
+  async test(o) {
+    o = o || {}; const cfg = this.cfg(); const m1 = o.model || cfg.model, m2 = o.vmodel || cfg.vmodel; const out = { key: null, ground: null };
+    try { const p = await this.run({ model: m1, system: 'You are a connectivity test.', text: 'Reply with the single word OK.', images: [], search: false, ms: 40000 }); out.key = { ok: true, fmt: p.fmt, model: m1 }; }
     catch (e) { out.key = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; return out; }
-    try { const p = await this.run({ model: cfg.vmodel, system: 'You are a connectivity test.', text: 'Who won the euro 2024? Answer in one short sentence.', images: [], search: true, ms: 90000 }); out.ground = { ok: true, grounded: p.cites.length > 0, model: cfg.vmodel }; this.setCfg({ gOK: true }); this.gBlocked = false; }
-    catch (e) { out.ground = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; if (e.kind === 'ground') { this.setCfg({ gOK: false }); this.gBlocked = true; } }
+    if (o.ground === false) return out;
+    const mine = m2 === cfg.vmodel;
+    try { const p = await this.run({ model: m2, system: 'You are a connectivity test.', text: 'Who won the euro 2024? Answer in one short sentence.', images: [], search: true, ms: 90000 }); out.ground = { ok: true, grounded: p.cites.length > 0, model: m2 }; if (mine) { this.setCfg({ gOK: true }); this.gBlocked = false; } }
+    catch (e) { out.ground = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; if (e.kind === 'ground' && mine) { this.setCfg({ gOK: false }); this.gBlocked = true; } }
     return out;
   }
 };
@@ -3601,6 +3637,23 @@ function gapiSection() {
   const sec = h('section', { class: 'sec', id: 'gapiSec' });
   const redraw = () => { const y = window.scrollY; draw(); window.scrollTo(0, y); };
   const reset = p => { GAPI.setCfg(Object.assign({ gOK: undefined }, p || {})); GAPI.gBlocked = false; };
+  let listMsg = null, advOpen = false;
+  /* 測試結果（綠＝可用、黃＝不能用）；wantGround＝要不要顯示接地那一行 */
+  const renderTest = (tb, r, wantGround) => {
+    tb.innerHTML = '';
+    if (!r.key.ok) { tb.append(gapiFailBox({ msg: r.key.msg, detail: r.key.detail, kind: r.key.kind })); return; }
+    tb.append(h('div', { class: 'note ok', role: 'status' }, '金鑰與模型可用：' + r.key.model + ' 回應正常（格式：' + (r.key.fmt === 'interactions' ? 'Interactions API' : 'generateContent') + '）。'));
+    if (!wantGround) return;
+    if (r.ground && r.ground.ok) tb.append(h('div', { class: 'note ok' }, 'Google 搜尋接地可用（' + r.ground.model + '）：查年份會上網搜尋，來源以接地資訊為準。'));
+    else tb.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。想要接地：年份查詢模型改成 gemini-2.5-flash（免費層含接地，若帳號開放），或開啟付費，或改用複製貼上到 Gemini 網頁版。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
+  };
+  const modelOpts = cur => {
+    const f = arr((S.api || {}).mlist), fset = new Set(f.map(m => m.id));
+    const o = GAPI_MODELS.map(([id, sh]) => ({ id, text: id + '（' + sh + (f.length ? (fset.has(id) ? '・你的帳號有' : '・你的帳號清單沒有') : '') + '）' }));
+    f.filter(m => !gapiMInfo(m.id)).forEach(m => o.push({ id: m.id, text: m.id + '（從你的帳號取得）' }));
+    if (cur && !o.some(x => x.id === cur)) o.push({ id: cur, text: '目前設定：' + cur + '（不在清單內）' });
+    return o;
+  };
   const draw = () => {
     sec.innerHTML = '';
     const cfg = GAPI.cfg(), raw = S.api || {};
@@ -3621,7 +3674,7 @@ function gapiSection() {
         const v = kin.value.trim().replace(/^["']|["']$/g, ''); kin.value = '';
         if (!v) { kmsg.textContent = '還沒貼上金鑰。'; return; }
         if (!GAPI.keyOk(v)) { kmsg.textContent = '這不像金鑰（要 20 個字以上、只有英數與符號、沒有空白或中文）。請重新複製。'; return; }
-        await GAPI.setKey(v); reset(); toast('金鑰已存在這台裝置'); redraw();
+        await GAPI.setKey(v); listMsg = null; reset({ mlist: [], mlistAt: 0 }); toast('金鑰已存在這台裝置'); redraw();
       } }, '儲存金鑰')), kmsg,
       h('div', { class: 'btnrow' },
         h('button', { type: 'button', class: 'btn', id: 'gapiTest', disabled: !GAPI.key, onclick: async () => {
@@ -3635,14 +3688,44 @@ function gapiSection() {
             else tb2.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。想要接地：把「年份查詢模型」改成 gemini-2.5-flash（免費層含接地，若帳號開放），或開啟付費，或改用複製貼上到 Gemini 網頁版。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
           }
         } }, '測試金鑰'),
-        h('button', { type: 'button', class: 'btn danger', id: 'gapiKeyClear', disabled: !GAPI.key, onclick: async () => { if (!confirm('清除這台裝置上的 Gemini 金鑰？（不影響 Google 那邊的金鑰；要作廢請到 Google 刪掉它）')) return; await GAPI.clearKey(); reset(); toast('金鑰已清除'); redraw(); } }, '清除金鑰')),
+        h('button', { type: 'button', class: 'btn danger', id: 'gapiKeyClear', disabled: !GAPI.key, onclick: async () => { if (!confirm('清除這台裝置上的 Gemini 金鑰？（不影響 Google 那邊的金鑰；要作廢請到 Google 刪掉它）')) return; await GAPI.clearKey(); listMsg = null; reset({ mlist: [], mlistAt: 0 }); toast('金鑰已清除'); redraw(); } }, '清除金鑰')),
       h('div', { id: 'gapiTestOut', class: 'stack' })));
-    /* 模型與接地 */
-    const mi = (id, label, key, dflt) => { const inp = h('input', { type: 'text', id, list: 'dl_gmodel', value: raw[key] || '', placeholder: dflt, autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': label,
-      onchange: e => { const v = e.target.value.trim().replace(/^models\//, ''); if (v && !GAPI.modelOk(v)) { toast('模型名稱只能用英數、點、橫線'); e.target.value = raw[key] || ''; return; } reset({ [key]: v }); toast(v ? '模型已改成 ' + v : '已還原預設 ' + dflt); } }); return h('label', { class: 'f full', for: id }, label, inp); };
-    sec.append(h('div', { class: 'fields' }, mi('gapiModel', '酒標辨識用的模型', 'model', GAPI_DEF.model), mi('gapiVModel', '年份查詢用的模型（要支援 Google 搜尋接地）', 'vmodel', GAPI_DEF.vmodel)),
-      h('datalist', { id: 'dl_gmodel' }, GAPI_MODELS.map(m => h('option', { value: m }))),
-      h('div', { class: 'small muted' }, '空白＝用預設 ' + GAPI_DEF.model + '（Google 官方模型頁列的 Flash 等級、支援圖片輸入與搜尋接地；查證日 2026-10-11）。目前生效：酒標 ' + cfg.model + '、年份 ' + cfg.vmodel + '。Google 改名或下架時，在這裡改就好。'),
+    /* 模型：下拉選單＋更新清單＋進階手動輸入 */
+    const mlist = arr(raw.mlist), has25 = mlist.some(m => m.id === 'gemini-2.5-flash');
+    const listBox = h('div', { class: 'stack', id: 'gapiListOut' });
+    if (listMsg) listBox.append(listMsg.err ? h('div', { class: 'note err', role: 'alert' }, listMsg.err.msg || '更新失敗', listMsg.err.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, listMsg.err.detail)) : null, h('div', { class: 'small' }, '原本的清單沒有動，選單照常能用。')) : h('div', { class: 'note ok', role: 'status' }, listMsg.ok));
+    const picker = (id, label, key, isV) => {
+      const cur = cfg[key], info = gapiMInfo(cur);
+      const sel = h('select', { id, 'aria-label': label, onchange: e => { reset({ [key]: e.target.value }); toast('已改成 ' + e.target.value); redraw(); } }, modelOpts(cur).map(o => h('option', { value: o.id, selected: o.id === cur }, o.text)));
+      const tb = h('div', { class: 'stack', id: id + 'Out' });
+      return h('div', { class: 'grp' }, h('div', { class: 'lbl' }, label),
+        h('div', { class: 'mcur' }, '目前選用：', h('b', null, cur)),
+        sel,
+        h('div', { class: 'small muted' }, info ? info[2] : (mlist.some(m => m.id === cur) ? '這是從你的帳號取得的模型，沒有內建說明；按「測試這個模型」確認能不能用。' : '這個名稱不在清單內（先前手動輸入的）。按「測試這個模型」確認能不能用。')),
+        isV && has25 && cur !== 'gemini-2.5-flash' ? h('div', { class: 'note info', id: 'gapiHint25' }, '你的帳號有 gemini-2.5-flash：這個模型的免費層含搜尋接地，建議年份查詢改用它（不會自動幫你切換）。') : null,
+        h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: id + 'Test', disabled: !GAPI.key, onclick: async () => {
+          const b = $('#' + id + 'Test'), o = $('#' + id + 'Out'); b.disabled = true; o.innerHTML = ''; o.append(gapiBusy('正在測試 ' + cur + '…（約 5–60 秒）'));
+          let r; try { r = await GAPI.test({ model: cur, vmodel: cur, ground: isV }); } catch (e) { r = { key: { ok: false, msg: GAPI.scrub(e && e.message) } }; }
+          const o2 = $('#' + id + 'Out'); if (!o2) return; const b2 = $('#' + id + 'Test'); if (b2) b2.disabled = false; renderTest(o2, r, isV);
+        } }, '測試這個模型')), tb);
+    };
+    const mi = (id, label, key, dflt) => h('label', { class: 'f full', for: id }, label, h('input', { type: 'text', id, value: raw[key] || '', placeholder: dflt, autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': label,
+      onchange: e => { const v = e.target.value.trim().replace(/^models\//, ''); if (v && !GAPI.modelOk(v)) { toast('模型名稱只能用英數、點、橫線'); e.target.value = raw[key] || ''; return; } reset({ [key]: v }); advOpen = true; toast(v ? '模型已改成 ' + v : '已還原預設 ' + dflt); redraw(); } }));
+    const adv = h('details', { class: 'lay', id: 'gapiAdv' }, h('summary', null, '進階：手動輸入模型名稱'), h('div', { class: 'body stack' }, h('div', { class: 'small muted' }, '一般用上面的選單就好。Google 新出模型、清單裡還沒有時，才在這裡手動輸入；輸入後上面的選單會多一個「目前設定」。空白＝用預設。'),
+      h('div', { class: 'fields' }, mi('gapiModel', '酒標辨識用的模型（手動）', 'model', GAPI_DEF.model), mi('gapiVModel', '年份查詢用的模型（手動）', 'vmodel', GAPI_DEF.vmodel))));
+    adv.open = advOpen; adv.addEventListener('toggle', () => { advOpen = adv.open; });
+    sec.append(h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '可用模型清單'),
+      h('div', { class: 'small', id: 'gapiListState' }, mlist.length ? '已從你的帳號取得 ' + mlist.length + ' 個可用模型（更新於 ' + new Date(raw.mlistAt || Date.now()).toLocaleDateString() + '），已併進下面的選單。' : '還沒更新過，目前選單是內建清單（照 Google 官方文件整理）。按下面的按鈕，會用你的金鑰問 Google 這個帳號實際能用哪些模型。'),
+      h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'gapiListBtn', disabled: !GAPI.key, onclick: async () => {
+        const b = $('#gapiListBtn'), o = $('#gapiListOut'); b.disabled = true; o.innerHTML = ''; o.append(gapiBusy('正在向 Google 取得清單…'));
+        try { const l = await GAPI.listModels(); GAPI.setCfg({ mlist: l, mlistAt: Date.now() }); listMsg = { ok: l.length ? '取得 ' + l.length + ' 個可用模型（只留支援 generateContent 的 Gemini 模型，已排除 embedding、語音、圖片生成、Live 等）。' : 'Google 回了清單，但沒有符合條件的模型。' }; }
+        catch (e) { listMsg = { err: e instanceof GErr ? e : { msg: '更新失敗：' + GAPI.scrub(e && e.message) } }; }
+        redraw();
+      } }, '更新可用模型清單')), listBox),
+      picker('gapiModelSel', '酒標辨識用的模型', 'model', false),
+      picker('gapiVModelSel', '年份查詢用的模型（要支援 Google 搜尋接地才可靠）', 'vmodel', true),
+      h('div', { class: 'small muted' }, '預設：酒標辨識 ' + GAPI_DEF.model + '、年份查詢 ' + GAPI_DEF.vmodel + '。Google 改名或下架時，更新清單再重選就好。'),
+      adv,
       toggle('查年份時使用 Google 搜尋接地', '關掉就一律不接地（可信度較低）；打開但金鑰不支援時，會自動退回不接地並提醒', cfg.ground, b => { reset({ ground: !cfg.ground }); redraw(); }),
       h('label', { class: 'f full', for: 'gapiFmt' }, '呼叫格式（一般不用動）', h('select', { id: 'gapiFmt', onchange: e => { reset({ fmt: e.target.value }); toast('已更改'); } },
         [['auto', '自動（建議）：先用 Interactions API，被拒再改 generateContent'], ['interactions', '只用 Interactions API（官方現行推薦）'], ['generateContent', '只用 generateContent（官方標為 legacy，仍支援）']].map(([v, t]) => h('option', { value: v, selected: cfg.fmt === v }, t)))));
