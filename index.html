@@ -496,6 +496,20 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .dimmed{opacity:.55}
 .mcur{font-size:1.05rem;padding:2px 0}.mcur b{color:var(--accent);font-weight:500}
 .srcs .pill{margin-left:6px;min-height:24px;padding:0 8px}
+/* 第九輪：QR code 與安裝提示 */
+.qrbox{width:min(264px,100%);margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#FFF9EA;line-height:0}
+.qrbox svg{display:block;width:100%;height:auto}
+.qrurl{overflow-wrap:anywhere;text-align:center;font-size:.9rem}
+.banner.info{border-color:var(--info);background:var(--info-soft)}
+.qrfs{position:fixed;inset:0;z-index:130;background:#FFF9EA;color:#1A1A1A;display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
+.qrfs .in{display:flex;flex-direction:column;align-items:center;gap:16px;max-width:100%}
+.qrfs .big{width:min(88vw,60vh,720px);line-height:0;border:1px solid #D8CCAE}
+.qrfs .big svg{display:block;width:100%;height:auto}
+.qrfs .tx{text-align:center;max-width:min(92vw,720px)}
+.qrfs .tx b{display:block;font-weight:500;font-size:clamp(1rem,3.6vmin,1.6rem);overflow-wrap:anywhere;line-height:1.5}
+.qrfs .tx span{display:block;color:#66594A;margin:4px 0 14px}
+.qrfs .x{min-height:48px;min-width:96px;padding:0 24px;font-size:1.05rem;border-radius:10px;border:1px solid #5A1F2B;background:#5A1F2B;color:#F6EFE2;cursor:pointer}
+@media (orientation:landscape){.qrfs .in{flex-direction:row;gap:32px}.qrfs .big{width:min(60vw,88vh,720px)}.qrfs .tx{text-align:left;max-width:36vw}}
 </style>
 </head>
 <body>
@@ -1792,6 +1806,7 @@ function buildSheet(ctx, w, mode) {
 let filt = { q: '', type: '', mocc: '', mwith: '', region: '', stars: '', from: '', to: '', vwTemp: '', vwRain: '' };
 function viewHome(app) {
   const frag = h('div', { class: 'stack' });
+  { const ih = installHint(); if (ih) frag.append(ih); }
   if (Store.mode === 'mem') frag.append(h('div', { class: 'banner' }, h('div', { class: 'sp' }, '這個環境無法永久儲存（' + (Store.err && Store.err.message || '未知原因') + '）。目前的筆記只存在這個分頁，關掉就沒了。請常用「設定 → 匯出備份」。')));
   const base = S.lastBackup || S.firstUse;
   if (wines.length && Date.now() - base > 30 * 864e5)
@@ -3617,6 +3632,62 @@ function viewRef(app, tab, sub) {
   }
 }
 
+/*QR_START*/
+/* 第九輪：QR code（離線內嵌 SVG 路徑，由 Python segno 1.6.6 產生，容錯等級 M；n＝每邊模組數；不連網、不載入任何程式庫）。
+   指向正式網址 mo-tsai.github.io，不論目前從哪個網址開啟 */
+const QR_DATA = {"app": {"u": "https://mo-tsai.github.io/sipnote-4k7q/", "n": 29, "ecc": "M", "ver": 3, "d": "M0 0h7v1h-7zM8 0h1v1h-1zM10 0h2v1h-2zM13 0h1v1h-1zM16 0h1v1h-1zM18 0h1v1h-1zM20 0h1v1h-1zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h1v1h-1zM11 1h1v1h-1zM13 1h2v1h-2zM16 1h3v1h-3zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h2v1h-2zM11 2h1v1h-1zM13 2h1v1h-1zM16 2h3v1h-3zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM13 3h3v1h-3zM17 3h2v1h-2zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h1v1h-1zM11 4h3v1h-3zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h4v1h-4zM20 5h1v1h-1zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM10 7h1v1h-1zM14 7h1v1h-1zM16 7h1v1h-1zM18 7h1v1h-1zM20 7h1v1h-1zM0 8h1v1h-1zM2 8h1v1h-1zM6 8h2v1h-2zM9 8h3v1h-3zM14 8h2v1h-2zM19 8h1v1h-1zM23 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM1 9h2v1h-2zM4 9h2v1h-2zM8 9h3v1h-3zM12 9h2v1h-2zM15 9h1v1h-1zM17 9h1v1h-1zM19 9h5v1h-5zM27 9h2v1h-2zM0 10h1v1h-1zM3 10h1v1h-1zM5 10h3v1h-3zM10 10h1v1h-1zM15 10h1v1h-1zM19 10h8v1h-8zM28 10h1v1h-1zM0 11h1v1h-1zM8 11h1v1h-1zM10 11h3v1h-3zM14 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM21 11h3v1h-3zM25 11h1v1h-1zM2 12h1v1h-1zM4 12h6v1h-6zM13 12h2v1h-2zM16 12h1v1h-1zM18 12h1v1h-1zM20 12h1v1h-1zM22 12h1v1h-1zM28 12h1v1h-1zM0 13h3v1h-3zM4 13h1v1h-1zM7 13h4v1h-4zM15 13h1v1h-1zM17 13h1v1h-1zM19 13h2v1h-2zM22 13h2v1h-2zM27 13h2v1h-2zM0 14h2v1h-2zM6 14h1v1h-1zM9 14h1v1h-1zM11 14h1v1h-1zM13 14h3v1h-3zM19 14h4v1h-4zM24 14h1v1h-1zM28 14h1v1h-1zM0 15h1v1h-1zM2 15h1v1h-1zM4 15h2v1h-2zM7 15h2v1h-2zM10 15h1v1h-1zM16 15h1v1h-1zM18 15h1v1h-1zM20 15h2v1h-2zM23 15h2v1h-2zM0 16h1v1h-1zM4 16h3v1h-3zM10 16h2v1h-2zM13 16h4v1h-4zM19 16h1v1h-1zM22 16h2v1h-2zM28 16h1v1h-1zM3 17h1v1h-1zM5 17h1v1h-1zM8 17h2v1h-2zM12 17h2v1h-2zM15 17h2v1h-2zM18 17h3v1h-3zM22 17h1v1h-1zM26 17h3v1h-3zM0 18h13v1h-13zM15 18h2v1h-2zM18 18h2v1h-2zM21 18h1v1h-1zM25 18h1v1h-1zM28 18h1v1h-1zM3 19h1v1h-1zM5 19h1v1h-1zM9 19h2v1h-2zM13 19h1v1h-1zM16 19h1v1h-1zM18 19h1v1h-1zM21 19h1v1h-1zM23 19h2v1h-2zM0 20h2v1h-2zM5 20h3v1h-3zM11 20h3v1h-3zM15 20h1v1h-1zM20 20h6v1h-6zM27 20h1v1h-1zM8 21h2v1h-2zM12 21h1v1h-1zM15 21h3v1h-3zM20 21h1v1h-1zM24 21h3v1h-3zM28 21h1v1h-1zM0 22h7v1h-7zM8 22h2v1h-2zM12 22h4v1h-4zM17 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM28 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM10 23h2v1h-2zM14 23h3v1h-3zM18 23h3v1h-3zM24 23h1v1h-1zM27 23h2v1h-2zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM9 24h1v1h-1zM13 24h2v1h-2zM16 24h1v1h-1zM19 24h7v1h-7zM28 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM9 25h1v1h-1zM11 25h1v1h-1zM13 25h4v1h-4zM18 25h3v1h-3zM24 25h3v1h-3zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM8 26h2v1h-2zM12 26h2v1h-2zM15 26h4v1h-4zM20 26h2v1h-2zM24 26h1v1h-1zM27 26h2v1h-2zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h1v1h-1zM11 27h1v1h-1zM14 27h3v1h-3zM20 27h4v1h-4zM25 27h1v1h-1zM0 28h7v1h-7zM8 28h2v1h-2zM12 28h1v1h-1zM16 28h1v1h-1zM20 28h2v1h-2zM25 28h1v1h-1zM28 28h1v1h-1z"}, "install": {"u": "https://mo-tsai.github.io/sipnote-4k7q/install.html", "n": 33, "ecc": "M", "ver": 4, "d": "M0 0h7v1h-7zM12 0h2v1h-2zM16 0h5v1h-5zM23 0h1v1h-1zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h3v1h-3zM13 1h3v1h-3zM17 1h1v1h-1zM20 1h3v1h-3zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h4v1h-4zM13 2h1v1h-1zM15 2h1v1h-1zM17 2h2v1h-2zM20 2h2v1h-2zM23 2h2v1h-2zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h4v1h-4zM14 3h3v1h-3zM22 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h2v1h-2zM13 4h1v1h-1zM15 4h1v1h-1zM18 4h1v1h-1zM21 4h1v1h-1zM23 4h1v1h-1zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h7v1h-7zM21 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM8 7h1v1h-1zM15 7h1v1h-1zM18 7h1v1h-1zM21 7h2v1h-2zM24 7h1v1h-1zM0 8h1v1h-1zM2 8h5v1h-5zM9 8h2v1h-2zM12 8h7v1h-7zM20 8h1v1h-1zM22 8h1v1h-1zM26 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM9 9h1v1h-1zM12 9h1v1h-1zM16 9h1v1h-1zM18 9h3v1h-3zM23 9h1v1h-1zM26 9h2v1h-2zM29 9h2v1h-2zM32 9h1v1h-1zM0 10h2v1h-2zM3 10h1v1h-1zM6 10h2v1h-2zM9 10h1v1h-1zM12 10h1v1h-1zM15 10h2v1h-2zM18 10h1v1h-1zM21 10h2v1h-2zM24 10h3v1h-3zM28 10h1v1h-1zM30 10h1v1h-1zM0 11h2v1h-2zM4 11h1v1h-1zM7 11h2v1h-2zM12 11h1v1h-1zM14 11h2v1h-2zM21 11h1v1h-1zM25 11h2v1h-2zM28 11h4v1h-4zM0 12h1v1h-1zM5 12h2v1h-2zM8 12h2v1h-2zM11 12h1v1h-1zM18 12h2v1h-2zM24 12h2v1h-2zM27 12h3v1h-3zM31 12h1v1h-1zM10 13h1v1h-1zM12 13h6v1h-6zM23 13h1v1h-1zM26 13h2v1h-2zM29 13h1v1h-1zM31 13h2v1h-2zM1 14h1v1h-1zM3 14h4v1h-4zM8 14h1v1h-1zM11 14h1v1h-1zM17 14h1v1h-1zM21 14h1v1h-1zM24 14h3v1h-3zM29 14h3v1h-3zM2 15h2v1h-2zM7 15h1v1h-1zM9 15h1v1h-1zM12 15h2v1h-2zM16 15h1v1h-1zM18 15h1v1h-1zM20 15h3v1h-3zM25 15h3v1h-3zM30 15h1v1h-1zM1 16h2v1h-2zM5 16h2v1h-2zM8 16h2v1h-2zM13 16h1v1h-1zM17 16h1v1h-1zM19 16h1v1h-1zM25 16h1v1h-1zM27 16h3v1h-3zM32 16h1v1h-1zM0 17h2v1h-2zM4 17h1v1h-1zM7 17h1v1h-1zM10 17h1v1h-1zM12 17h1v1h-1zM14 17h1v1h-1zM16 17h5v1h-5zM23 17h1v1h-1zM26 17h2v1h-2zM29 17h2v1h-2zM32 17h1v1h-1zM0 18h1v1h-1zM2 18h2v1h-2zM6 18h1v1h-1zM8 18h1v1h-1zM12 18h1v1h-1zM14 18h4v1h-4zM22 18h1v1h-1zM26 18h3v1h-3zM30 18h2v1h-2zM2 19h2v1h-2zM10 19h5v1h-5zM17 19h2v1h-2zM20 19h2v1h-2zM25 19h1v1h-1zM27 19h4v1h-4zM3 20h1v1h-1zM6 20h4v1h-4zM11 20h1v1h-1zM13 20h4v1h-4zM22 20h2v1h-2zM25 20h1v1h-1zM28 20h2v1h-2zM31 20h1v1h-1zM0 21h1v1h-1zM2 21h2v1h-2zM5 21h1v1h-1zM8 21h1v1h-1zM10 21h3v1h-3zM14 21h2v1h-2zM17 21h4v1h-4zM23 21h1v1h-1zM26 21h1v1h-1zM29 21h2v1h-2zM32 21h1v1h-1zM0 22h1v1h-1zM6 22h2v1h-2zM10 22h1v1h-1zM13 22h1v1h-1zM15 22h2v1h-2zM18 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM25 22h2v1h-2zM28 22h1v1h-1zM30 22h2v1h-2zM0 23h1v1h-1zM3 23h1v1h-1zM5 23h1v1h-1zM9 23h1v1h-1zM12 23h4v1h-4zM20 23h2v1h-2zM23 23h3v1h-3zM29 23h4v1h-4zM0 24h1v1h-1zM4 24h3v1h-3zM8 24h1v1h-1zM12 24h2v1h-2zM15 24h3v1h-3zM19 24h2v1h-2zM22 24h1v1h-1zM24 24h5v1h-5zM8 25h6v1h-6zM16 25h1v1h-1zM18 25h3v1h-3zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h3v1h-3zM0 26h7v1h-7zM13 26h1v1h-1zM15 26h2v1h-2zM18 26h1v1h-1zM20 26h2v1h-2zM23 26h2v1h-2zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h2v1h-2zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h2v1h-2zM11 27h1v1h-1zM16 27h1v1h-1zM21 27h1v1h-1zM24 27h1v1h-1zM28 27h5v1h-5zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM8 28h1v1h-1zM11 28h4v1h-4zM18 28h2v1h-2zM22 28h1v1h-1zM24 28h6v1h-6zM31 28h2v1h-2zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h3v1h-3zM14 29h4v1h-4zM19 29h5v1h-5zM25 29h1v1h-1zM28 29h1v1h-1zM31 29h2v1h-2zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h1v1h-1zM12 30h3v1h-3zM17 30h1v1h-1zM22 30h2v1h-2zM26 30h2v1h-2zM29 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM9 31h5v1h-5zM16 31h1v1h-1zM20 31h4v1h-4zM25 31h2v1h-2zM28 31h1v1h-1zM30 31h1v1h-1zM0 32h7v1h-7zM8 32h1v1h-1zM10 32h2v1h-2zM17 32h2v1h-2zM22 32h3v1h-3zM26 32h2v1h-2zM29 32h1v1h-1zM31 32h1v1h-1z"}};
+
+const QR_NAMES = { app: 'App 網址', install: '安裝說明頁' };
+const qrSvgHtml = key => { const q = QR_DATA[key], z = 4, n = q.n + z * 2; return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n + ' ' + n + '" role="img" aria-label="QR code：' + q.u + '" shape-rendering="crispEdges"><rect width="' + n + '" height="' + n + '" fill="#FFF9EA"/><path transform="translate(' + z + ' ' + z + ')" d="' + q.d + '" fill="#1A1A1A"/></svg>'; };
+/* 全螢幕：滿版奶油底、最大尺寸 QR、大字網址；Esc／返回鍵／關閉鈕都能關 */
+function qrFullscreen(key) {
+  const q = QR_DATA[key], prev = document.activeElement; let pushed = false, closed = false;
+  const close = viaBtn => {
+    if (closed) return; closed = true; ov.remove(); document.removeEventListener('keydown', onKey, true); removeEventListener('popstate', onPop);
+    if (viaBtn && pushed) safe(() => history.back());
+    safe(() => prev && prev.focus && prev.focus());
+  };
+  const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); close(true); } };
+  const onPop = () => { pushed = false; close(false); };
+  const x = h('button', { type: 'button', class: 'x', id: 'qrfsClose', onclick: () => close(true) }, '關閉');
+  const ov = h('div', { class: 'qrfs', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'QR code 全螢幕：' + QR_NAMES[key] },
+    h('div', { class: 'in' }, h('div', { class: 'big', html: qrSvgHtml(key) }), h('div', { class: 'tx' }, h('b', null, q.u), h('span', null, '用手機相機掃這個 QR code，就會開啟' + QR_NAMES[key] + '。'), x)));
+  document.body.append(ov); document.addEventListener('keydown', onKey, true);
+  safe(() => { history.pushState({ qrfs: 1 }, '', location.href); pushed = true; addEventListener('popstate', onPop); });
+  x.focus();
+}
+/* 設定頁卡片：分享這個 App */
+function qrSection() {
+  let cur = 'app';
+  const sec = h('section', { class: 'sec', id: 'qrSec' });
+  const draw = () => {
+    const q = QR_DATA[cur], onProd = location.hostname === 'mo-tsai.github.io';
+    sec.innerHTML = '';
+    sec.append(h('h2', null, '分享這個 App', h('small', null, '讓別人掃一下就能開')),
+      h('div', { class: 'chips', role: 'group', 'aria-label': 'QR code 內容' }, Object.keys(QR_NAMES).map(k => h('button', { type: 'button', class: 'chip' + (k === cur ? ' on' : ''), id: 'qrTab_' + k, 'aria-pressed': String(k === cur), onclick: () => { cur = k; draw(); } }, QR_NAMES[k]))),
+      h('div', { class: 'qrbox', id: 'qrBox', html: qrSvgHtml(cur) }),
+      h('div', { class: 'qrurl', id: 'qrUrl' }, q.u),
+      onProd ? null : h('div', { class: 'note info', id: 'qrProdNote' }, 'QR 指向正式網址（' + q.u + '），不是你現在開的這個網址。'),
+      h('div', { class: 'btnrow', style: 'justify-content:center' },
+        h('button', { type: 'button', class: 'btn', id: 'qrCopy', onclick: async () => { try { await navigator.clipboard.writeText(q.u); toast('已複製網址'); } catch (e) { const r = document.createRange(); r.selectNodeContents($('#qrUrl')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('請長按網址後選「拷貝」'); } } }, '複製網址'),
+        h('button', { type: 'button', class: 'btn primary', id: 'qrFull', onclick: () => qrFullscreen(cur) }, '全螢幕顯示')),
+      h('div', { class: 'small muted' }, '給朋友：用手機相機掃一下就會開啟。「安裝說明頁」會教他怎麼加到主畫面。想在課堂上投影，按「全螢幕顯示」。'));
+  };
+  draw();
+  return sec;
+}
+/* 非獨立 App 模式（用瀏覽器開）時，手冊頁頂端的可關閉提示 */
+const isStandalone = () => safe(() => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true, false);
+const installHintOff = () => { try { return localStorage.getItem('installHintOff') === '1'; } catch (e) { return false; } };
+function installHint() {
+  if (isStandalone() || installHintOff()) return null;
+  const bar = h('div', { class: 'banner info', id: 'installHint', role: 'note' }, h('div', { class: 'sp' }, '想像 App 一樣用，請加入主畫面'),
+    h('a', { class: 'btn sm', href: 'install.html', target: '_blank', rel: 'noopener' }, '怎麼加入'),
+    h('button', { type: 'button', class: 'btn sm ghost', 'aria-label': '關閉提示，不再顯示', onclick: () => { try { localStorage.setItem('installHintOff', '1'); } catch (e) {} bar.remove(); } }, '關閉'));
+  return bar;
+}
+/*QR_END*/
+
 /*SHARE_START*/
 /* ========= 第七輪：匯出「唯讀分享頁」（單一自包含 HTML，用 LINE 傳給只看不記的人）=========
    輸出：內嵌 CSS、JS、base64 照片；沒有外部資源、沒有 service worker、沒有 API／金鑰／設定、沒有編輯功能。
@@ -4136,6 +4207,7 @@ function viewSettings(app) {
       h('button', { class: 'btn primary', type: 'button', id: 'trySample', onclick: () => { window._prefillReply = LABEL_SAMPLE; go('/new'); } }, '貼上範例回覆，到新增頁試用'),
       h('button', { class: 'btn', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(LABEL_SAMPLE); toast('已複製範例'); } catch (e) { sampleBox.select(); toast('請手動複製'); } } }, '複製範例'))));
   st.append(shareSettingsSection());
+  st.append(qrSection());
   st.append(gapiSection());
   st.append(h('section', { class: 'sec' }, h('h2', null, '手冊存放位置'),
     h('div', null, Store.mode === 'idb' ? '資料存在這台裝置的瀏覽器（IndexedDB），不上傳到任何地方。' : '這個環境無法永久儲存，資料只留在目前分頁。請用下方「匯出備份」。'),
