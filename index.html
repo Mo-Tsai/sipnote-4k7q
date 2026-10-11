@@ -137,7 +137,7 @@ main{padding-block:18px;max-width:1100px;margin-inline:auto}
 .fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,138px),1fr))}
 .fields .full{grid-column:1/-1}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);font-weight:500;letter-spacing:.04em;min-width:0}
-input[type=text],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--ctl);border-radius:var(--r);background:var(--bg);color:var(--fg);font-weight:400}
+input[type=text],input[type=password],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--ctl);border-radius:var(--r);background:var(--bg);color:var(--fg);font-weight:400}
 input[type=file]{min-height:44px;max-width:100%}
 textarea{min-height:76px;resize:vertical;line-height:1.6}
 input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
@@ -475,6 +475,25 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .vf-src{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .gemq{margin:0;white-space:pre-wrap;font-family:var(--font);background:var(--surface2);padding:8px 10px;border-radius:var(--r);font-size:.8rem;line-height:1.7;overflow-wrap:anywhere}
 .srcs a{overflow-wrap:anywhere}
+/* 第六輪：Gemini API */
+.apiblk{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.apiblk > .h{font-weight:500}
+.apiblk .pstrip{display:flex;flex-wrap:wrap;gap:8px}
+.pthumb{position:relative;width:72px;height:72px;border-radius:var(--r);border:2px solid var(--line);padding:0;overflow:hidden;background:var(--surface2);cursor:pointer}
+.pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pthumb[aria-pressed=true]{border-color:var(--gold)}
+.pthumb[aria-pressed=true]::after{content:"✓";position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:50%;background:var(--btn);color:#F3F0EA;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+.apistat{display:flex;align-items:center;gap:8px;line-height:1.7}
+.apistat .spin{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--gold);animation:gspin 1s linear infinite;flex:none}
+@keyframes gspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.apistat .spin{animation:none}}
+.gsugg{width:100%;height:96px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
+.gmodal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.gmodal .box{background:var(--bg);color:var(--fg);border:1px solid var(--gold);border-radius:var(--r);max-width:440px;width:100%;max-height:90vh;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.gmodal .box h3{margin:0;font-weight:500;font-size:1.1rem}
+.keyline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.keyline input{flex:1 1 220px}
+.srcs .pill{margin-left:6px;min-height:24px;padding:0 8px}
 </style>
 </head>
 <body>
@@ -511,6 +530,8 @@ function h(tag, attrs, ...kids) {
   }
   return e;
 }
+/* 第六輪：原生 append 會把 null 印成文字「null」、把陣列印成「[object HTMLDivElement]」；統一展平並略過 null／false */
+safe(() => { const _ap = Element.prototype.append; Element.prototype.append = function (...k) { return _ap.apply(this, k.flat(Infinity).filter(c => c != null && c !== false)); }; });
 const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const pad = n => String(n).padStart(2, '0');
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
@@ -1036,7 +1057,232 @@ function buildBrand() {
   b.append(art('grapes', 30), h('span', { class: 'ttl' }, '我的品飲手冊'));
 }
 
-/* ========= 酒標辨識：貼上填入（不串 API、不放金鑰；Gemini 讀酒標 → 貼回來 → 解析 → 預覽 → 套用） ========= */
+/*GAPI_START*/
+/* ========= 第六輪：Gemini API（選用；瀏覽器直連 Google 官方端點，不經任何第三方）=========
+   金鑰只存在這台裝置（IndexedDB meta「gkey」），不進程式碼、不進備份匯出、不進 console／錯誤訊息。
+   預設走 Interactions API（官方文件現行推薦）；格式被拒時自動改用 generateContent（官方標為 legacy 但仍完整支援）。
+   呼叫失敗一律回報友善說明，原本的「複製指令→貼回」流程照舊可用。 */
+const GAPI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const GAPI_DEF = { model: 'gemini-3.8-flash', vmodel: 'gemini-3.8-flash', ground: true, fmt: 'auto' };
+const GAPI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
+const GAPI_REFERER = 'https://mo-tsai.github.io/*';
+class GErr extends Error { constructor(kind, msg, status, detail) { super(msg); this.kind = kind; this.msg = msg; this.status = status || 0; this.detail = detail || ''; } }
+const GAPI = {
+  key: '', gBlocked: false,
+  async load() { try { const r = await Store.get('meta', 'gkey'); if (r && typeof r.v === 'string') this.key = r.v; } catch (e) {} },
+  async setKey(k) { this.key = k; await Store.put('meta', { k: 'gkey', v: k }); },
+  async clearKey() { this.key = ''; await Store.del('meta', 'gkey'); },
+  keyOk: k => /^[\x21-\x7E]{20,200}$/.test(k),
+  modelOk: m => /^[a-z0-9][a-z0-9._-]{2,60}$/i.test(m || ''),
+  cfg() {
+    const a = S.api || {}; const mo = x => { x = String(x || '').trim().replace(/^models\//, ''); return GAPI.modelOk(x) ? x : ''; };
+    return { model: mo(a.model) || GAPI_DEF.model, vmodel: mo(a.vmodel) || GAPI_DEF.vmodel, ground: a.ground !== false, fmt: a.fmt === 'interactions' || a.fmt === 'generateContent' ? a.fmt : 'auto', consent: a.consent || 0, gOK: a.gOK };
+  },
+  setCfg(p) { S.api = Object.assign({}, S.api || {}, p); saveSettings(); },
+  scrub(s) { s = String(s == null ? '' : s); return this.key ? s.split(this.key).join('[金鑰]') : s; },
+
+  /* 一次 HTTP 呼叫。金鑰只放標頭（x-goog-api-key），不放網址。回傳解析後的 JSON；失敗丟 GErr。 */
+  async post(path, body, ms, retried) {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), ms || 60000);
+    let res, txt = '';
+    try {
+      res = await fetch(GAPI_BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(body), signal: ctl.signal, cache: 'no-store' });
+      txt = await res.text();
+    } catch (e) {
+      if (e && e.name === 'AbortError') throw new GErr('timeout', 'Gemini 等太久沒有回應（超過 ' + Math.round((ms || 60000) / 1000) + ' 秒），已先停下來。可以再按一次，或改用下面的複製貼上。');
+      throw new GErr('net', '連不到 Google。請確認網路；如果開了廣告攔截、公司網路或 VPN，可能把 generativelanguage.googleapis.com 擋掉了。');
+    } finally { clearTimeout(tm); }
+    let j = null; try { j = JSON.parse(txt); } catch (e) {}
+    if (!res.ok) {
+      const er = this.httpErr(res.status, j);
+      if (er.kind === 'busy' && !retried) { await new Promise(r => setTimeout(r, 1800)); return this.post(path, body, ms, true); }
+      throw er;
+    }
+    if (!j || typeof j !== 'object') throw new GErr('parse', 'Google 回的內容不是預期的格式，讀不懂。', res.status);
+    return j;
+  },
+  httpErr(status, j) {
+    const er = (j && j.error) || {}; const m = this.scrub(er.message || '').slice(0, 400); const reason = String(((Array.isArray(er.details) ? er.details : []).find(d => d && d.reason) || {}).reason || '');
+    const D = m ? 'Google 回報（' + status + '）：' + m : 'HTTP ' + status;
+    if (reason === 'API_KEY_INVALID' || /api key not valid|api_key_invalid|api key expired|key.*(invalid|expired)/i.test(m) || status === 401) return new GErr('key', '金鑰不被接受（可能貼錯、已過期或被刪掉）。請到「設定 → Gemini API」重新貼上，再按「測試金鑰」。', status, D);
+    if (/referer|referrer|HTTP_REFERRER/i.test(m + reason) || /origin/i.test(reason)) return new GErr('referrer', '這把金鑰有「網站限制」，而目前開啟的網址不在允許名單內（只允許 ' + GAPI_REFERER + '）。從本機檔案或其他網址開啟會被擋；請從正式網址開啟 App，或到 Google Cloud 的金鑰設定加入目前網址。', status, D);
+    if (status === 403 || status === 400 || status === 429) {
+      if (/ground|google[_ ]?search|search (tool|grounding)|tool.*(not|unsupported|available)/i.test(m)) return new GErr('ground', '這把金鑰（或免費層）不能使用「Google 搜尋接地」。', status, D);
+    }
+    if (status === 403) return new GErr('denied', 'Google 拒絕了這個請求（403）：這把金鑰沒有 Gemini API 的使用權限，或這個帳號／地區不能用。', status, D);
+    if (status === 404) return /model/i.test(m) ? new GErr('model', '找不到這個模型（可能名稱打錯、已下架，或這個帳號用不到）。請到「設定 → Gemini API」改模型名稱。', status, D) : new GErr('format', '這個端點或格式 Google 不認得（404）。', status, D);
+    if (status === 429) return new GErr('quota', '額度用完或呼叫太頻繁（429）。免費層有每分鐘與每日上限，等幾分鐘或明天再試，或先用下面的複製貼上。', status, D);
+    if (status === 400) return /model/i.test(m) && /not found|not supported|unsupported|invalid/i.test(m) ? new GErr('model', '這個模型不能這樣用（名稱不對，或不支援圖片／搜尋）。請到「設定 → Gemini API」改模型名稱。', status, D) : new GErr('format', 'Google 說這個請求的格式不對（400）。', status, D);
+    if (status >= 500) return new GErr('busy', 'Google 那邊暫時忙線或出錯（' + status + '）。稍後再按一次，或先用下面的複製貼上。', status, D);
+    return new GErr('http', 'Google 回了預料之外的狀態（' + status + '）。', status, D);
+  },
+
+  /* 組請求。o：{model, system, text, images:[{mime,data}], search} */
+  buildReq(fmt, o) {
+    if (fmt === 'interactions') {
+      const input = o.images.length ? [{ type: 'text', text: o.text }].concat(o.images.map(i => ({ type: 'image', data: i.data, mime_type: i.mime }))) : o.text;
+      const b = { model: o.model, system_instruction: o.system, input, store: false };
+      if (o.search) b.tools = [{ type: 'google_search' }];
+      return { path: '/interactions', body: b };
+    }
+    const parts = [{ text: o.text }].concat(o.images.map(i => ({ inline_data: { mime_type: i.mime, data: i.data } })));
+    const b = { system_instruction: { parts: [{ text: o.system }] }, contents: [{ role: 'user', parts }] };
+    if (o.search) b.tools = [{ google_search: {} }];
+    return { path: '/models/' + encodeURIComponent(o.model) + ':generateContent', body: b };
+  },
+  /* 讀回覆：文字、接地引用（url＋title）、搜尋關鍵字、Google 搜尋建議 HTML */
+  parseRes(fmt, j) {
+    let text = '', cites = [], queries = [], suggest = '';
+    if (fmt === 'interactions') {
+      arr(j.steps || j.outputs).forEach(s => {
+        if (!s || typeof s !== 'object') return;
+        if (s.type === 'model_output') {
+          let t = '';
+          arr(s.content).forEach(c => { if (c && c.type === 'text') { t += c.text || ''; arr(c.annotations).forEach(a => { if (a && a.type === 'url_citation' && a.url) cites.push({ url: String(a.url), title: String(a.title || '') }); }); } });
+          if (t.trim()) text = t;
+        } else if (s.type === 'google_search_call') queries.push(...arr(s.arguments && s.arguments.queries).map(String));
+        else if (s.type === 'google_search_result') arr(s.result).forEach(r => { if (r && typeof r.search_suggestions === 'string') suggest = r.search_suggestions; });
+      });
+      if (!text && typeof j.output_text === 'string') text = j.output_text;
+      if (!text && (j.status === 'failed' || j.error)) throw new GErr('empty', 'Gemini 這次沒有產生回答（' + this.scrub((j.error && j.error.message) || j.status || '') + '）。');
+    } else {
+      const c = arr(j.candidates)[0];
+      if (!c) { const br = j.promptFeedback && j.promptFeedback.blockReason; throw br ? new GErr('blocked', 'Gemini 因為安全規則沒有回答（原因：' + br + '）。換一張照片或稍後再試。') : new GErr('empty', 'Gemini 回了空白內容。'); }
+      text = arr(c.content && c.content.parts).filter(p => p && typeof p.text === 'string' && !p.thought).map(p => p.text).join('');
+      const gm = c.groundingMetadata || c.grounding_metadata || {};
+      arr(gm.groundingChunks || gm.grounding_chunks).forEach(x => { const wb = x && x.web; if (wb && wb.uri) cites.push({ url: String(wb.uri), title: String(wb.title || '') }); });
+      queries = arr(gm.webSearchQueries || gm.web_search_queries).map(String);
+      const se = gm.searchEntryPoint || gm.search_entry_point; suggest = (se && (se.renderedContent || se.rendered_content)) || '';
+      if (!text.trim() && c.finishReason && c.finishReason !== 'STOP') throw new GErr('blocked', 'Gemini 沒有給出內容（原因：' + c.finishReason + '）。換一張照片或稍後再試。');
+    }
+    if (!text.trim()) throw new GErr('empty', 'Gemini 回了空白內容。可以再按一次，或改用下面的複製貼上。');
+    const seen = new Set(); cites = cites.filter(x => !seen.has(x.url) && seen.add(x.url)).slice(0, 12);
+    return { text: text.trim(), cites, queries: [...new Set(queries)].slice(0, 8), suggest };
+  },
+  /* 依設定的格式送出；auto＝先 Interactions，被拒（格式／讀不出）才改 generateContent */
+  async run(o) {
+    const cfg = this.cfg(); const order = cfg.fmt === 'auto' ? ['interactions', 'generateContent'] : [cfg.fmt];
+    let first = null;
+    for (let i = 0; i < order.length; i++) {
+      const fmt = order[i]; const rq = this.buildReq(fmt, o);
+      try {
+        const j = await this.post(rq.path, rq.body, o.ms);
+        const p = this.parseRes(fmt, j); p.fmt = fmt; return p;
+      } catch (e0) {
+        const e = e0 instanceof GErr ? e0 : new GErr('parse', 'Gemini 的回覆讀不懂：' + this.scrub(e0 && e0.message));
+        const fb = e.kind === 'format' || e.kind === 'parse' || e.kind === 'empty' || (e.kind === 'ground' && e.status === 400);
+        if (i < order.length - 1 && fb) { first = first || e; continue; }
+        throw (e.kind === 'format' && first && first.kind !== 'format') ? first : e;
+      }
+    }
+  },
+
+  /* 照片縮到長邊 ≤1280px、JPEG，回傳 {mime, data(base64)} */
+  async prepImage(id) {
+    const rec = await Store.get('photos', id);
+    if (!rec || !rec.blob) throw new GErr('photo', '找不到這張照片（可能已被移除）。');
+    let bmp;
+    try { bmp = await createImageBitmap(rec.blob, { imageOrientation: 'from-image' }); }
+    catch (e) { bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new GErr('photo', '這張照片讀不出來。')); im.src = URL.createObjectURL(rec.blob); }); }
+    const w0 = bmp.width, h0 = bmp.height, sc = Math.min(1, 1280 / Math.max(w0, h0));
+    const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(w0 * sc)); cv.height = Math.max(1, Math.round(h0 * sc));
+    cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.85));
+    if (!blob) throw new GErr('photo', '這張照片壓縮失敗。');
+    const du = await blobToDataURL(blob);
+    return { mime: 'image/jpeg', data: String(du).split(',')[1] || '' };
+  },
+
+  /* A. 讀酒標：ids＝照片 id（最多 3） */
+  async readLabel(ids) {
+    if (!this.key) throw new GErr('nokey', '還沒設定金鑰。');
+    const cfg = this.cfg(); const images = [];
+    for (const id of ids.slice(0, 3)) images.push(await this.prepImage(id));
+    if (!images.length) throw new GErr('photo', '沒有可以送出的照片。');
+    const p = await this.run({ model: cfg.model, system: LABEL_PROMPT, text: '請依規則讀這支酒的酒標照片（共 ' + images.length + ' 張，視為同一支酒），只回傳 JSON 區塊。', images, search: false, ms: 90000 });
+    p.model = cfg.model; return p;
+  },
+  /* B. 查這一年：優先 Google 搜尋接地；接地不能用就退回不接地（並標明可信度較低） */
+  async askVintage(w) {
+    if (!this.key) throw new GErr('nokey', '還沒設定金鑰。');
+    const cfg = this.cfg(); const want = cfg.ground && cfg.gOK !== false && !this.gBlocked;
+    const base = { model: cfg.vmodel, system: GEMV_PROMPT, images: [], ms: 120000 };
+    let why = '';
+    if (!cfg.ground) why = '你在設定裡關掉了「Google 搜尋接地」。';
+    else if (cfg.gOK === false || this.gBlocked) why = '這把金鑰先前測到不能使用 Google 搜尋接地（免費層通常不含）。';
+    if (want) {
+      try {
+        const p = await this.run(Object.assign({}, base, { text: gemOnlyPrompt(w), search: true })); p.model = cfg.vmodel;
+        p.grounded = p.cites.length > 0;
+        p.why = p.grounded ? '' : (p.queries.length ? '模型有搜尋，但回覆沒有附任何接地來源。' : '模型這次沒有實際搜尋（沒有任何接地來源）。');
+        return p;
+      } catch (e) {
+        if (e.kind !== 'ground' && !(e.kind === 'quota' && /limit:\s*0/i.test(e.detail))) throw e;
+        this.gBlocked = true; why = '這把金鑰（或免費層）不能使用 Google 搜尋接地。';
+      }
+    }
+    const nogr = '\n\n【重要：這次沒有開啟上網搜尋，你無法上網】不能假裝查過。請只用你確定記得的資訊；不確定就留空；「來源」一律給 []；「信心」一律填「低」；「備註」開頭寫「未接地：憑模型記憶，未上網查證」。';
+    const p = await this.run(Object.assign({}, base, { text: '【這次要查的酒】\n' + gemQuery(w) + nogr + '\n\n只回傳 JSON 區塊。', search: false })); p.model = cfg.vmodel;
+    p.grounded = false; p.why = why; p.cites = []; p.queries = []; p.suggest = '';
+    return p;
+  },
+  /* 測試：1. 純文字呼叫（驗證金鑰、模型）2. 接地呼叫（看免費層能不能用搜尋接地） */
+  async test() {
+    const cfg = this.cfg(); const out = { key: null, ground: null };
+    try { const p = await this.run({ model: cfg.model, system: 'You are a connectivity test.', text: 'Reply with the single word OK.', images: [], search: false, ms: 40000 }); out.key = { ok: true, fmt: p.fmt, model: cfg.model }; }
+    catch (e) { out.key = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; return out; }
+    try { const p = await this.run({ model: cfg.vmodel, system: 'You are a connectivity test.', text: 'Who won the euro 2024? Answer in one short sentence.', images: [], search: true, ms: 90000 }); out.ground = { ok: true, grounded: p.cites.length > 0, model: cfg.vmodel }; this.setCfg({ gOK: true }); this.gBlocked = false; }
+    catch (e) { out.ground = { ok: false, msg: e.msg || '失敗', detail: e.detail || '', kind: e.kind }; if (e.kind === 'ground') { this.setCfg({ gOK: false }); this.gBlocked = true; } }
+    return out;
+  }
+};
+/* 接地來源 ＋ 模型自己填的網址 → [{u, t, ok}]；ok：true＝接地來源，'host'＝模型自填但同網站，false＝未驗證 */
+function gapiMergeSources(modelUrls, ground, grounded) {
+  const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch (e) { return ''; } };
+  const norm = u => String(u).replace(/^https?:\/\/(www\.)?/i, '').replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
+  const out = []; const used = new Set();
+  if (grounded) arr(ground).forEach(g => { if (/^https?:\/\//i.test(g.url) && !used.has(g.url)) { used.add(g.url); out.push({ u: g.url, t: g.title || hostOf(g.url), ok: true }); } });
+  arr(modelUrls).forEach(m => {
+    if (used.has(m)) return;
+    const exact = arr(ground).some(g => norm(g.url) === norm(m));
+    if (grounded && exact) { return; }
+    const hm = hostOf(m);
+    const sameHost = grounded && arr(ground).some(g => { const t = String(g.title || '').toLowerCase().replace(/^www\./, ''); return t && hm && (hm === t || hm.endsWith('.' + t) || t.endsWith('.' + hm) || hostOf(g.url) === hm); });
+    used.add(m); out.push({ u: m, t: hm || m, ok: sameHost ? 'host' : false });
+  });
+  return out.slice(0, 12);
+}
+/* 第一次使用任何 API 功能前，確認一次「照片／查詢會送到 Google Gemini」 */
+function gapiConsent() {
+  return new Promise(resolve => {
+    if (S.api && S.api.consent) return resolve(true);
+    const prev = document.activeElement;
+    const done = ok => { bg.remove(); document.removeEventListener('keydown', onKey, true); if (ok) GAPI.setCfg({ consent: Date.now() }); try { prev && prev.focus && prev.focus(); } catch (e) {} resolve(ok); };
+    const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); done(false); } };
+    const yes = h('button', { type: 'button', class: 'btn primary', id: 'gconsentYes', onclick: () => done(true) }, '同意並繼續');
+    const bg = h('div', { class: 'gmodal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'gconsentT' },
+      h('div', { class: 'box' }, h('h3', { id: 'gconsentT' }, '要把資料送到 Google Gemini 了'),
+        h('div', { class: 'prose' }, '按下去之後，會直接從這台裝置送到 Google 的 Gemini 服務：'),
+        h('ul', { class: 'prose', style: 'margin:0;padding-left:1.2em' }, h('li', null, '酒標照片（先縮到長邊 1280px）——讀酒標時'), h('li', null, '查詢文字（產區、年份、酒種／品種、指令）——查年份時')),
+        h('div', { class: 'small muted' }, '只有這些。不會送出你的筆記、備註、評分、其他照片或金鑰以外的任何資料。免費層送出的內容，Google 可能用來改進產品，所以請不要送含人臉或個人資料的照片。同意後會記住，可以到「設定 → Gemini API」撤回。'),
+        h('div', { class: 'btnrow' }, yes, h('button', { type: 'button', class: 'btn', onclick: () => done(false) }, '先不要'))));
+    document.addEventListener('keydown', onKey, true);
+    document.body.append(bg); yes.focus();
+  });
+}
+function gapiToSettings() { window._gapiFocus = true; go('/settings'); }
+/* 失敗訊息：友善中文＋可展開的 Google 原話（已去除金鑰）；並提醒複製貼上照常可用 */
+function gapiFailBox(e) {
+  const kids = [h('div', null, e && e.msg ? e.msg : '呼叫 Gemini 失敗了：' + GAPI.scrub(e && e.message || '')), e && e.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, e.detail)) : null,
+    h('div', { class: 'small' }, '沒關係，什麼都沒有丟：下面的「複製指令 → 貼回來」流程照常可以用。')];
+  if (e && (e.kind === 'key' || e.kind === 'referrer' || e.kind === 'model' || e.kind === 'denied')) kids.push(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', onclick: gapiToSettings }, '到設定檢查')));
+  return h('div', { class: 'note err', role: 'alert' }, kids);
+}
+const gapiBusy = txt => h('div', { class: 'apistat', role: 'status' }, h('span', { class: 'spin', 'aria-hidden': 'true' }), txt);
+function gapiNeedKeyBtn() { return h('button', { type: 'button', class: 'btn', onclick: gapiToSettings }, '到設定貼上金鑰才能用'); }
+/*GAPI_END*/
+
+/* ========= 酒標辨識：貼上填入（Gemini 讀酒標 → 貼回來 → 解析 → 預覽 → 套用；第六輪另有 API 直連，見上） ========= */
 const LABEL_PROMPT = "你是葡萄酒酒標「抄錄」助手。我會附上一張或多張葡萄酒的酒標、背標或酒瓶照片，你的主要工作，是把照片上「印出來的文字」整理成下面固定的 JSON。另外有一個獨立欄位「產區可能品種（參考）」，是你給的參考建議，和標籤文字分開處理（規則見下）。全程使用繁體中文（台灣用語），原文名稱（酒名、酒莊）保留原文拼寫。\n\n【輸出格式】\n只輸出一個 JSON 區塊（用 ```json 包起來），不要加任何其他文字：\n{\"酒名\":\"\",\"酒莊\":\"\",\"國家\":\"\",\"產區\":\"\",\"品種\":[\"\",\"\"],\"年份\":\"\",\"酒精度\":\"\",\"產區可能品種（參考）\":[\"\",\"\"],\"備註\":\"\",\"不確定\":[\"欄位名\"]}\n\n【欄位說明】\n- 酒名：酒標上的酒款名稱（cuvée 或系列名）。沒有獨立酒名時，填酒標上最醒目的名稱。保留原文。\n- 酒莊：生產者或酒廠名稱，保留原文。\n- 國家：繁體中文，例如「法國」「義大利」。\n- 產區：標籤上印的產區或法定產區（AOC、DOC、DO 等），可寫成「中文（原文）」。\n- 品種：陣列，只填標籤上有印的品種，用繁體中文常用譯名。標籤沒印就給空陣列 []。\n- 年份：四位數西元年份；標示 NV 或沒有年份，填 \"NV\"。\n- 酒精度：例如 \"13.5%\"。\n- 產區可能品種（參考）：陣列。只有在標籤上有明確產區（例如法定產區名，或清楚的產區名稱）時才給；列出該法定產區或產區常見的葡萄品種，最多 6 個，由常見到少見排，繁體中文常用譯名。這不是標籤上的資訊，只是給我參考；沒有明確產區、或你不確定時，一律給空陣列 []。\n- 備註：只放標籤上印的其他資訊（等級、裝瓶方式、容量、認證），一兩句；沒有就留空字串。\n- 不確定：把「看不太清楚、可能讀錯」的標籤欄位名稱放進這個陣列；都清楚就給空陣列 []。不要把「產區可能品種（參考）」放進來。\n\n【規則】\n1. 除了「產區可能品種（參考）」之外，只抄標籤上看得到的字。看不清楚或標籤上沒有寫的欄位，一律留空（品種留空陣列），絕對不要猜、不要用你的知識補、不要依產區推測品種或年份。\n2. 「產區可能品種（參考）」只能放在它自己的欄位。標籤沒印品種時，「品種」仍然給空陣列，不要把參考品種搬進「品種」。\n3. 絕對不要寫任何香氣、風味、口感、顏色描述、評價、評分、適飲期、價格、搭餐建議，也不要介紹酒莊或產區。備註裡也不行。\n4. 欄位名稱固定使用上面的中文，不要改名，也不要增減欄位。\n5. 多張照片視為同一支酒，合併資訊；彼此矛盾時以背標為準，並把該欄位放進「不確定」。\n6. 只回傳 JSON 區塊，不要開場白，也不要結語。";
 const LABEL_SAMPLE = "```json\n{\"酒名\":\"Vieilles Vignes\",\"酒莊\":\"Domaine Exemple\",\"國家\":\"法國\",\"產區\":\"勃根地（Gevrey-Chambertin）\",\"品種\":[],\"年份\":\"2019\",\"酒精度\":\"13%\",\"產區可能品種（參考）\":[\"黑皮諾\"],\"備註\":\"標籤印有 Vieilles Vignes（老藤）。\",\"不確定\":[]}\n```";
 /* [代號, 顯示名, 可接受的欄位名別名] */
@@ -1181,7 +1427,7 @@ function aiPlan(w, d) {
   return { rows, missing };
 }
 /* 面板：onApply(已套用欄位代號[]) 由表單負責更新畫面與存檔 */
-function buildAiPanel(w, onApply, prefill) {
+function buildAiPanel(w, onApply, prefill, hooks) {
   const ta = h('textarea', { id: 'aiin', placeholder: '把 Gemini 的回覆整段貼在這裡（有多餘文字、```json 圍欄都沒關係）', 'aria-label': '貼上 Gemini 的回覆', rows: 5 });
   const out = h('div', { class: 'stack' });
   const det = h('details', { class: 'ai', id: 'aipanel' });
@@ -1237,13 +1483,55 @@ function buildAiPanel(w, onApply, prefill) {
       plan.missing.filter(x => x !== '品種').length ? h('div', { class: 'small muted' }, '沒讀到（留空）：' + plan.missing.filter(x => x !== '品種').join('、')) : null,
       h('div', { class: 'btnrow' }, apply));
   };
+  /* 第六輪：用 Gemini API 直接讀這杯的照片（沒設金鑰時顯示引導，不報錯） */
+  const apiBlk = h('div', { class: 'apiblk', id: 'gapiLabel' }), apiStat = h('div', { class: 'stack' });
+  const selP = new Set(); let manualSel = false, apiBusy = false;
+  const drawApi = () => {
+    apiBlk.innerHTML = '';
+    apiBlk.append(h('div', { class: 'h' }, '直接讓 Gemini 讀照片'));
+    if (!GAPI.key) {
+      apiBlk.append(h('div', { class: 'small muted' }, '用你自己的 Gemini API 金鑰，App 直接把照片送去讀，不用再複製貼上。金鑰只存在這台裝置，到設定貼一次就好。'), h('div', { class: 'btnrow' }, gapiNeedKeyBtn()), apiStat);
+      return;
+    }
+    const ph = arr(w.photos); [...selP].forEach(id => { if (!ph.some(p => p.id === id)) selP.delete(id); });
+    if (!manualSel) { selP.clear(); [...ph].sort((a, b) => (b.kind === '酒標') - (a.kind === '酒標') || (b.kind === '酒瓶') - (a.kind === '酒瓶')).slice(0, 3).forEach(p => selP.add(p.id)); }
+    const camIn = h('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'hidden', 'aria-label': '拍照', onchange: e => addP([...e.target.files], e.target) });
+    const galIn = h('input', { type: 'file', accept: 'image/*', multiple: true, class: 'hidden', 'aria-label': '選照片', onchange: e => addP([...e.target.files], e.target) });
+    const addP = async (fs, inp) => { inp.value = ''; if (!fs.length || !hooks || !hooks.addFiles) return; const ids = await hooks.addFiles(fs); ids.forEach(id => { if (selP.size < 3) selP.add(id); }); manualSel = true; if (det.isConnected) drawApi(); };
+    const strip = h('div', { class: 'pstrip' }, ph.map((p, i) => { const img = h('img', { alt: '' }); loadImg(img, p.id);
+      return h('button', { type: 'button', class: 'pthumb', 'aria-pressed': String(selP.has(p.id)), 'aria-label': '照片 ' + (i + 1) + '（' + p.kind + '），' + (selP.has(p.id) ? '已選' : '未選'), disabled: apiBusy,
+        onclick: () => { manualSel = true; if (selP.has(p.id)) selP.delete(p.id); else if (selP.size >= 3) { toast('一次最多 3 張'); return; } else selP.add(p.id); drawApi(); } }, img); }));
+    apiBlk.append(
+      ph.length ? h('div', { class: 'small muted' }, '點照片選要讀的（最多 3 張，酒標、背標最好）。照片會先縮到長邊 1280px 再送出。') : h('div', { class: 'small muted' }, '這杯還沒有照片。先拍一張酒標（背標更好）。'),
+      ph.length ? strip : null,
+      h('div', { class: 'btnrow' },
+        h('button', { type: 'button', class: 'btn', disabled: apiBusy, onclick: () => camIn.click() }, '拍照並加入這杯'), h('button', { type: 'button', class: 'btn', disabled: apiBusy, onclick: () => galIn.click() }, '選照片並加入這杯'),
+        h('button', { type: 'button', class: 'btn primary', id: 'gapiRead', disabled: apiBusy || !selP.size, onclick: runRead }, selP.size ? '用 Gemini 讀這 ' + selP.size + ' 張照片' : '先選要讀的照片')),
+      camIn, galIn, apiStat);
+  };
+  const runRead = async () => {
+    if (apiBusy || !selP.size) return;
+    if (!(await gapiConsent())) return;
+    apiBusy = true; apiStat.innerHTML = ''; apiStat.append(gapiBusy('Gemini 正在讀酒標…（通常 5–30 秒，請先別離開這一頁）')); drawApi();
+    try {
+      const r = await GAPI.readLabel([...selP].filter(id => arr(w.photos).some(p => p.id === id)));
+      if (!det.isConnected) return;
+      ta.value = r.text; apiStat.innerHTML = ''; apiStat.append(h('div', { class: 'note ok', role: 'status' }, 'Gemini（' + r.model + '）回覆了，已放進下面的文字框並解析。請核對預覽再套用。'));
+      doParse(); safe(() => out.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    } catch (e) { if (!det.isConnected) return; apiStat.innerHTML = ''; apiStat.append(gapiFailBox(e)); }
+    finally { apiBusy = false; if (det.isConnected) drawApi(); }
+  };
+  const onPh = () => { if (!det.isConnected) { document.removeEventListener('wsetphotos', onPh); return; } if (!apiBusy) drawApi(); };
+  document.addEventListener('wsetphotos', onPh);
+  det.addEventListener('toggle', () => { if (det.open && !apiBusy) drawApi(); });
+  drawApi();
   const copyBtn = h('button', { type: 'button', class: 'btn', id: 'aicopy', onclick: async () => {
     try { await navigator.clipboard.writeText(LABEL_PROMPT); toast('已複製辨識指令'); }
     catch (e) { box.open = true; pbox.select(); toast('請長按全選後複製'); }
   } }, '複製辨識指令');
   const pbox = h('textarea', { class: 'mono', readonly: true, rows: 6, 'aria-label': '辨識指令全文' }, LABEL_PROMPT);
   const box = h('details', { class: 'lay' }, h('summary', null, '看指令內容'), h('div', { class: 'body' }, pbox));
-  det.append(h('div', { class: 'aibody' }, h('ol', { class: 'steps' },
+  det.append(h('div', { class: 'aibody' }, apiBlk, h('div', { class: 'small muted' }, GAPI.key ? '或者用複製貼上（不花 API 額度）：' : '沒有金鑰也能用，照下面三步：'), h('ol', { class: 'steps' },
     h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '複製指令，到 Gemini 貼上並附酒標照片'), h('div', { class: 'btnrow' }, copyBtn), box)),
     h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '把 Gemini 的回覆貼回來'), ta,
       h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'aiparse', onclick: doParse }, '解析並預覽'),
@@ -1648,14 +1936,17 @@ function viewForm(app, id) {
         h('button', { type: 'button', class: 'x', 'aria-label': '移除照片', onclick: async () => { w.photos.splice(i, 1); await Store.del('photos', p.id); touch(w); drawPhotos(); } }, '×'),
         h('select', { 'aria-label': '照片類別', onchange: e => { p.kind = e.target.value; touch(w); } }, ['酒標', '酒瓶', '菜色', '其他'].map(k => h('option', { value: k, selected: p.kind === k }, k)))));
     });
+    document.dispatchEvent(new CustomEvent('wsetphotos'));
   };
   const addFiles = async files => {
+    const ids = [];
     for (const f of files) {
       const blob = await shrink(f); const pid = uid('p');
       await Store.put('photos', { id: pid, blob, type: blob.type });
-      w.photos.push({ id: pid, kind: w.photos.length ? '其他' : '酒標' });
+      w.photos.push({ id: pid, kind: w.photos.length ? '其他' : '酒標' }); ids.push(pid);
     }
     touch(w); drawPhotos();
+    return ids;
   };
   const camIn = h('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'hidden', id: 'cam', onchange: e => { addFiles([...e.target.files]); e.target.value = ''; } });
   const galIn = h('input', { type: 'file', accept: 'image/*', multiple: true, class: 'hidden', id: 'gal', onchange: e => { addFiles([...e.target.files]); e.target.value = ''; } });
@@ -1670,7 +1961,7 @@ function viewForm(app, id) {
   const prefill = window._prefillReply || ''; window._prefillReply = '';
   const secA = h('section', { class: 'sec' },
     h('h2', null, '基本資料'),
-    buildAiPanel(w, aiApplied, prefill),
+    buildAiPanel(w, aiApplied, prefill, { addFiles }),
     h('div', { class: 'fields' },
       fin('日期', 'date', 'date'),
       fin('年份', 'vintage', 'text', { attrs: { inputmode: 'numeric', placeholder: '2021 或 NV' } }),
@@ -2416,7 +2707,7 @@ function vwWhy(w, inf, pickRef) {
 /*GEMV_START*/
 /* ========= 第五輪：請 Gemini 查這一年（不串 API；複製指令→貼回→解析預覽→套用，來源標 gemini、待核對） =========
    GEMV_PROMPT 由程式從 06_AI工作區\gemini-setup\04_年份狀況查詢_gem_20261011.md 的「指令全文」逐字讀出注入，不手改。 */
-const GEMV_PROMPT = "你是葡萄酒「年份狀況」查證助手。我會給你一個產區、一個年份（有時附酒種或品種），請你【上網搜尋並查證】該產區在該年份的葡萄生長季氣候與年份評價，整理成下面固定的 JSON。\n\n【輸出格式】\n只輸出一個 JSON 區塊（用 ```json 包起來），不要加任何其他文字：\n{\"產區\":\"\",\"年份\":\"\",\"溫度\":\"\",\"降雨\":\"\",\"重大事件\":[],\"收穫\":\"\",\"收穫期降雨\":\"\",\"產量\":\"\",\"成熟度\":\"\",\"品質判斷\":\"\",\"一句感受\":\"\",\"來源\":[],\"信心\":\"\",\"備註\":\"\"}\n\n【欄位與可用的值】\n- 產區：照我給的產區寫。\n- 年份：四位數西元年份。\n- 溫度：只能是「偏熱」「正常」「偏冷」其中之一，或留空 \"\"。指整個生長季相對該產區平均。\n- 降雨：只能是「多雨」「正常」「少雨」其中之一，或留空 \"\"。\n- 重大事件：陣列，只能使用這些詞：春霜、冰雹、乾旱、熱浪、病害、日照不足、開花期惡劣天氣、野火。沒有或不確定就給空陣列 []。\n- 收穫：只能是「早」「正常」「晚」其中之一，或留空 \"\"。\n- 收穫期降雨：只能是「有」「無」其中之一（收穫期間有沒有下雨），或留空 \"\"。\n- 產量：只能是「少」「正常」「多」其中之一，或留空 \"\"。\n- 成熟度：只能是「未熟」「成熟」「過熟」其中之一，或留空 \"\"。\n- 品質判斷：只能是「卓越」「佳」「普通」「不均」「弱」其中之一，或留空 \"\"。卓越＝公認的頂級年份；佳＝整體很好；普通＝中規中矩；不均＝各區或各酒莊落差很大、各家評價不一；弱＝整體偏弱。\n- 一句感受：用台灣繁體中文寫一到兩句，像品飲手冊的簡介，只寫這一年的天氣與酒的整體風格（例如「夏季偏熱少雨，酒體飽滿、酸度偏低、果味成熟。」）。不要寫評分數字、價格、酒莊推薦或購買建議。查不到就留空 \"\"。\n- 來源：陣列，列出你真的讀過、並用來填這些欄位的網頁完整網址（https://…），最多 6 個。沒有就給 []。\n- 信心：只能是「高」「中」「低」。高＝兩個以上獨立且可靠的來源說法一致；中＝只有一個可靠來源，或來源之間有些出入；低＝只有零碎或二手的資料。沒有任何來源時一定填「低」。\n- 備註：一兩句，說明你的依據範圍或限制（例如「依夜丘紅酒的評價」「各區差異大」「資料不足」）；沒有就留空字串。\n\n【規則】\n1. 必須實際上網搜尋再回答。優先找產區公會或官方年份報告、Decanter、Wine Spectator、Jancis Robinson、Vinous、Wine Enthusiast、Wine Advocate、Wine Scholar Guild 等可靠的專業來源。\n2. 不確定就留空（文字欄位給 \"\"，陣列給 []），絕對不要編造。沒有查到可靠來源支持的欄位一律留空；不要用「這類產區通常如何」去推測某一年的天氣或品質。\n3. 每個有填的欄位，都要能在你列出的「來源」裡找到依據。找不到來源就不要填。\n4. 如果那一年還沒收穫完，或網路上資料很少，就盡量留空，並在「備註」寫「資料不足」。\n5. 產區範圍很大、不同酒種或品種差異明顯時，若我有給酒種或品種，就針對它查，並在「備註」寫明依據的範圍；若同一年不同子產區落差很大，「品質判斷」填「不均」並在「備註」說明。\n6. 欄位名稱固定使用上面的中文，不要改名，也不要增減欄位。\n7. 只回傳 JSON 區塊，不要開場白，也不要結語。";
+const GEMV_PROMPT = "你是葡萄酒「年份狀況」查證助手。我會給你一個產區、一個年份（有時附酒種或品種），請你【上網搜尋並查證】該產區在該年份的葡萄生長季氣候與年份評價，整理成下面固定的 JSON。\n\n【輸出格式】\n只輸出一個 JSON 區塊（用 ```json 包起來），不要加任何其他文字：\n{\"產區\":\"\",\"年份\":\"\",\"溫度\":\"\",\"降雨\":\"\",\"重大事件\":[],\"收穫\":\"\",\"收穫期降雨\":\"\",\"產量\":\"\",\"成熟度\":\"\",\"品質判斷\":\"\",\"一句感受\":\"\",\"來源\":[],\"信心\":\"\",\"備註\":\"\"}\n\n【欄位與可用的值】\n- 產區：照我給的產區寫。\n- 年份：四位數西元年份。\n- 溫度：只能是「偏熱」「正常」「偏冷」其中之一，或留空 \"\"。指整個生長季相對該產區平均。\n- 降雨：只能是「多雨」「正常」「少雨」其中之一，或留空 \"\"。\n- 重大事件：陣列，只能使用這些詞：春霜、冰雹、乾旱、熱浪、病害、日照不足、開花期惡劣天氣、野火。沒有或不確定就給空陣列 []。\n- 收穫：只能是「早」「正常」「晚」其中之一，或留空 \"\"。\n- 收穫期降雨：只能是「有」「無」其中之一（收穫期間有沒有下雨），或留空 \"\"。\n- 產量：只能是「少」「正常」「多」其中之一，或留空 \"\"。\n- 成熟度：只能是「未熟」「成熟」「過熟」其中之一，或留空 \"\"。\n- 品質判斷：只能是「卓越」「佳」「普通」「不均」「弱」其中之一，或留空 \"\"。卓越＝公認的頂級年份；佳＝整體很好；普通＝中規中矩；不均＝各區或各酒莊落差很大、各家評價不一；弱＝整體偏弱。\n- 一句感受：用台灣繁體中文寫一到兩句，像品飲手冊的簡介，只寫這一年的天氣與酒的整體風格（例如「夏季偏熱少雨，酒體飽滿、酸度偏低、果味成熟。」）。不要寫評分數字、價格、酒莊推薦或購買建議。查不到就留空 \"\"。\n- 來源：陣列，列出你真的讀過、並用來填這些欄位的網頁完整網址（https://…），最多 6 個。沒有就給 []。\n- 信心：只能是「高」「中」「低」。高＝兩個以上獨立且可靠的來源說法一致；中＝只有一個可靠來源，或來源之間有些出入；低＝只有零碎或二手的資料。沒有任何來源時一定填「低」。\n- 備註：一兩句，說明你的依據範圍或限制（例如「依夜丘紅酒的評價」「各區差異大」「資料不足」）；沒有就留空字串。\n\n【規則】\n1. 必須實際上網搜尋再回答。優先找產區公會或官方年份報告、Decanter、Wine Spectator、Jancis Robinson、Vinous、Wine Enthusiast、Wine Advocate、Wine Scholar Guild 等可靠的專業來源。\n2. 如果用英文查不到、或只找到零碎的資料，請改用該產區當地的語言再搜尋一次（例：日本用日文、義大利用義大利文、法國用法文、德國用德文、西班牙用西班牙文、葡萄牙用葡萄牙文），優先找當地的產區公會、農政單位、官方統計與在地媒體所發布的年份、作柄、收穫報告。仍然只列你真的讀過的來源網址；用當地語言也查不到，就照下面的規則留空，不要編造。\n3. 不確定就留空（文字欄位給 \"\"，陣列給 []），絕對不要編造。沒有查到可靠來源支持的欄位一律留空；不要用「這類產區通常如何」去推測某一年的天氣或品質。\n4. 每個有填的欄位，都要能在你列出的「來源」裡找到依據。找不到來源就不要填。\n5. 如果那一年還沒收穫完，或網路上資料很少，就盡量留空，並在「備註」寫「資料不足」。\n6. 產區範圍很大、不同酒種或品種差異明顯時，若我有給酒種或品種，就針對它查，並在「備註」寫明依據的範圍；若同一年不同子產區落差很大，「品質判斷」填「不均」並在「備註」說明。\n7. 欄位名稱固定使用上面的中文，不要改名，也不要增減欄位。\n8. 只回傳 JSON 區塊，不要開場白，也不要結語。";
 const GEMV_SAMPLE = '```json\n{"產區":"勃根地（Burgundy）","年份":"2019","溫度":"偏熱","降雨":"少雨","重大事件":["春霜"],"收穫":"","收穫期降雨":"","產量":"少","成熟度":"成熟","品質判斷":"卓越","一句感受":"生長季偏熱少雨、春天有霜害使產量偏少，酒款濃縮、結構強，被視為很好的年份。","來源":["https://example.com/burgundy-2019-report"],"信心":"中","備註":"範例資料（虛構網址與內容），僅供試用解析。"}\n```';
 /* [代號, 顯示名, 欄位名別名] */
 const VF = [
@@ -2476,8 +2767,20 @@ function gemQuery(w) {
   const kind = [TYPE_NAME[w.type], b.grape].filter(Boolean).join('／');
   return '產區：' + reg + '\n' + (ctry ? '國家：' + ctry + '\n' : '') + '年份：' + b.vintage + (kind ? '\n酒種／品種：' + kind : '');
 }
-const gemFullPrompt = w => GEMV_PROMPT + '\n\n【這次要查的酒】\n' + gemQuery(w) + '\n\n請依上面的規則上網查證，只回傳 JSON 區塊。';
-const gemOnlyPrompt = w => '【這次要查的酒】\n' + gemQuery(w) + '\n\n請依規則上網查證，只回傳 JSON 區塊。';
+const gemFullPrompt = w => GEMV_PROMPT + '\n\n【這次要查的酒】\n' + gemQuery(w) + '\n\n請依上面的規則上網查證（英文資料查不到，就改用該產區當地語言再搜尋），只回傳 JSON 區塊。';
+const gemOnlyPrompt = w => '【這次要查的酒】\n' + gemQuery(w) + '\n\n請依規則上網查證（英文資料查不到，就改用該產區當地語言再搜尋），只回傳 JSON 區塊。';
+/* 來源清單的一列：接地來源＝綠、模型自填同網站／未驗證＝黃 */
+function gemSrcLi(x) {
+  const pc = x.ok === true ? ['ok', '接地來源'] : x.ok === 'host' ? ['warn', '模型自填・同網站，頁面未驗證'] : ['warn', '未驗證'];
+  return h('li', null, h('a', { href: x.u, target: '_blank', rel: 'noopener noreferrer' }, x.ok === true ? (x.t || x.u) : x.u), h('span', { class: 'pill ' + pc[0] }, pc[1]));
+}
+/* Google 搜尋接地要求顯示的「搜尋建議」：放進沒有腳本權限的沙盒 iframe */
+function gemSugg(html) {
+  if (!html || typeof html !== 'string') return null;
+  const f = h('iframe', { class: 'gsugg', sandbox: 'allow-popups allow-popups-to-escape-sandbox', referrerpolicy: 'no-referrer', title: 'Google 搜尋建議', loading: 'lazy' });
+  f.srcdoc = '<meta charset="utf-8"><base target="_blank">' + html;
+  return h('details', { class: 'lay' }, h('summary', null, 'Google 搜尋建議（接地服務要求顯示）'), h('div', { class: 'body' }, f));
+}
 const GEM_APPLY = [['temp', '溫度'], ['rain', '降雨'], ['events', '重大事件'], ['harvest', '收穫'], ['hrain', '收穫期下雨'], ['yield', '產量'], ['ripe', '成熟度'], ['quality', '葡萄品質判斷']];
 const gemHrain = x => x === '有' ? '收穫期有下雨' : x === '無' ? '收穫期沒下雨' : '';
 const gemQ2VW = q => ({ '卓越': '極好', '佳': '很好', '普通': '普通', '不均': '普通', '弱': '差' })[q] || '';
@@ -2502,7 +2805,7 @@ function gemCard(w, onChange) {
   const g = w.vw && w.vw.gem; if (!g) return null;
   const y = parseInt(g.year, 10) || '', card = h('div', { class: 'vfeel gem' });
   card.append(h('div', { class: 'vf-hd' }, h('span', { class: 'vf-y' }, String(y || w.basic.vintage || '')),
-    h('div', { class: 'vf-meta' }, h('span', { class: 'vf-n' }, displayRegion(g.region || w.basic.region)), h('span', { class: 'pill info' }, 'Gemini 查詢，待核對'),
+    h('div', { class: 'vf-meta' }, h('span', { class: 'vf-n' }, displayRegion(g.region || w.basic.region)), h('span', { class: 'pill ' + (g.api && !g.api.grounded ? 'warn' : 'info') }, g.api ? (g.api.grounded ? 'Gemini API 查詢（有接地），待核對' : 'Gemini API 查詢（未接地），可信度低') : 'Gemini 查詢，待核對'),
       g.q ? h('span', { class: 'pill ' + VQ_CLS[g.q] }, h('i', { class: 'qsw ' + VQ_CLS[g.q] }), '品質：' + g.q) : null)));
   const tags = [g.temp, g.rain].filter(x => x && x !== '正常').concat(arr(g.events));
   if (tags.length) card.append(h('div', { class: 'chips' }, tags.map(t => h('span', { class: 'chip static' }, t))));
@@ -2512,9 +2815,10 @@ function gemCard(w, onChange) {
   if (hs.length) card.append(h('div', { class: 'note info vwhint' }, h('b', null, '預期風味提示（照這年的天氣推想）'), h('ul', null, hs.map(x => h('li', null, x))), h('div', { class: 'small muted' }, '一般原則，僅供和實際喝到的對照。')));
   card.append(h('div', { class: 'small vf-src' }, h('span', { class: 'muted' }, '信心：'), g.conf ? h('span', { class: 'pill ' + gemConfCls(g.conf) }, g.conf) : h('span', { class: 'pill gray' }, '未標'),
     !arr(g.sources).length ? h('span', { class: 'pill warn', style: 'margin-left:6px' }, '沒有來源網址，只當線索') : null),
-    arr(g.sources).length ? h('ol', { class: 'srcs' }, g.sources.map(u => h('li', null, h('a', { href: u, target: '_blank', rel: 'noopener noreferrer' }, u)))) : null,
+    arr(g.srcInfo).length ? h('ol', { class: 'srcs' }, g.srcInfo.map(gemSrcLi)) : arr(g.sources).length ? h('ol', { class: 'srcs' }, g.sources.map(u => h('li', null, h('a', { href: u, target: '_blank', rel: 'noopener noreferrer' }, u)))) : null,
+    g.api && !g.api.grounded ? h('div', { class: 'note' }, '這筆沒有上網搜尋（' + String(g.api.why || '未接地').replace(/。$/, '') + '），內容憑模型記憶，可能是錯的；來源網址都未驗證。只當線索。') : null,
     g.note ? h('div', { class: 'small muted' }, '備註：' + g.note) : null,
-    h('div', { class: 'small muted' }, '來源是 Gemini 回報的，請自己點開確認；查詢日 ' + new Date(g.at || Date.now()).toLocaleDateString() + '。不列入完整度與老師版命中率。'),
+    h('div', { class: 'small muted' }, (g.api ? (g.api.grounded ? '來源以 Google 搜尋接地資訊為準（模型自己填的網址若不在其中會標「未驗證」），仍請自己點開確認' : '請自己查證') : '來源是 Gemini 回報的，請自己點開確認') + '；查詢日 ' + new Date(g.at || Date.now()).toLocaleDateString() + (g.api && g.api.model ? '；模型 ' + g.api.model : '') + '。不列入完整度與老師版命中率。'),
     h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', onclick: () => { const v = w.vw; Object.keys(v.gsrc || {}).forEach(k => { if (v.gsrc[k]) { v[k] = k === 'events' ? [] : ''; delete v.man[k]; } }); v.gsrc = {}; v.gem = null; onChange(); toast('已移除 Gemini 查詢資料'); } }, '移除這筆 Gemini 資料')));
   return card;
 }
@@ -2529,17 +2833,28 @@ function buildGemPanel(w, primary, onApply) {
   const pbox = h('textarea', { class: 'mono', readonly: true, rows: 6, 'aria-label': '查詢指令全文' }, gemFullPrompt(w));
   const box = h('details', { class: 'lay' }, h('summary', null, '看指令內容'), h('div', { class: 'body' }, pbox));
   const showErr = msg => { out.innerHTML = ''; out.append(h('div', { class: 'note err', role: 'alert' }, msg)); };
-  const doParse = () => {
+  const doParse = meta => {
+    meta = meta && meta.via ? meta : null;
     out.innerHTML = '';
     let res; try { res = parseVintageReply(ta.value); } catch (e) { showErr(e.message); return; }
     const d = res.d, v = w.vw;
     const have = d.temp || d.rain || d.events.length || d.harvest || d.hrain || d.yield || d.ripe || d.q || d.feel;
     if (!have) { showErr('有讀到格式，但每個欄位都是空的（Gemini 可能沒查到可靠資料）。這不是壞事：沒有資料就不要硬填。'); return; }
     const warn = [];
+    let srcInfo = null;
+    if (meta) {
+      srcInfo = gapiMergeSources(d.sources, meta.ground, meta.grounded);
+      d.sources = srcInfo.map(x => x.u);
+      if (!meta.grounded) {
+        warn.push('這次沒有接地（沒有實際上網搜尋）' + (meta.why ? '：' + meta.why : '') + '內容憑模型記憶，可信度較低，來源網址全部未驗證。只當線索，建議改用複製貼上到 Gemini 網頁版查。');
+        if (d.conf && d.conf !== '低') warn.push('信心已從「' + d.conf + '」降為「低」。');
+        d.conf = '低';
+      } else if (srcInfo.some(x => x.ok !== true)) warn.push('有 ' + srcInfo.filter(x => x.ok !== true).length + ' 個網址是模型自己填的、不在 Google 接地來源內，標為「未驗證」或「同網站」。');
+    }
     const wy = parseInt(w.basic.vintage, 10);
     if (d.year && wy && parseInt(d.year, 10) !== wy) warn.push('回覆的年份是 ' + d.year + '，這杯的年份是 ' + wy + '，請確認 Gemini 查的是對的那一年。');
     if (!d.sources.length) warn.push('回覆沒有來源網址：只當線索，不要當成查證過的資料。');
-    if (d.conf === '低') warn.push('Gemini 標的信心是「低」。');
+    if (d.conf === '低' && !(meta && !meta.grounded)) warn.push('Gemini 標的信心是「低」。');
     if (d.bad.length) warn.push('這些值不在 App 的選項內，已略過：' + d.bad.join('、'));
     const rows = [];
     const cur = { temp: v.temp, rain: v.rain, events: arr(v.events).join('、'), harvest: v.harvest, hrain: v.hrain, yield: v.yield, ripe: v.ripe, quality: v.quality };
@@ -2569,19 +2884,50 @@ function buildGemPanel(w, primary, onApply) {
       checks.forEach(([r, cb]) => { if (!cb.checked || r.same) return; v[r.k] = Array.isArray(r.val) ? r.val.slice() : r.val; v.man[r.k] = true; delete v.auto[r.k]; v.gsrc[r.k] = true; done.push(r.label); });
       if (noteCb && noteCb.checked) { v.note = d.feel; v.man.note = true; delete v.auto.note; done.push('一行備註'); }
       v.gem = { src: 'gemini', region: d.region, year: d.year, temp: d.temp, rain: d.rain, events: d.events, harvest: d.harvest, hrain: d.hrain, yield: d.yield, ripe: d.ripe, q: d.q, feel: d.feel, sources: d.sources, conf: d.conf, note: d.note, at: Date.now() };
+      if (meta) { v.gem.srcInfo = srcInfo; v.gem.api = { model: meta.model, grounded: !!meta.grounded, queries: arr(meta.queries).slice(0, 6), why: meta.why || '' }; }
       onApply(done); toast('已套用 Gemini 查詢結果（待核對）');
     } }, '套用勾選的欄位（並留下這筆查詢紀錄）');
     out.append(h('div', { class: 'small muted' }, '解析方式：' + res.mode + '。已經有你自己記的欄位預設不覆蓋，要換就勾選。'),
       warn.map(t => h('div', { class: 'note' }, t)),
       d.conf ? h('div', { class: 'small' }, '信心：', h('span', { class: 'pill ' + gemConfCls(d.conf) }, d.conf), d.sources.length ? h('span', { class: 'muted' }, '　來源 ' + d.sources.length + ' 個') : null) : null,
+      meta ? h('div', { class: 'small' }, meta.grounded ? '接地：有（' + meta.model + '，用 Google 搜尋）' : '接地：沒有', arr(meta.queries).length ? h('span', { class: 'muted' }, '；搜尋了：' + meta.queries.slice(0, 4).join('、')) : null) : null,
+      srcInfo && srcInfo.length ? h('ol', { class: 'srcs' }, srcInfo.map(gemSrcLi)) : null,
+      meta ? gemSugg(meta.suggest) : null,
       rows.length || d.feel ? list : h('div', { class: 'note info' }, '沒有可以套用的天氣欄位。'), h('div', { class: 'btnrow' }, apply));
   };
-  det.append(h('div', { class: 'aibody' }, h('div', { class: 'small muted' }, primary ? '年份表沒有這一格的資料，可以請 Gemini 上網查。不串 API：你複製指令、貼到 Gemini、再把回覆貼回來。結果會標「Gemini 查詢，待核對」。' : '年份表已有這一年；想多一個說法時，可以請 Gemini 交叉查證。結果另外存，不會蓋掉年份表。'),
+  const apiBlk = h('div', { class: 'apiblk', id: 'gapiVint' }), apiStat = h('div', { class: 'stack' }); let apiBusy = false;
+  const drawApi = () => {
+    apiBlk.innerHTML = '';
+    apiBlk.append(h('div', { class: 'h' }, primary ? '直接讓 Gemini 查這一年' : '直接讓 Gemini 交叉查證'));
+    if (!GAPI.key) { apiBlk.append(h('div', { class: 'small muted' }, '用你自己的 Gemini API 金鑰，一鍵上網查，不用複製貼上。金鑰只存在這台裝置，到設定貼一次就好。'), h('div', { class: 'btnrow' }, gapiNeedKeyBtn()), apiStat); return; }
+    const cfg = GAPI.cfg(), gOn = cfg.ground && cfg.gOK !== false && !GAPI.gBlocked;
+    apiBlk.append(
+      gOn ? h('div', { class: 'small muted' }, '用 ' + cfg.vmodel + ' 並開啟 Google 搜尋接地：來源網址以 Google 的接地資訊為準，模型自己填的網址若不在其中會標「未驗證」。')
+        : h('div', { class: 'note' }, '目前不會用 Google 搜尋接地（' + (!cfg.ground ? '你在設定裡關掉了' : '這把金鑰測到不能用，免費層通常不含') + '）。這樣查出來是憑模型記憶，可信度較低、來源全部未驗證；要可靠的結果，建議用下面的複製貼上到 Gemini 網頁版，或到設定看怎麼開接地。'),
+      h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn' + (primary ? ' primary' : ''), id: 'gapiAsk', disabled: apiBusy, onclick: runAsk }, primary ? '用 Gemini 查這一年' : '用 Gemini 交叉查證')),
+      apiStat);
+  };
+  const runAsk = async () => {
+    if (apiBusy) return;
+    if (!(await gapiConsent())) return;
+    apiBusy = true; apiStat.innerHTML = ''; apiStat.append(gapiBusy('Gemini 正在查…（上網搜尋常需要 20–60 秒，請先別離開這一頁）')); drawApi();
+    try {
+      const r = await GAPI.askVintage(w);
+      if (!det.isConnected) return;
+      ta.value = r.text; apiStat.innerHTML = '';
+      doParse({ via: 'api', grounded: r.grounded, ground: r.cites, queries: r.queries, suggest: r.suggest, model: r.model, why: r.why });
+      safe(() => out.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    } catch (e) { if (!det.isConnected) return; apiStat.innerHTML = ''; apiStat.append(gapiFailBox(e)); }
+    finally { apiBusy = false; if (det.isConnected) drawApi(); }
+  };
+  drawApi();
+  det.append(h('div', { class: 'aibody' }, h('div', { class: 'small muted' }, primary ? '年份表沒有這一格的資料，可以請 Gemini 上網查：有設金鑰就按下面的按鈕直接查；沒有金鑰（或失敗）就用複製貼上。結果都會標「待核對」。' : '年份表已有這一年；想多一個說法時，可以請 Gemini 交叉查證。結果另外存，不會蓋掉年份表。'),
+    apiBlk, h('div', { class: 'small muted' }, GAPI.key ? '或者用複製貼上（不花 API 額度）：' : '沒有金鑰也能用，照下面三步：'),
     h('ol', { class: 'steps' },
       h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '複製查詢指令，貼到 Gemini'), h('pre', { class: 'gemq' }, gemQuery(w)),
         h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'gemvcopy', onclick: () => cp(gemFullPrompt(w), '已複製查詢指令') }, '複製查詢指令'), h('button', { type: 'button', class: 'btn', id: 'gemvcopy2', onclick: () => cp(gemOnlyPrompt(w), '已複製這次的問題') }, '只複製這次的問題（已建 Gem）')), box)),
       h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '把 Gemini 的回覆貼回來'), ta,
-        h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'gemvparse', onclick: doParse }, '解析並預覽'), h('button', { type: 'button', class: 'btn ghost', id: 'gemvsample', onclick: () => { ta.value = GEMV_SAMPLE; ta.focus(); } }, '貼上範例回覆')))),
+        h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'gemvparse', onclick: () => doParse() }, '解析並預覽'), h('button', { type: 'button', class: 'btn ghost', id: 'gemvsample', onclick: () => { ta.value = GEMV_SAMPLE; ta.focus(); } }, '貼上範例回覆')))),
       h('li', null, h('span', { class: 'n' }, '3'), h('div', { class: 't' }, h('div', { class: 'h' }, '核對預覽，勾選要套用的欄位'), out)))));
   return det;
 }
@@ -3250,12 +3596,70 @@ async function doImport(text) {
   }
   return { added, updated, skipped, ov };
 }
+/* 設定頁：Gemini API 區（金鑰、模型、接地、測試、同意） */
+function gapiSection() {
+  const sec = h('section', { class: 'sec', id: 'gapiSec' });
+  const redraw = () => { const y = window.scrollY; draw(); window.scrollTo(0, y); };
+  const reset = p => { GAPI.setCfg(Object.assign({ gOK: undefined }, p || {})); GAPI.gBlocked = false; };
+  const draw = () => {
+    sec.innerHTML = '';
+    const cfg = GAPI.cfg(), raw = S.api || {};
+    sec.append(h('h2', null, 'Gemini API（選用）', h('small', null, '直接讀酒標、查年份')),
+      h('div', { class: 'prose small muted' }, '不設也完全能用：原本的「複製指令 → 貼到 Gemini → 貼回來」都還在。設了金鑰，酒標辨識和年份查詢就能一鍵完成；任何一步失敗，都會說明原因並回到貼上流程，不丟資料。'),
+      h('div', { class: 'note info' }, h('b', null, '會送出什麼：'), '只有酒標照片（縮到長邊 1280px、JPEG）與查詢文字（產區、年份、酒種／品種、指令）。直接從這台裝置連到 Google 官方端點（generativelanguage.googleapis.com），不經過任何第三方。免費層送出的內容，Google 可能用來改進產品。'),
+      h('details', { class: 'lay', id: 'gapiHow' }, h('summary', null, '怎麼拿金鑰、怎麼鎖住它（建議先做）'), h('div', { class: 'body' }, h('ol', { class: 'steps' },
+        h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '建一把專屬這個 App 的新金鑰'), h('div', { class: 'prose small muted' }, '到 Google AI Studio 的 API 金鑰頁（aistudio.google.com/apikey）建立新金鑰。不要和 Judge 共用同一把，這樣哪個出問題都能單獨關掉。'))),
+        h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '限制只能從你的網址使用'), h('div', { class: 'prose small muted' }, '到 Google Cloud 主控台 → API 和服務 → 憑證 → 點這把金鑰 → 「應用程式限制」選「網站」→ 新增 ' + GAPI_REFERER + '；「API 限制」選「限制金鑰」，只勾 Generative Language API。金鑰存在你這台裝置、由瀏覽器直接送出。網站限制能擋掉大部分亂用，但不是絕對安全（有技術的人拿到金鑰仍可偽造來源），所以才建議用專屬金鑰；一發現用量異常，就到 Google 把它刪掉重建。'))),
+        h('li', null, h('span', { class: 'n' }, '3'), h('div', { class: 't' }, h('div', { class: 'h' }, '貼在下面，儲存後按「測試金鑰」'), h('div', { class: 'prose small muted' }, '設了網站限制後，從本機檔案或其他網址開啟 App 會被拒絕（403）；要用就從 ' + GAPI_REFERER.replace('/*', '/') + ' 開。')))),
+        h('div', { class: 'note' }, h('b', null, '免費層的限制：'), '有每分鐘與每日上限（到 AI Studio 看自己的數字）。照 Google 官方定價頁，Gemini 3 以上的模型免費層「不含」Google 搜尋接地，付費層才有（每月 5,000 次內免費）；Gemini 2.5 Flash 免費層含接地（每日 500 次），但 Google 說 2.5 系列現在只開放給用過的帳號。所以免費金鑰查年份時，可能只能「不接地」查：結果憑模型記憶、可信度較低，App 會明確標示。需要可靠來源時，用複製貼上到 Gemini 網頁版查。'))));
+    /* 金鑰 */
+    const kin = h('input', { type: 'password', id: 'gapiKey', 'aria-label': 'Gemini API 金鑰', placeholder: GAPI.key ? '要換金鑰時貼在這裡' : '貼上金鑰', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', name: 'gapi-' + Math.random().toString(36).slice(2) });
+    const kmsg = h('div', { class: 'small', role: 'status', id: 'gapiKeyMsg' });
+    sec.append(h('div', { class: 'grp' }, h('div', { class: 'lbl' }, 'API 金鑰'),
+      GAPI.key ? h('div', { class: 'note ok', id: 'gapiKeySet' }, '已設定金鑰（••••' + GAPI.key.slice(-4) + '），只存在這台裝置。匯出備份不會包含它。') : h('div', { class: 'small muted', id: 'gapiKeySet' }, '還沒設定。'),
+      h('div', { class: 'keyline' }, kin, h('button', { type: 'button', class: 'btn primary', id: 'gapiKeySave', onclick: async () => {
+        const v = kin.value.trim().replace(/^["']|["']$/g, ''); kin.value = '';
+        if (!v) { kmsg.textContent = '還沒貼上金鑰。'; return; }
+        if (!GAPI.keyOk(v)) { kmsg.textContent = '這不像金鑰（要 20 個字以上、只有英數與符號、沒有空白或中文）。請重新複製。'; return; }
+        await GAPI.setKey(v); reset(); toast('金鑰已存在這台裝置'); redraw();
+      } }, '儲存金鑰')), kmsg,
+      h('div', { class: 'btnrow' },
+        h('button', { type: 'button', class: 'btn', id: 'gapiTest', disabled: !GAPI.key, onclick: async () => {
+          const btn = $('#gapiTest'), tb = $('#gapiTestOut'); btn.disabled = true; tb.innerHTML = ''; tb.append(gapiBusy('正在測試…（約 5–60 秒）'));
+          let r; try { r = await GAPI.test(); } catch (e) { r = { key: { ok: false, msg: GAPI.scrub(e && e.message) } }; }
+          const tb2 = $('#gapiTestOut'); if (!tb2) return; const btn2 = $('#gapiTest'); if (btn2) btn2.disabled = false; tb2.innerHTML = '';
+          if (!r.key.ok) tb2.append(gapiFailBox({ msg: r.key.msg, detail: r.key.detail, kind: r.key.kind }));
+          else {
+            tb2.append(h('div', { class: 'note ok', role: 'status' }, '金鑰可用：模型 ' + r.key.model + ' 回應正常（格式：' + (r.key.fmt === 'interactions' ? 'Interactions API' : 'generateContent') + '）。'));
+            if (r.ground && r.ground.ok) tb2.append(h('div', { class: 'note ok' }, 'Google 搜尋接地可用（' + r.ground.model + '）：查年份會上網搜尋，來源以接地資訊為準。'));
+            else tb2.append(h('div', { class: 'note' }, h('b', null, 'Google 搜尋接地不能用：'), (r.ground && r.ground.msg) || '', r.ground && r.ground.kind === 'ground' ? ' 查年份會退回「不接地」，結果憑模型記憶、可信度較低。想要接地：把「年份查詢模型」改成 gemini-2.5-flash（免費層含接地，若帳號開放），或開啟付費，或改用複製貼上到 Gemini 網頁版。' : ' 這次不是接地本身的問題，稍後再按一次測試。', r.ground && r.ground.detail ? h('details', { class: 'small muted' }, h('summary', { style: 'min-height:32px' }, '看 Google 的原始說明'), h('div', { style: 'overflow-wrap:anywhere' }, r.ground.detail)) : null));
+          }
+        } }, '測試金鑰'),
+        h('button', { type: 'button', class: 'btn danger', id: 'gapiKeyClear', disabled: !GAPI.key, onclick: async () => { if (!confirm('清除這台裝置上的 Gemini 金鑰？（不影響 Google 那邊的金鑰；要作廢請到 Google 刪掉它）')) return; await GAPI.clearKey(); reset(); toast('金鑰已清除'); redraw(); } }, '清除金鑰')),
+      h('div', { id: 'gapiTestOut', class: 'stack' })));
+    /* 模型與接地 */
+    const mi = (id, label, key, dflt) => { const inp = h('input', { type: 'text', id, list: 'dl_gmodel', value: raw[key] || '', placeholder: dflt, autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': label,
+      onchange: e => { const v = e.target.value.trim().replace(/^models\//, ''); if (v && !GAPI.modelOk(v)) { toast('模型名稱只能用英數、點、橫線'); e.target.value = raw[key] || ''; return; } reset({ [key]: v }); toast(v ? '模型已改成 ' + v : '已還原預設 ' + dflt); } }); return h('label', { class: 'f full', for: id }, label, inp); };
+    sec.append(h('div', { class: 'fields' }, mi('gapiModel', '酒標辨識用的模型', 'model', GAPI_DEF.model), mi('gapiVModel', '年份查詢用的模型（要支援 Google 搜尋接地）', 'vmodel', GAPI_DEF.vmodel)),
+      h('datalist', { id: 'dl_gmodel' }, GAPI_MODELS.map(m => h('option', { value: m }))),
+      h('div', { class: 'small muted' }, '空白＝用預設 ' + GAPI_DEF.model + '（Google 官方模型頁列的 Flash 等級、支援圖片輸入與搜尋接地；查證日 2026-10-11）。目前生效：酒標 ' + cfg.model + '、年份 ' + cfg.vmodel + '。Google 改名或下架時，在這裡改就好。'),
+      toggle('查年份時使用 Google 搜尋接地', '關掉就一律不接地（可信度較低）；打開但金鑰不支援時，會自動退回不接地並提醒', cfg.ground, b => { reset({ ground: !cfg.ground }); redraw(); }),
+      h('label', { class: 'f full', for: 'gapiFmt' }, '呼叫格式（一般不用動）', h('select', { id: 'gapiFmt', onchange: e => { reset({ fmt: e.target.value }); toast('已更改'); } },
+        [['auto', '自動（建議）：先用 Interactions API，被拒再改 generateContent'], ['interactions', '只用 Interactions API（官方現行推薦）'], ['generateContent', '只用 generateContent（官方標為 legacy，仍支援）']].map(([v, t]) => h('option', { value: v, selected: cfg.fmt === v }, t)))));
+    /* 同意 */
+    sec.append(h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '送出前確認'),
+      h('div', { class: 'small', id: 'gapiConsentState' }, cfg.consent ? '你在 ' + new Date(cfg.consent).toLocaleDateString() + ' 同意過「照片／查詢會送到 Google Gemini」。' : '第一次用 API 功能時，會先跳出一次確認。'),
+      cfg.consent ? h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'gapiConsentOff', onclick: () => { GAPI.setCfg({ consent: 0 }); toast('已撤回，下次使用會再確認'); redraw(); } }, '撤回同意')) : null));
+  };
+  draw();
+  return sec;
+}
 function viewSettings(app) {
   const st = h('div', { class: 'stack' });
   st.append(h('section', { class: 'sec' }, h('div', { style: 'display:flex;align-items:center;gap:16px' }, art('grapes', 64),
     h('div', { class: 'prose' }, h('div', { style: 'font-size:1.25rem;font-weight:300;letter-spacing:.06em' }, '我的品飲手冊'), h('div', { class: 'small muted' }, 'WSET 第二級葡萄酒・個人學習筆記')))));
   const sampleBox = h('textarea', { class: 'mono', readonly: true, rows: 6, 'aria-label': '範例回覆' }, LABEL_SAMPLE);
-  st.append(h('section', { class: 'sec', id: 'geminiHelp' }, h('h2', null, '怎麼用 Gemini 辨識酒標', h('small', null, '不串 API，不放金鑰')),
+  st.append(h('section', { class: 'sec', id: 'geminiHelp' }, h('h2', null, '怎麼用 Gemini 辨識酒標', h('small', null, '複製貼上版，不用金鑰')),
     h('ol', { class: 'steps' },
       h('li', null, h('span', { class: 'n' }, '1'), h('div', { class: 't' }, h('div', { class: 'h' }, '複製指令，貼到 Gemini'), h('div', { class: 'prose small muted' }, '在「新增」頁的基本資料，打開「酒標辨識」按「複製辨識指令」；到 Gemini 貼上，並附上酒標（背標更好）照片。也可以把同一份指令存成 Gemini 的 Gem，之後只要丟照片。'))),
       h('li', null, h('span', { class: 'n' }, '2'), h('div', { class: 't' }, h('div', { class: 'h' }, '把回覆貼回來，按「解析並預覽」'), h('div', { class: 'prose small muted' }, 'Gemini 會回一段 JSON，整段複製貼進文字方塊就好；有多餘文字、圍欄、全形標點都能讀。'))),
@@ -3264,6 +3668,7 @@ function viewSettings(app) {
     h('div', { class: 'btnrow' },
       h('button', { class: 'btn primary', type: 'button', id: 'trySample', onclick: () => { window._prefillReply = LABEL_SAMPLE; go('/new'); } }, '貼上範例回覆，到新增頁試用'),
       h('button', { class: 'btn', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(LABEL_SAMPLE); toast('已複製範例'); } catch (e) { sampleBox.select(); toast('請手動複製'); } } }, '複製範例'))));
+  st.append(gapiSection());
   st.append(h('section', { class: 'sec' }, h('h2', null, '手冊存放位置'),
     h('div', null, Store.mode === 'idb' ? '資料存在這台裝置的瀏覽器（IndexedDB），不上傳到任何地方。' : '這個環境無法永久儲存，資料只留在目前分頁。請用下方「匯出備份」。'),
     Store.err ? h('div', { class: 'note' }, '儲存錯誤：' + (Store.err.message || Store.err)) : null,
@@ -3306,8 +3711,9 @@ function viewSettings(app) {
     h('div', { class: 'btnrow' }, !hasSample ? h('button', { class: 'btn', type: 'button', onclick: async () => { await loadSamples(); toast('範例酒款已放進手冊'); go('/'); } }, '載入範例酒款') : h('button', { class: 'btn', type: 'button', onclick: async () => { for (const w of wines.filter(x => x.extra && x.extra.sample)) await Store.del('wines', w.id); wines = wines.filter(x => !(x.extra && x.extra.sample)); toast('範例酒款已收起來'); renderPath(curPath); } }, '移除範例酒款'))));
   st.append(h('section', { class: 'sec' }, h('h2', null, '關於'),
     h('div', { class: 'small muted' }, '地圖圖資：Natural Earth（公有領域）國家輪廓，已簡化；等距圓柱投影；產區位置為概略位置，非精確座標。'),
-    h('div', { class: 'small muted' }, '個人學習用，不公開。筆記都在本機，沒有帳號、沒有後端。課本詞彙與表格取自個人教材；產區簡表與標「待確認」的食物原理為整理資料，請以課本為準。資料結構版本 ' + SCHEMA + '。')));
+    h('div', { class: 'small muted' }, '個人學習用，不公開。筆記都在本機，沒有帳號、沒有後端；只有你自己設了 Gemini API 金鑰並按下功能時，酒標照片或查詢文字才會直接送到 Google。課本詞彙與表格取自個人教材；產區簡表與標「待確認」的食物原理為整理資料，請以課本為準。資料結構版本 ' + SCHEMA + '。')));
   app.append(st);
+  if (window._gapiFocus) { window._gapiFocus = false; setTimeout(() => { const e = $('#gapiSec'); if (e) { e.scrollIntoView(); const k = $('#gapiKey'); if (k) k.focus({ preventScroll: true }); } }, 0); }
 }
 
 /* 範例 */
@@ -3346,7 +3752,9 @@ async function boot() {
   buildNav();
   await Store.init();
   try { await loadSettings(); } catch (e) {}
+  try { await GAPI.load(); } catch (e) {}
   if (!S.l3Cat || typeof S.l3Cat !== 'object') S.l3Cat = {};
+  if (!S.api || typeof S.api !== 'object') S.api = {};
   try { const o = await Store.get('meta', 'refOverrides'); if (o && o.data && typeof o.data === 'object') refOv = o.data; } catch (e) {}
   try { wines = (await Store.all('wines')).map(normalizeWine); } catch (e) { wines = []; }
   curPath = safe(() => location.hash.slice(1), '') || '/';
