@@ -1044,6 +1044,8 @@ function renderPath(path) {
       case 'teacher': viewTeacher(app, parts[1], parts[2]); break;
       case 'ref': viewRef(app, parts[1] || 'region', parts[2]); break;
       case 'settings': viewSettings(app); break;
+      case 'share': viewShare(app); break;
+      case 'shared': viewShared(app); break;
       default: viewHome(app);
     }
   } catch (e) {
@@ -1829,7 +1831,7 @@ function viewHome(app) {
   frag.append(search, h('details', { class: 'fl', open: nAct > 0 }, h('summary', null, '篩選（酒種、場合、和誰喝、產區、年份天氣、星數、日期）', nAct ? h('span', { class: 'badge' }, nAct + ' 項') : null), f));
   const info = h('div', { class: 'small muted', id: 'listinfo' });
   const list = h('div', { class: 'list', id: 'wlist' });
-  frag.append(info, list);
+  frag.append(info, h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'shareHome', onclick: () => go('/share') }, '匯出唯讀分享頁')), list);
   app.append(frag);
   renderList();
 }
@@ -1837,8 +1839,7 @@ const vwHas = v => !!v && anyOf(v.temp, v.rain, v.events, v.harvest, v.hrain, v.
 const vwText = w => { const v = w.vw; return vwHas(v) ? ['年份', v.temp, v.rain, ...arr(v.events), v.harvest && '收穫' + v.harvest, v.hrain, v.yield && '產量' + v.yield, v.ripe, v.quality && '葡萄品質' + v.quality, v.note].filter(Boolean).join(' ') : ''; };
 function regSearch(s) { const r = s && findRegion(s); return r ? [r.n, r.en].concat(r.a).join(' ') : ''; }
 function grapeSearch(s) { return String(s || '').split(/[、,，;；]+/).map(x => { const c = normGrape(x.trim()); return c && GRAPE_ALIAS[c] ? [c].concat(GRAPE_ALIAS[c]).join(' ') : ''; }).join(' '); }
-function renderList() {
-  const list = $('#wlist'); if (!list) return;
+function filteredWines() {
   const q = filt.q.trim().toLowerCase();
   const rows = wines.filter(w => {
     const b = w.basic;
@@ -1855,6 +1856,11 @@ function renderList() {
     if (filt.to && b.date > filt.to) return false;
     return true;
   }).sort((a, b) => (b.basic.date || '').localeCompare(a.basic.date || '') || b.createdAt - a.createdAt);
+  return rows;
+}
+function renderList() {
+  const list = $('#wlist'); if (!list) return;
+  const rows = filteredWines();
   list.innerHTML = '';
   $('#listinfo').textContent = `共 ${rows.length} 支` + (rows.length !== wines.length ? `（全部 ${wines.length} 支）` : '');
   rows.forEach(w => list.append(wineCard(w)));
@@ -3610,6 +3616,365 @@ function viewRef(app, tab, sub) {
   }
 }
 
+/*SHARE_START*/
+/* ========= 第七輪：匯出「唯讀分享頁」（單一自包含 HTML，用 LINE 傳給只看不記的人）=========
+   輸出：內嵌 CSS、JS、base64 照片；沒有外部資源、沒有 service worker、沒有 API／金鑰／設定、沒有編輯功能。
+   內容先在這裡整理成「可直接顯示」的資料（label／value），分享頁的檢視程式只負責畫，不含任何筆記邏輯。
+   檢視程式 wsetShareViewer 是一般函式，用 toString() 嵌進輸出檔，所以不能引用外面的任何變數。 */
+const SHARE_CSS = `
+:root{--bg:#F6F0E1;--surface:#FBF7EC;--surface2:#EDE4CE;--fg:#2A2118;--muted:#66594A;--line:#D8CCAE;--ctl:#857760;--gold:#BEA578;--star:#A9741A;--accent:#5A1F2B;--wine-soft:#EED8D2;--wine-tx:#5A1F2B;--ok-soft:#E8EBD6;--ok-fg:#46532A;--warn-soft:#F5ECD2;--warn-fg:#6B4F12;--info-soft:#E6ECF1;--info-fg:#3F5266;--q-top:#CFDDA6;--q-top-fg:#2F3B16;--q-good:#E8EBD6;--q-mid:#EDE4CE;--q-var:#F5ECD2;--q-weak:#F4E1DC;--font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,-apple-system,"Segoe UI",sans-serif;--r:10px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#1A0F12;--surface:#241519;--surface2:#2F1C21;--fg:#F1E8D8;--muted:#B8A794;--line:#46292F;--ctl:#947680;--gold:#C8AE7C;--star:#D9B25A;--accent:#E8B0B8;--wine-soft:#3C1B24;--wine-tx:#EDB8C0;--ok-soft:#1F2415;--ok-fg:#BCCB92;--warn-soft:#2A2214;--warn-fg:#E2C27A;--info-soft:#18222C;--info-fg:#A9BCD0;--q-top:#2C3A18;--q-top-fg:#D3E0A8;--q-good:#232B15;--q-mid:#2F1C21;--q-var:#2A2214;--q-weak:#3A1C1A;color-scheme:dark}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+#app{max-width:820px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:14px;min-width:0}
+h1,h2,h3{margin:0;font-weight:400}h1{font-size:1.5625rem;font-weight:300;letter-spacing:.04em}h2{font-size:1.25rem;font-weight:300}
+.muted{color:var(--muted)}.small{font-size:.8rem}
+input,select{font:inherit;color:inherit;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--ctl);border-radius:var(--r);background:var(--bg)}
+.hd{padding-bottom:10px;border-bottom:1px solid var(--gold)}
+.hd .nt{margin-top:4px;color:var(--muted)}
+.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.list{display:flex;flex-direction:column;gap:10px}
+.wcard{display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--r);padding:12px;color:inherit;text-decoration:none;min-height:96px;min-width:0}
+.wcard:focus-visible,.back:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wcard.t-white{border-left-color:#BFAF5E}.wcard.t-rose{border-left-color:#E2A58A}.wcard.t-red{border-left-color:#8E1B33}.wcard.t-sparkling{border-left-style:dotted;border-left-color:#D8C49A}
+.thumb{width:76px;height:96px;flex:none;border-radius:8px;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.info{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.nm{font-weight:500;overflow-wrap:anywhere}.meta{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.stars{color:var(--star);letter-spacing:2px;white-space:nowrap}.stars .off{color:var(--line)}
+.pill{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:999px;background:var(--surface2);font-weight:500;font-size:.8rem;border:1px solid var(--line)}
+.pill.wine{background:var(--wine-soft);color:var(--wine-tx)}.pill.info{background:var(--info-soft);color:var(--info-fg)}
+.vline{font-size:.78rem;line-height:1.5;overflow-wrap:anywhere}.vline.ref,.vline.gem{color:var(--muted)}
+.vline .vy{font-weight:500}.vline .sep{color:var(--ctl);margin:0 4px}
+.vline .vtag{display:inline-block;margin-left:4px;padding:0 5px;font-size:.7rem;border:1px dashed var(--ctl);border-radius:999px;color:var(--muted)}
+.qsw{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid var(--ctl);margin-right:5px;vertical-align:-1px}
+.q-top{background:var(--q-top)}.q-good{background:var(--q-good)}.q-mid{background:var(--q-mid)}.q-var{background:var(--q-var)}.q-weak{background:var(--q-weak)}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec>h2{padding-bottom:8px;border-bottom:1px solid var(--gold)}
+.sub{font-weight:500;color:var(--accent);margin-top:2px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0}
+.kv dt{color:var(--muted);font-size:.8rem;font-weight:500;padding-top:3px}.kv dd{margin:0;overflow-wrap:anywhere}
+.sw{display:inline-block;width:16px;height:16px;border-radius:50%;border:1px solid rgba(128,128,128,.55);vertical-align:-3px;margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-size:.8rem}
+.chip.l3{border-style:dashed}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.photos button{padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);aspect-ratio:3/4;cursor:zoom-in}
+.photos img{width:100%;height:100%;object-fit:cover;display:block}
+.back{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid var(--ctl);border-radius:var(--r);color:inherit;text-decoration:none;align-self:flex-start}
+.note{border-left:3px solid var(--gold);background:var(--warn-soft);padding:8px 12px;border-radius:0 var(--r) var(--r) 0}
+.tblwrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}th{color:var(--muted);font-weight:500;font-size:.8rem}
+tr.same td:last-child{color:var(--ok-fg)}tr.diff td:last-child{color:var(--warn-fg)}
+.foot{margin-top:6px;text-align:center;color:var(--muted);font-size:.8rem}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
+.lb img{max-width:100%;max-height:100%;object-fit:contain}
+.empty{padding:24px 8px;text-align:center;color:var(--muted)}
+`;
+/* 分享頁的檢視程式（只讀、只用 DOM textContent 顯示資料）。會被 toString() 嵌進輸出檔，不能引用外面的變數。 */
+function wsetShareViewer() {
+  var D = JSON.parse(document.getElementById('wsetdata').textContent);
+  var root = document.getElementById('app');
+  function add(el, c) { if (c == null || c === false) return; if (Array.isArray(c)) { c.forEach(function (x) { add(el, x); }); return; } el.appendChild(c.nodeType ? c : document.createTextNode(String(c))); }
+  function E(tag, a) {
+    var el = document.createElement(tag), k = 2;
+    if (a && typeof a === 'object' && !a.nodeType && !Array.isArray(a)) { for (var n in a) { if (a[n] == null) continue; if (n === 'class') el.className = a[n]; else if (n === 'style') el.style.cssText = a[n]; else if (n.slice(0, 2) === 'on') el.addEventListener(n.slice(2), a[n]); else el.setAttribute(n, a[n]); } } else k = 1;
+    for (var i = k; i < arguments.length; i++) add(el, arguments[i]);
+    return el;
+  }
+  function pic(i, alt) { var im = E('img', { alt: alt || '', loading: 'lazy' }); if (D.P[i]) im.src = D.P[i]; return im; }
+  function stars(n) { return E('span', { class: 'stars', 'aria-label': n + ' 星' }, new Array(n + 1).join('★'), E('span', { class: 'off' }, new Array(6 - n).join('★'))); }
+  function vline(v) {
+    if (!v) return null; var kids = [];
+    if (v.y) kids.push(E('span', null, E('b', { class: 'vy' }, String(v.y)), v.tag ? E('span', { class: 'vtag' }, v.tag) : null));
+    if (v.c) kids.push(E('span', null, v.c));
+    if (v.q) kids.push(E('span', null, E('i', { class: 'qsw ' + (v.qc || '') }), '品質' + v.q));
+    var out = []; kids.forEach(function (x, i) { if (i) out.push(E('span', { class: 'sep', 'aria-hidden': 'true' }, '｜')); out.push(x); });
+    return E('div', { class: 'vline ' + (v.src || '') }, out);
+  }
+  function lightbox(i) { var lb = E('div', { class: 'lb', role: 'dialog', 'aria-label': '放大照片', onclick: function () { lb.remove(); } }, pic(i)); document.body.appendChild(lb); }
+  function kv(rows) { var l = []; rows.forEach(function (r) { if (r[1] == null || r[1] === '') return; l.push(E('dt', null, r[0]), E('dd', null, r[2] ? E('span', { class: 'sw', style: 'background-color:' + r[2] }) : null, r[1])); }); return l.length ? E('dl', { class: 'kv' }, l) : null; }
+  function chips(items, l3) { return E('div', { class: 'chips' }, items.map(function (c) { return E('span', { class: 'chip' + (l3 ? ' l3' : '') }, E('i', { class: 'dot', style: 'background:' + (c[1] || '#8A8A92') }), c[0]); })); }
+  var foot = E('div', { class: 'foot' }, D.foot);
+  var F = { q: '', type: '', region: '', year: '' }, listScroll = 0, built = false, listBox, info;
+  function uniq(f) { var s = {}, o = []; D.W.forEach(function (w) { var v = f(w); if (v && !s[v]) { s[v] = 1; o.push(v); } }); return o; }
+  function card(w, i) {
+    var l2 = [w.d, w.m].filter(Boolean).join('・');
+    return E('a', { class: 'wcard' + (w.t ? ' t-' + w.t : ''), href: '#/w/' + i }, E('div', { class: 'thumb' }, w.ph.length ? pic(w.ph[0][0]) : '無照片'),
+      E('div', { class: 'info' }, E('div', { class: 'nm' }, w.n || '（未命名）'), E('div', { class: 'meta' }, [w.p, w.r, w.y].filter(Boolean).join('・') || '—'), vline(w.vl), l2 ? E('div', { class: 'meta' }, l2) : null,
+        E('div', { class: 'row' }, w.s != null ? stars(w.s) : null, w.tn ? E('span', { class: 'pill' + (w.t === 'red' ? ' wine' : '') }, w.tn) : null)));
+  }
+  function drawList() {
+    var q = F.q.trim().toLowerCase(), n = 0; listBox.innerHTML = '';
+    D.W.forEach(function (w, i) {
+      if (q && w.sr.indexOf(q) < 0) return; if (F.type && w.t !== F.type) return; if (F.region && w.r !== F.region) return; if (F.year && String(w.y) !== F.year) return;
+      n++; listBox.appendChild(card(w, i));
+    });
+    if (!n) listBox.appendChild(E('div', { class: 'empty' }, '沒有符合的酒，換個條件翻翻看。'));
+    info.textContent = '共 ' + n + ' 支' + (n !== D.W.length ? '（全部 ' + D.W.length + ' 支）' : '');
+  }
+  function sel(label, key, opts, first) { return E('select', { 'aria-label': label, onchange: function (e) { F[key] = e.target.value; drawList(); } }, E('option', { value: '' }, first), opts.map(function (o) { return E('option', { value: o[0] }, o[1]); })); }
+  function showList() {
+    root.innerHTML = '';
+    var hd = E('div', { class: 'hd' }, E('h1', null, D.title), D.note ? E('div', { class: 'nt' }, D.note) : null);
+    var qin = E('input', { type: 'search', placeholder: '搜尋酒名／酒莊／產區／品種／年份', 'aria-label': '搜尋', value: F.q, oninput: function (e) { F.q = e.target.value; drawList(); } });
+    var types = []; uniq(function (w) { return w.t; }).forEach(function (t) { var w = D.W.filter(function (x) { return x.t === t; })[0]; types.push([t, w.tn]); });
+    var filt = E('div', { class: 'filters' }, sel('酒種', 'type', types, '全部酒種'), sel('產區', 'region', uniq(function (w) { return w.r; }).map(function (r) { return [r, r]; }), '全部產區'), sel('年份', 'year', uniq(function (w) { return w.y; }).sort().reverse().map(function (y) { return [y, y]; }), '全部年份'));
+    ['type', 'region', 'year'].forEach(function (k, i) { filt.children[i].value = F[k]; });
+    info = E('div', { class: 'small muted', role: 'status' }); listBox = E('div', { class: 'list' });
+    root.appendChild(hd); root.appendChild(qin); root.appendChild(filt); root.appendChild(info); root.appendChild(listBox); root.appendChild(foot);
+    drawList(); window.scrollTo(0, listScroll);
+  }
+  function showWine(i) {
+    var w = D.W[i]; if (!w) { location.hash = '#/'; return; }
+    root.innerHTML = '';
+    root.appendChild(E('a', { class: 'back', href: '#/' }, '← 回列表'));
+    var head = E('section', { class: 'sec' }, E('h2', null, w.n || '（未命名）'), E('div', { class: 'muted' }, [w.p, w.r, w.y].filter(Boolean).join('・')),
+      E('div', { class: 'row' }, w.s != null ? stars(w.s) : null, w.tn ? E('span', { class: 'pill' }, w.tn) : null, w.l3 ? E('span', { class: 'pill info' }, 'L3 模式') : null),
+      w.ph.length ? E('div', { class: 'photos' }, w.ph.map(function (p) { return E('button', { type: 'button', 'aria-label': '放大照片（' + p[1] + '）', onclick: function () { lightbox(p[0]); } }, pic(p[0], p[1])); })) : null,
+      kv(w.kv), w.rg ? E('div', { class: 'small muted' }, '產區常見品種（參考，非標籤）：' + w.rg) : null, w.vl ? vline(w.vl) : null);
+    root.appendChild(head);
+    if (w.sec.length) {
+      var sum = E('section', { class: 'sec' }, E('h2', null, 'WSET 品鑑'));
+      w.sec.forEach(function (s) { sum.appendChild(E('div', { class: 'sub' }, s.h)); sum.appendChild(kv(s.rows)); (s.chips || []).forEach(function (c) { sum.appendChild(E('div', null, E('div', { class: 'small muted' }, c[0]), chips(c[1], c[2]))); }); });
+      root.appendChild(sum);
+    }
+    if (w.vw) { var v = E('section', { class: 'sec' }, E('h2', null, '年份天氣'), kv(w.vw.rows), w.vw.note ? E('div', null, w.vw.note) : null); root.appendChild(v); }
+    if (w.mood) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '這杯的心情'), kv([['場合', w.mood.occ], ['和誰喝', w.mood.with]]), w.mood.note ? E('div', null, w.mood.note) : null));
+    if (w.food) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '食物搭配'), w.food.text ? E('div', null, w.food.text) : null, (w.food.eff || []).map(function (x) { return E('div', { class: 'note' }, E('b', null, x[0] + '：'), '酒會' + x[1]); }), w.food.feel.length ? E('div', null, E('div', { class: 'small muted' }, '我的實際感覺'), chips(w.food.feel.map(function (x) { return [x, '#8A8A92']; }))) : null, w.food.other ? E('div', { class: 'small' }, w.food.other) : null));
+    if (w.note) root.appendChild(E('section', { class: 'sec' }, E('h2', null, '備註'), E('div', { style: 'white-space:pre-wrap' }, w.note)));
+    (w.tc || []).forEach(function (t) {
+      root.appendChild(E('section', { class: 'sec' }, E('h2', null, '對照老師的杯子'), E('div', { class: 'row' }, E('b', null, t.by || '老師版'), t.pct != null ? E('span', { class: 'pill' }, '單選命中率 ' + t.pct + '%（' + t.same + '/' + t.n + '）') : null),
+        t.rows.length ? E('div', { class: 'tblwrap' }, E('table', null, E('thead', null, E('tr', null, E('th', null, '項目'), E('th', null, '我的'), E('th', null, t.by || '老師的'), E('th', null, '對照'))),
+          E('tbody', null, t.rows.map(function (r) { return E('tr', { class: r[3] }, E('td', null, r[0]), E('td', null, r[1]), E('td', null, r[2]), E('td', null, r[3] === 'same' ? '✓ 相同' : r[3] === 'diff' ? '≠ 不同' : '— 單方')); })))) : E('div', { class: 'muted' }, '雙方都還沒勾任何項目。')));
+    });
+    root.appendChild(foot); window.scrollTo(0, 0);
+  }
+  function route() {
+    var m = /^#\/w\/(\d+)$/.exec(location.hash);
+    if (m) { if (document.body.getAttribute('data-v') !== 'w') listScroll = window.scrollY; document.body.setAttribute('data-v', 'w'); showWine(+m[1]); }
+    else { document.body.setAttribute('data-v', 'l'); showList(); }
+  }
+  document.title = D.title;
+  window.addEventListener('hashchange', route);
+  route();
+}
+
+/* ---- 整理資料（顯示用）---- */
+const shareStarStr = n => n;
+const chipColor = it => ((GROUP_ART[String(it).split('|')[0]] || [])[1]) || '#8A8A92';
+function shareColourHex(type, name) { const c = (type && COLOURS[type] || [].concat(...Object.values(COLOURS))).find(x => x[0] === name); return c ? c[1] : null; }
+const shareTxt = (r, v) => r.bool ? (v ? '✓' : '—') : r.multi ? (arr(v).map(vlabel).join('、') || '—') : (v || '—');
+/* 一杯酒 → 分享用資料（同步；照片之後再補 ph） */
+function shareWineData(w, o) {
+  const b = w.basic, t = w.t || {}, d = { n: b.name || '', p: b.producer || '', r: displayRegion(b.region) || '', g: b.grape || '', y: b.vintage || '', d: b.date || '', t: w.type || '', tn: w.type ? TYPE_NAME[w.type] : '', s: o.stars ? (w.stars || 0) : null, l3: isL3(w), m: '', vl: null, ph: [], kv: [], rg: '', sec: [], vw: null, mood: null, food: null, note: '', tc: [] };
+  d.kv = [['日期', b.date], ['課堂', b.lessonNo], ['品種', b.grape], ['酒精度', b.abv]].concat(o.price ? [['價格', b.price], ['購買處', b.shop]] : []).filter(x => x[1]);
+  d.rg = arr(w.refGrapes).join('、');
+  if (o.mood) { const md = w.mood || {}; d.m = arr(md.occ).join('、'); if (arr(md.occ).length || arr(md.with).length || md.note) d.mood = { occ: arr(md.occ).join('、'), with: arr(md.with).join('、'), note: md.note || '' }; }
+  /* 品鑑摘要：與詳情頁同一套取值 */
+  ['視覺', '嗅覺', '味覺', '結論'].forEach(g => {
+    const rows = [], chips = [];
+    SINGLE.filter(s => s[2] === g).forEach(([k, label]) => { const v = sv(w, k); if (v) rows.push([label, v, k === 'colour' ? shareColourHex(w.type, v) : null]); });
+    L3ONLY.filter(s => s[2] === g && isL3(w)).forEach(([k, label]) => { const v = (w.t3 || {})[k]; if (v) rows.push([label, v, null]); });
+    MULTI.filter(m => (g === '嗅覺' ? m[0].includes('aroma') : g === '味覺' ? m[0].includes('flav') : false)).forEach(([k, label]) => { if (arr(t[k]).length) chips.push([label, arr(t[k]).map(x => [vlabel(x), chipColor(x)]), k.startsWith('l3')]); });
+    if (g === '視覺' && t.mousse) rows.push(['氣泡', t.mousse, null]);
+    if (g === '嗅覺' && t.aromaNote) rows.push(['其他香氣', t.aromaNote, null]);
+    if (g === '味覺' && t.flavNote) rows.push(['其他風味', t.flavNote, null]);
+    if (g === '結論') REASONS.forEach(([k, label]) => { const q = t.qr && t.qr[k]; if (q && (q.on || q.note)) rows.push([label, (q.on ? '✓ ' : '') + (q.note || ''), null]); });
+    if (rows.length || chips.length) d.sec.push({ h: g, rows, chips });
+  });
+  if (o.vint) {
+    const vd = safe(() => vintageData(w), null);
+    if (vd) d.vl = { src: vd.src, y: vd.year, c: vd.climate, q: vd.q, qc: vd.qc || '', tag: vd.src === 'ref' ? '參考' : vd.src === 'gem' ? 'Gemini' : '' };
+    const v = w.vw || {};
+    if (vwHas(v)) { const rows = [['溫度', v.temp], ['降雨', v.rain], ['重大事件', arr(v.events).join('、')], ['收穫', v.harvest], ['收穫期下雨', v.hrain], ['產量', v.yield], ['成熟度', v.ripe], ['葡萄品質', v.quality]].filter(x => x[1]); if (rows.length || v.note) d.vw = { rows, note: v.note || '' }; }
+  }
+  if (o.food) {
+    const f = w.food || {};
+    if (f.text || arr(f.comp).length || arr(f.feel).length) {
+      const eff = arr(f.comp).map(k => FOOD.find(y => y.k === k)).filter(Boolean).map(x => [x.label, x.effect]);
+      d.food = { text: f.text || '', eff, feel: arr(f.feel), other: FOOD_OTHER.filter(([k]) => f[k]).map(([k, l]) => l + '：' + f[k]).join('　') };
+    }
+  }
+  if (o.notes) d.note = w.note || '';
+  if (o.teacher) arr(w.teacher).slice().sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0)).forEach(tt => {
+    const c = safe(() => compareSheets(w, w, tt), null); if (!c) return;
+    d.tc.push({ by: tt.by || '', pct: c.pct == null ? null : c.pct, same: c.same, n: c.n, rows: c.rows.map(r => [r.label, shareTxt(r, r.a === undefined ? '' : r.a), shareTxt(r, r.b === undefined ? '' : r.b), r.st]) });
+  });
+  d.sr = [d.n, d.p, d.r, regSearch(b.region), d.g, grapeSearch(b.grape), d.y, d.tn, d.m, d.mood ? d.mood.with + ' ' + d.mood.note : ''].join(' ').toLowerCase();
+  return d;
+}
+const shareJson = obj => JSON.stringify(obj).replace(/</g, '\\u003c').replace(new RegExp('\\u2028', 'g'), '\\u2028').replace(new RegExp('\\u2029', 'g'), '\\u2029');
+const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+/* 輸出整份 HTML。data：{title, note, date, foot, P:[dataURL], W:[...]} */
+function shareHtml(data) {
+  return '<!doctype html>\n<html lang="zh-Hant"><head><meta charset="utf-8">\n'
+    + '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'">\n'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="robots" content="noindex,nofollow">\n<meta name="color-scheme" content="light dark">\n<meta name="wset-share" content="1">\n'
+    + '<title>' + escHtml(data.title) + '</title>\n<style>' + SHARE_CSS + '</style></head>\n<body><div id="app"></div>\n<noscript><p style="padding:16px">這個唯讀手冊需要開啟 JavaScript 才能翻閱。</p></noscript>\n'
+    + '<script type="application/json" id="wsetdata">' + shareJson(data) + '<\/script>\n<script>(' + wsetShareViewer.toString() + ')();<\/script></body></html>';
+}
+/* 照片再壓：長邊 ≤1024、JPEG 0.7 */
+async function sharePhotoURL(id) {
+  const rec = await Store.get('photos', id); if (!rec || !rec.blob) return null;
+  try {
+    let bmp; try { bmp = await createImageBitmap(rec.blob, { imageOrientation: 'from-image' }); } catch (e) { bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(rec.blob); }); }
+    const sc = Math.min(1, 1024 / Math.max(bmp.width, bmp.height)), cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(bmp.width * sc)); cv.height = Math.max(1, Math.round(bmp.height * sc));
+    cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.7)); return blob ? await blobToDataURL(blob) : null;
+  } catch (e) { return null; }
+}
+/* 整批建資料。photoFn(id) → dataURL；onProgress(i, n) */
+async function buildShareData(list, o, photoFn, onProgress) {
+  const P = [], pidx = new Map(), W = [];
+  let done = 0; const total = o.photos ? list.reduce((a, w) => a + arr(w.photos).length, 0) : 0;
+  for (const w of list) {
+    const d = shareWineData(w, o);
+    if (o.photos) for (const p of arr(w.photos)) {
+      let i = pidx.get(p.id);
+      if (i === undefined) { const u = await photoFn(p.id); i = u ? P.push(u) - 1 : -1; pidx.set(p.id, i); }
+      if (i >= 0) d.ph.push([i, p.kind || '']);
+      done++; if (onProgress) onProgress(done, total);
+    }
+    W.push(d);
+  }
+  const date = today();
+  return { v: 1, title: (o.title || '').trim() || '我的品飲手冊', note: (o.note || '').trim(), date, foot: '由「我的品飲手冊」匯出於 ' + date + '，唯讀', P, W };
+}
+/* ---- 選項頁 ---- */
+let shareOpt = null, shareRes = null, sharedView = null;
+const shareDefaults = () => ({ scope: 'all', picked: new Set(), photos: true, stars: true, mood: true, vint: true, food: false, teacher: false, price: false, notes: false, title: '我的品飲手冊', note: '' });
+const filtActive = () => Object.keys(filt).some(k => filt[k]);
+const shareList = o => o.scope === 'filter' ? filteredWines() : o.scope === 'pick' ? wines.filter(w => o.picked.has(w.id)) : wines.slice();
+const fmtMB = n => (n / 1048576 >= 0.1 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
+const SHARE_TIP = '【這是我的品飲手冊（唯讀）】\n這是一個 .html 檔，不用裝 App，只能看、不能改。\n\niPhone：\n1. 在 LINE 點檔案 →「分享」→「儲存到『檔案』」。\n2. 打開「檔案」App 找到它，點開；如果看不到內容或不能搜尋，請長按檔案 →「分享」→ 用 Safari 開啟。\n（LINE 或檔案 App 的預覽有時不會執行頁面功能，用 Safari 開最穩。）\n\n安卓：點檔案，選 Chrome 或瀏覽器開啟。\n\n打開後可以搜尋酒名、產區、年份，點酒款看詳情。';
+function viewShare(app) {
+  if (!shareOpt) shareOpt = shareDefaults(); const o = shareOpt;
+  const box = h('div', { class: 'stack' }); app.append(box);
+  if (shareRes) { drawShareResult(box); return; }
+  let photoSize = new Map(); const est = h('div', { class: 'note info', id: 'shareEst', role: 'status' }, '正在估算檔案大小…');
+  Store.all('photos').then(ps => { ps.forEach(p => photoSize.set(p.id, (p.blob && p.blob.size) || 0)); upd(); }).catch(() => upd());
+  const upd = () => {
+    const list = shareList(o); let txt, bad = false;
+    if (!list.length) { est.className = 'note'; est.textContent = '還沒有選到任何酒。'; return; }
+    const base = JSON.stringify(list.map(w => shareWineData(w, o))).length * 1.05 + SHARE_CSS.length + 9000;
+    const seen = new Set(); let ph = 0, nph = 0;
+    if (o.photos) list.forEach(w => arr(w.photos).forEach(p => { if (!seen.has(p.id)) { seen.add(p.id); nph++; ph += (photoSize.get(p.id) || 150000) * 0.4 * 1.34; } }));
+    const total = base + ph; bad = total > 20 * 1048576;
+    est.className = 'note ' + (bad ? 'err' : 'info');
+    est.textContent = '共 ' + list.length + ' 支酒' + (o.photos ? '、' + nph + ' 張照片' : '，不含照片') + '，預估檔案大小約 ' + fmtMB(total) + '（照片壓縮後的實際大小會在產生後顯示）。' + (bad ? ' 超過 20 MB，LINE 可能傳不動：建議取消「含照片」，或減少酒款。' : '');
+    pickCount.textContent = o.scope === 'pick' ? '已勾 ' + o.picked.size + ' 支' : '';
+  };
+  const pickCount = h('span', { class: 'small muted' });
+  const pickBox = h('div', { class: 'stack', id: 'sharePick' });
+  const drawPick = () => {
+    pickBox.innerHTML = ''; if (o.scope !== 'pick') return;
+    const rows = wines.slice().sort((a, b) => (b.basic.date || '').localeCompare(a.basic.date || ''));
+    pickBox.append(h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn sm', onclick: () => { rows.forEach(w => o.picked.add(w.id)); drawPick(); upd(); } }, '全選'), h('button', { type: 'button', class: 'btn sm', onclick: () => { o.picked.clear(); drawPick(); upd(); } }, '全不選')),
+      h('div', { class: 'prev', style: 'max-height:340px;overflow:auto' }, rows.map(w => { const cb = h('input', { type: 'checkbox', id: 'sp_' + w.id, checked: o.picked.has(w.id), 'aria-label': '選 ' + (w.basic.name || '未命名'), onchange: () => { if (cb.checked) o.picked.add(w.id); else o.picked.delete(w.id); upd(); } });
+        return h('label', { class: 'prow', for: 'sp_' + w.id }, cb, h('div', { class: 'pc' }, h('div', { class: 'pk' }, w.basic.name || '（未命名）'), h('div', { class: 'small muted' }, [w.basic.producer, displayRegion(w.basic.region), w.basic.vintage].filter(Boolean).join('・')))); })));
+  };
+  const scopeBtn = (k, label) => h('button', { type: 'button', class: 'chip' + (o.scope === k ? ' on' : ''), 'aria-pressed': String(o.scope === k), id: 'scope_' + k, onclick: () => { o.scope = k; scopeRow.querySelectorAll('button').forEach(b => { const on = b.id === 'scope_' + k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); drawPick(); upd(); } }, label);
+  const nF = filteredWines().length;
+  const scopeRow = h('div', { class: 'chips' }, scopeBtn('all', '全部（' + wines.length + ' 支）'), scopeBtn('filter', '目前篩選結果（' + nF + ' 支）' + (filtActive() ? '' : '・未篩選')), scopeBtn('pick', '勾選酒款'));
+  const tg = (key, label, sub) => toggle(label, sub, !!o[key], b => { o[key] = !o[key]; b.setAttribute('aria-checked', String(o[key])); upd(); });
+  box.append(h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('/') }, '← 手冊'), h('h2', { style: 'font-size:1.25rem' }, '匯出唯讀分享頁')),
+    h('div', { class: 'note', role: 'alert', id: 'sharePrivacy' }, h('b', null, '收到檔案的人可以看到你勾選的所有內容（含照片與評分）。'), '這個檔案會用 LINE 等方式傳出去，請只勾你願意讓對方看到的。匯出的是複本，你的筆記不會改變；檔案裡沒有金鑰、API 設定或任何備份設定。'),
+    h('section', { class: 'sec' }, h('h2', null, '1. 範圍'), scopeRow, pickCount, pickBox),
+    h('section', { class: 'sec' }, h('h2', null, '2. 照片'), tg('photos', '含照片', '照片會再壓小（長邊 1024px、JPEG 約 0.7）。照片多時檔案會變大，LINE 傳不動就取消這項')),
+    h('section', { class: 'sec' }, h('h2', null, '3. 內容'),
+      tg('stars', '含我的個人評分星等', '你給的 1–5 星（和 WSET 品質水平分開）'),
+      tg('mood', '含心情（場合與和誰喝）', '這杯的場合、和誰喝與心情備註'),
+      tg('vint', '含我記的年份天氣與年份參考行', '卡片上的「2019｜偏熱・少雨｜品質卓越」那一行與你記的年份天氣'),
+      tg('food', '含食物搭配', '吃了什麼、食物原理提醒與你的實際感覺'),
+      tg('teacher', '含老師版', '老師版勾選與兩邊對照表'),
+      tg('price', '含價格與購買處', '預設不含'),
+      tg('notes', '含備註', '「備註」欄位的文字，預設不含')),
+    h('section', { class: 'sec' }, h('h2', null, '4. 頁首'),
+      h('label', { class: 'f full', for: 'shTitle' }, '標題', h('input', { type: 'text', id: 'shTitle', value: o.title, maxlength: 40, autocomplete: 'off', oninput: e => { o.title = e.target.value; } })),
+      h('label', { class: 'f full', for: 'shNote' }, '一行備註（選填，例：給 XX 的分享）', h('input', { type: 'text', id: 'shNote', value: o.note, maxlength: 60, autocomplete: 'off', oninput: e => { o.note = e.target.value; } }))),
+    est,
+    h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'shareGo', onclick: () => runShare(box) }, '產生分享檔')));
+  drawPick(); upd();
+}
+async function runShare(box) {
+  const o = shareOpt, list = shareList(o);
+  if (!list.length) { toast('還沒有選到任何酒'); return; }
+  const btn = $('#shareGo'); if (btn) btn.disabled = true;
+  const st = h('div', { class: 'note info', role: 'status' }, '正在整理…'); box.append(st);
+  try {
+    const cache = new Map();
+    const data = await buildShareData(list, o, async id => { if (!cache.has(id)) cache.set(id, await sharePhotoURL(id)); return cache.get(id); }, (i, n) => { st.textContent = '正在壓縮照片 ' + i + '／' + n + '…'; });
+    const html = shareHtml(data); const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    shareRes = { blob, size: blob.size, name: '品飲手冊分享_' + today().replace(/-/g, '') + '.html', n: list.length, photos: data.P.length, withPhotos: o.photos };
+    drawShareResult(box);
+  } catch (e) { st.className = 'note err'; st.textContent = '產生失敗：' + (e && e.message || e) + '。可以取消「含照片」或減少酒款再試。'; if (btn) btn.disabled = false; }
+}
+function shareDownload(r) { const a = h('a', { href: URL.createObjectURL(r.blob), download: r.name }); document.body.append(a); a.click(); setTimeout(() => { a.remove(); }, 1000); }
+function drawShareResult(box) {
+  const r = shareRes; box.innerHTML = '';
+  const file = safe(() => new File([r.blob], r.name, { type: 'text/html' }), null);
+  const canShare = !!(file && navigator.canShare && safe(() => navigator.canShare({ files: [file] }), false));
+  const big = r.size > 20 * 1048576;
+  const tipBox = h('textarea', { class: 'mono', readonly: true, rows: 9, id: 'shareTip', 'aria-label': '給收件人的使用提示' }, SHARE_TIP);
+  box.append(h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, h('h2', { style: 'font-size:1.25rem' }, '分享檔已產生')),
+    h('div', { class: 'note ok', role: 'status', id: 'shareDone' }, h('div', null, h('b', null, r.name)), h('div', null, r.n + ' 支酒、' + (r.withPhotos ? r.photos + ' 張照片' : '不含照片') + '，檔案大小 ' + fmtMB(r.size) + '（' + r.size + ' 位元組）')),
+    big ? h('div', { class: 'note err' }, '檔案超過 20 MB，LINE 可能傳不動。建議回上一步取消「含照片」或減少酒款。') : null,
+    h('div', { class: 'note', role: 'alert' }, h('b', null, '再提醒一次：'), '收到檔案的人可以看到你勾選的所有內容（含照片與評分）。'),
+    h('div', { class: 'btnrow' },
+      canShare ? h('button', { type: 'button', class: 'btn primary', id: 'shareSend', onclick: async () => { try { await navigator.share({ files: [file], title: shareOpt && shareOpt.title || '我的品飲手冊', text: '我的品飲手冊（唯讀）' }); } catch (e) { if (!e || e.name !== 'AbortError') { toast('分享沒成功，已改成下載'); shareDownload(r); } } } }, '分享給朋友（LINE 等）') : null,
+      h('button', { type: 'button', class: canShare ? 'btn' : 'btn primary', id: 'shareDl', onclick: () => { shareDownload(r); toast('已產生下載'); } }, '下載檔案')),
+    !canShare ? h('div', { class: 'small muted' }, '這個瀏覽器不能直接分享檔案，請下載後，再用 LINE 的「傳送檔案」或「Keep」傳給對方。') : null,
+    h('section', { class: 'sec' }, h('h2', null, '給收件人的使用提示'),
+      h('div', { class: 'note info' }, h('b', null, 'iPhone 要老實說：'), 'iOS 的 LINE 與「檔案」App 對 .html 附件的預覽，不一定能執行頁面裡的功能（可能只看到空白或一堆文字，搜尋與點酒款也可能沒反應）。最穩的是請對方「存到『檔案』後用 Safari 開」，或用「分享 → 在 Safari 開啟」。'),
+      tipBox, h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'shareTipCopy', onclick: async () => { try { await navigator.clipboard.writeText(SHARE_TIP); toast('已複製提示文字'); } catch (e) { tipBox.select(); toast('請長按全選後複製'); } } }, '複製提示文字'))),
+    h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', onclick: () => { shareRes = null; renderPath(curPath); } }, '回上一步調整選項'), h('button', { type: 'button', class: 'btn ghost', onclick: () => { shareRes = null; shareOpt = null; go('/'); } }, '完成')));
+}
+/* ---- 查看分享來的手冊（唯讀；不合併進自己的筆記，只在記憶體裡，關掉就清除）---- */
+async function shareFromBackup(j) {
+  if (!j || j.app !== APP_ID || !Array.isArray(j.wines)) throw new Error('這不是本 App 的備份檔');
+  const ph = new Map(arr(j.photos).map(p => [p.id, p.dataUrl]));
+  const list = j.wines.map(normalizeWine);
+  const o = { photos: true, stars: true, mood: true, vint: true, food: true, teacher: true, price: true, notes: true, title: '分享來的手冊（備份檔）', note: '' };
+  return buildShareData(list, o, id => ph.get(id) || null);
+}
+function shareFromHtml(text) {
+  const m = String(text).match(/<script type="application\/json" id="wsetdata">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error('這不是「我的品飲手冊」的分享檔');
+  const d = JSON.parse(m[1]);
+  if (!d || !Array.isArray(d.W) || !Array.isArray(d.P)) throw new Error('分享檔的內容不完整');
+  /* 只取資料，重新用本 App 的檢視程式輸出，不執行檔案裡的任何腳本；字串欄位再保險轉成字串 */
+  d.title = String(d.title || '分享來的手冊'); d.note = String(d.note || ''); d.foot = String(d.foot || ''); d.P = d.P.map(x => String(x).startsWith('data:image/') ? String(x) : '');
+  return d;
+}
+async function loadShared(file) {
+  const text = await file.text();
+  const data = /^\s*[{\[]/.test(text) ? await shareFromBackup(JSON.parse(text)) : shareFromHtml(text);
+  sharedView = { data, name: file.name, html: shareHtml(data) };
+  go('/shared');
+}
+function viewShared(app) {
+  if (!sharedView) { app.append(h('div', { class: 'card' }, h('p', null, '目前沒有在查看的分享手冊。'), h('button', { class: 'btn', onclick: () => go('/settings') }, '回設定'))); return; }
+  const sv0 = sharedView;
+  const fr = h('iframe', { id: 'sharedFrame', title: '唯讀手冊：' + sv0.name, sandbox: 'allow-scripts', style: 'width:100%;height:calc(100vh - 190px);min-height:480px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)' }); fr.srcdoc = sv0.html;
+  app.append(h('div', { class: 'stack' },
+    h('div', { class: 'note info' }, h('b', null, '唯讀檢視：'), sv0.name, '（' + sv0.data.W.length + ' 支酒）。這份內容只在這個畫面裡，不會加進你的筆記，關掉就清除。'),
+    h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn', id: 'sharedClear', onclick: () => { sharedView = null; toast('已清除，沒有留下任何資料'); go('/settings'); } }, '清除並關閉')),
+    fr));
+}
+function shareSettingsSection() {
+  const msg = h('div', { class: 'small', id: 'sharedMsg', role: 'status' });
+  return h('section', { class: 'sec', id: 'shareSec' }, h('h2', null, '分享手冊（唯讀）', h('small', null, '傳給只看不記的人')),
+    h('div', { class: 'prose small muted' }, '把手冊輸出成單一 .html 檔，用 LINE 傳出去，對方點開就能翻閱，不用裝 App、不能修改。'),
+    h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'shareOpen', onclick: () => go('/share') }, '匯出唯讀分享頁')),
+    h('div', { class: 'grp' }, h('div', { class: 'lbl' }, '查看分享來的手冊（唯讀）'),
+      h('div', { class: 'small muted' }, '如果別人傳給你分享檔（.html），或「匯出備份」的 .json 檔，可以在這裡只讀檢視：不會合併進你的筆記，按「清除並關閉」就沒了。'),
+      h('input', { type: 'file', accept: '.html,.htm,.json,text/html,application/json', id: 'sharedFile', 'aria-label': '選擇分享檔或備份檔', onchange: async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; msg.textContent = '讀取中…'; try { await loadShared(f); } catch (er) { msg.textContent = '打不開：' + (er && er.message || er); } } }), msg));
+}
+/*SHARE_END*/
+
 /* ========= 設定／備份 ========= */
 async function buildExport() {
   const phs = await Store.all('photos'); const photos = [];
@@ -3754,6 +4119,7 @@ function viewSettings(app) {
     h('div', { class: 'btnrow' },
       h('button', { class: 'btn primary', type: 'button', id: 'trySample', onclick: () => { window._prefillReply = LABEL_SAMPLE; go('/new'); } }, '貼上範例回覆，到新增頁試用'),
       h('button', { class: 'btn', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(LABEL_SAMPLE); toast('已複製範例'); } catch (e) { sampleBox.select(); toast('請手動複製'); } } }, '複製範例'))));
+  st.append(shareSettingsSection());
   st.append(gapiSection());
   st.append(h('section', { class: 'sec' }, h('h2', null, '手冊存放位置'),
     h('div', null, Store.mode === 'idb' ? '資料存在這台裝置的瀏覽器（IndexedDB），不上傳到任何地方。' : '這個環境無法永久儲存，資料只留在目前分頁。請用下方「匯出備份」。'),
