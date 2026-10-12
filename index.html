@@ -510,6 +510,39 @@ textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;
 .qrfs .tx span{display:block;color:#66594A;margin:4px 0 14px}
 .qrfs .x{min-height:48px;min-width:96px;padding:0 24px;font-size:1.05rem;border-radius:10px;border:1px solid #5A1F2B;background:#5A1F2B;color:#F6EFE2;cursor:pointer}
 @media (orientation:landscape){.qrfs .in{flex-direction:row;gap:32px}.qrfs .big{width:min(60vw,88vh,720px)}.qrfs .tx{text-align:left;max-width:36vw}}
+/* 第十輪：專有名詞詞庫 */
+.vgrid{display:flex;flex-direction:column;gap:8px}
+.vlayer{font-size:.85rem;color:var(--accent);font-weight:500;letter-spacing:.08em;padding:4px 2px 0;border-bottom:1px solid var(--gold)}
+.vsec>h2{font-size:1.05rem}
+.vcard{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
+.vcard.weak{border-color:var(--warn);background:var(--warn-soft)}
+.vcard .vcm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere}
+.vcard .vt{display:flex;flex-wrap:wrap;gap:0 10px;align-items:baseline}
+.vcard .vt b{font-weight:500;font-size:1.05rem}
+.vcard .vfr{color:var(--accent);font-style:italic}
+.vcard .vh{font-size:.88rem;color:var(--muted)}
+.vcard .vpr{font-size:.8rem;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.vflag{flex:none;min-width:48px;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--ctl);background:var(--surface);cursor:pointer;font:inherit;font-size:.85rem;color:var(--muted)}
+.vflag[aria-pressed="true"]{background:var(--warn-soft);border-color:var(--warn);color:var(--warn-fg);font-weight:500}
+.fchead{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fcbar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.fcbar i{display:block;height:100%;background:var(--gold)}
+.fc{width:100%;min-height:min(46vh,300px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px 16px;border:1px solid var(--gold);border-radius:14px;background:var(--surface) var(--tex);color:var(--fg);cursor:pointer;font:inherit;overflow-wrap:anywhere}
+.fc.static{cursor:default;min-height:150px}
+.fc.back{border-color:var(--wine-bd);background:var(--wine-soft)}
+.fc .big{font-size:1.9rem;font-weight:400;line-height:1.3}
+.fc .big.sm{font-size:1.5rem}
+.fc .big.fr{color:var(--accent);font-style:italic}
+.fc .fsub{font-size:.9rem;color:var(--muted);line-height:1.5}
+.fc .fsub.hint{color:var(--fg);font-size:1rem;margin-top:6px}
+.fc .fsub.tap{margin-top:10px;font-size:.78rem}
+.fa{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fbig{min-height:56px;font-size:1.05rem;width:100%}
+.qopt{min-height:52px;padding:8px 14px;text-align:left;border:1px solid var(--ctl);border-radius:var(--r);background:var(--surface);color:var(--fg);font:inherit;cursor:pointer;overflow-wrap:anywhere}
+.qopt:disabled{cursor:default;color:var(--fg);opacity:1}
+.qopt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok-fg);font-weight:500}
+.qopt.bad{border-color:var(--danger);background:var(--danger-soft);color:var(--danger-fg)}
+.chip.lp{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 </style>
 </head>
 <body>
@@ -1675,13 +1708,21 @@ function chipsMulti(ctx, key, items, keyFn, gname, cls) {
   items.forEach(it => {
     const v = keyFn ? keyFn(it) : it;
     const on = arr(ctx.t[key]).includes(v);
-    const b = h('button', { type: 'button', class: 'chip' + (cls ? ' ' + cls : '') + (on ? ' on' : ''), 'aria-pressed': on, onclick: () => {
+    const lp = gname ? { t: null, fired: false } : null;
+    const b = h('button', { type: 'button', class: 'chip' + (cls ? ' ' + cls : '') + (lp ? ' lp' : '') + (on ? ' on' : ''), 'aria-pressed': on, onclick: () => {
+      if (lp && lp.fired) { lp.fired = false; return; }
       const a = arr(ctx.t[key]).slice(); const i = a.indexOf(v);
       if (i >= 0) a.splice(i, 1); else a.push(v);
       ctx.t[key] = a; b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', i < 0);
       const bd = wrap.closest('details.lay'); if (bd) bd._upd && bd._upd();
       ctx.onChange(key);
     } }, groupDot(gname), it);
+    if (lp) {   /* 第十輪：長按（電腦右鍵）查詞庫的中英法 */
+      const stop = () => { clearTimeout(lp.t); };
+      b.addEventListener('pointerdown', () => { lp.fired = false; stop(); lp.t = setTimeout(() => { lp.fired = true; vocabJump(vlabel(v)); }, 600); });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop));
+      b.addEventListener('contextmenu', e => { e.preventDefault(); stop(); lp.fired = false; vocabJump(vlabel(v)); });
+    }
     wrap.append(b);
   });
   return wrap;
@@ -1706,6 +1747,7 @@ function lay(ctx, keyPrefix, layer, type) {
   const body = h('div', { class: 'body' });
   const fill = () => {
     body.innerHTML = '';
+    if (layer === 0) body.append(h('div', { class: 'small muted' }, '想查中英法？長按詞（電腦右鍵）就會跳到詞庫。'));
     const picks = arr(ctx.t[key3]).length;
     if (S.l3Vocab || picks) {
       const on = !!S.l3Cat[key] || !!picks;
@@ -2558,7 +2600,7 @@ function viewVintage(app) {
   const segBar = segs.length ? h('div', { class: 'stack', style: 'gap:6px;margin:8px 0' }, h('div', { class: 'small muted' }, '總覽預設顯示 2015–' + R.to + '；要看更早的年份，按十年展開（細節頁一律可看 ' + R.from + '–' + R.to + '）：'),
     h('div', { class: 'chips', id: 'vsegs', role: 'group', 'aria-label': '顯示更早年份' }, segs.map(g => { const b = h('button', { type: 'button', class: 'chip' + (vseg.has(g[0]) ? ' on' : ''), 'aria-pressed': vseg.has(g[0]), onclick: () => { if (vseg.has(g[0])) vseg.delete(g[0]); else vseg.add(g[0]); b.classList.toggle('on', vseg.has(g[0])); b.setAttribute('aria-pressed', vseg.has(g[0])); drawMatrix(); } }, g[0]); return b; }))) : null;
   const legend = h('div', { class: 'legend small', style: 'margin:8px 0' }, VQ.map(q => h('span', { class: 'pill ' + VQ_CLS[q] }, VQ_ABBR[q] + '＝' + q)), h('span', { class: 'pill q-none' }, '—＝查無可靠資料'), h('span', { class: 'pill' }, '● 已修改'), h('span', { class: 'pill' }, h('i', { class: 'hwdot' }), '手冊裡有這年的酒'));
-  const mwrap = h('div', { class: 'vm', role: 'region', 'aria-label': '年份品質總覽（可左右捲動）', tabindex: '0' });
+  const mwrap = h('div', { class: 'vcm', role: 'region', 'aria-label': '年份品質總覽（可左右捲動）', tabindex: '0' });
   const detail = h('div', { class: 'stack', id: 'vdetail' });
   const drawMatrix = () => {
     const yShow = shownYears();
@@ -3585,10 +3627,12 @@ function mapDetail(w) {
 
 /* ========= 速查 ========= */
 function viewRef(app, tab, sub) {
-  const tabs = [['region', '產區簡表'], ['map', '地圖'], ['aroma', '香氣詞彙'], ['l3', 'L3 詞彙'], ['food', '食物原理'], ['frame', '品鑑架構'], ['vintage', '年份參考表']];
-  app.append(h('div', { class: 'subtabs', role: 'tablist' }, tabs.map(([k, l]) => h('button', { type: 'button', role: 'tab', class: tab === k ? 'on' : '', onclick: () => go('/ref/' + k) }, l))));
-  const hd = { region: ['grapes', '產區簡表', '走一趟產區：品種、風格、代表酒款'], aroma: ['glass', '香氣詞彙', '聞到什麼？從果香、發酵香到陳年香，一層層找'], food: ['decanter', '食物原理', '杯裡的酒，遇上桌上的菜會怎麼變'], frame: ['cork', '品鑑架構', '看、聞、嚐、下結論，四步走完一杯'], l3: ['glass', 'L3 詞彙', '第三級的香氣與風味詞彙，中英對照'], map: ['globe', '產區地圖', '緯度才是重點：點產區看位置、氣候與品種，也看你喝過的產區'], vintage: ['drop', '年份參考表', VINTAGE_REF.from + '–' + VINTAGE_REF.to + ' 主要產區：氣候、品質、一句重點'] }[tab];
-  if (hd) app.append(h('div', { class: 'refhd' }, art(hd[0], 44), h('div', { class: 'tx' }, h('b', null, hd[1]), h('span', { class: 'small muted' }, hd[2]))));
+  const tabs = [['region', '產區簡表'], ['map', '地圖'], ['aroma', '香氣詞彙'], ['l3', 'L3 詞彙'], ['vocab', '詞庫'], ['food', '食物原理'], ['frame', '品鑑架構'], ['vintage', '年份參考表']];
+  const vfocus = tab === 'vocab' && (sub === 'cards' || sub === 'quiz');
+  if (!vfocus) app.append(h('div', { class: 'subtabs', role: 'tablist' }, tabs.map(([k, l]) => h('button', { type: 'button', role: 'tab', class: tab === k ? 'on' : '', onclick: () => go('/ref/' + k) }, l))));
+  safe(() => { const on = $('.subtabs .on'); const bar = $('.subtabs'); if (bar && on) bar.scrollLeft = Math.max(0, on.offsetLeft - bar.offsetLeft - 24); });
+  const hd = { region: ['grapes', '產區簡表', '走一趟產區：品種、風格、代表酒款'], aroma: ['glass', '香氣詞彙', '聞到什麼？從果香、發酵香到陳年香，一層層找'], food: ['decanter', '食物原理', '杯裡的酒，遇上桌上的菜會怎麼變'], frame: ['cork', '品鑑架構', '看、聞、嚐、下結論，四步走完一杯'], l3: ['glass', 'L3 詞彙', '第三級的香氣與風味詞彙，中英對照'], vocab: ['cork', '專有名詞詞庫', '香氣、品鑑、酒標與菜單用語，中英法對照，可閃卡複習'], map: ['globe', '產區地圖', '緯度才是重點：點產區看位置、氣候與品種，也看你喝過的產區'], vintage: ['drop', '年份參考表', VINTAGE_REF.from + '–' + VINTAGE_REF.to + ' 主要產區：氣候、品質、一句重點'] }[tab];
+  if (hd && !vfocus) app.append(h('div', { class: 'refhd' }, art(hd[0], 44), h('div', { class: 'tx' }, h('b', null, hd[1]), h('span', { class: 'small muted' }, hd[2]))));
   if (tab === 'region') {
     const q = h('input', { type: 'search', id: 'rq', placeholder: '搜尋產區、品種、代表酒款（中英文都可以）', 'aria-label': '搜尋產區', style: 'margin-bottom:12px' });
     const g = h('div', { class: 'rgrid' });
@@ -3614,6 +3658,8 @@ function viewRef(app, tab, sub) {
       h('dl', { class: 'kv' }, [['香氣／風味濃度', OPT3.inten.join('—')], ['酸度・單寧', OPT3.lmh.join('—')], ['酒體', OPT3.body.join('—')], ['餘味', OPT3.finish.join('—')], ['甜度', OPT3.sweet.join('—')], ['酒精', '低—中—高（L3 官方表仍為三段）'], ['發展程度', OPT3.dev.join('—')], ['氣泡（mousse）', OPT3.mousse.join('—')], ['適飲期／陳年潛力', OPT3.ready.join('／')]].map(([k, v]) => [h('dt', null, k), h('dd', null, v)])),
       h('div', { class: 'note info small' }, '對應官方 L3 品鑑表：澄清度、純淨度、顏色等其他項目和 L2 相同。用語待對課本。')));
     app.append(st);
+  } else if (tab === 'vocab') {
+    viewVocab(app, sub);
   } else if (tab === 'map') {
     viewMap(app, sub);
   } else if (tab === 'vintage') {
@@ -3631,6 +3677,726 @@ function viewRef(app, tab, sub) {
       h('div', { class: 'note info' }, '品質水平看的是客觀的平衡、餘味、濃度、複雜度，和「我喜不喜歡」是兩回事，所以筆記裡的星數另外記。')));
   }
 }
+
+/*VOCAB_START*/
+/* ========= 第十輪：專有名詞詞庫（原創整理；AI 整理，待核對）=========
+   A 香氣與風味詞、B 品鑑術語、C 酒標與菜單術語。內建資料，不進分享頁、不進備份（只有「不熟」標記進備份）。
+   行格式 A/B：中文|English|Français|一行提示|旗標（? ＝ 待核對）；法文留空＝沒有實用的常用法文。
+   行格式 C：原文|中文意思|使用提示|讀音（中文近似音，參考）|旗標。 */
+const VOCAB_A_SRC = [
+  [1, '花香', 'Floral', `
+花簇|blossom|fleurs|蘋果花、橙花等小白花的總稱，香氣淡雅
+玫瑰|rose|rose|常見於格烏茲塔明那；陳年內比歐露常被說「玫瑰與焦油」
+紫羅蘭|violet|violette|北隆河希哈、馬爾貝克常被提到
+相思樹花|acacia|acacia|白色小花香；常見於部分夏多內、維歐尼
+忍冬|honeysuckle|chèvrefeuille|白花加蜂蜜感；常見於維歐尼
+洋甘菊|chamomile|camomille|淡雅的花草茶氣味；陳年白酒也會出現|?
+接骨木花|elderflower|fleur de sureau|常見於白蘇維濃等芳香型白酒
+天竺葵|geranium|géranium|偶爾與發酵缺陷有關，不一定是好味道|?
+`],
+  [1, '綠色水果', 'Green fruit', `
+蘋果|apple|pomme|青蘋果偏酸脆，熟了偏甜；涼爽產區白酒常見
+梨|pear|poire|比蘋果柔和圓潤
+梨形糖|pear drop|—|年輕、低溫發酵白酒有時會有的糖果感
+榲桲|quince|coing|帶一點蜜與香料感
+醋栗|gooseberry|groseille à maquereau|白蘇維濃的典型香氣
+葡萄|grape|raisin|麝香葡萄（Muscat）最明顯；注意法文 raisin 是新鮮葡萄
+`],
+  [1, '柑橘類水果', 'Citrus fruit', `
+葡萄柚(西柚)|grapefruit|pamplemousse|白蘇維濃常見
+檸檬|lemon|citron|高酸白酒（麗絲玲、夏布利）常見
+萊姆(青檸)|lime|citron vert|澳洲克萊爾谷麗絲玲常被形容有萊姆味
+柳橙|orange|orange|
+橙皮|orange peel|zeste d'orange|比果肉更苦、更香
+檸檬皮|lemon peel|zeste de citron|
+`],
+  [1, '帶核水果', 'Stone fruit', `
+水蜜桃|peach|pêche|維歐尼、較熟的夏多內常見
+杏桃|apricot|abricot|維歐尼的典型香氣
+油桃|nectarine|nectarine|
+`],
+  [1, '熱帶水果', 'Tropical fruit', `
+香蕉|banana|banane|二氧化碳浸漬（如薄酒萊）或年輕發酵常見
+荔枝|lychee|litchi|格烏茲塔明那的典型香氣
+芒果|mango|mangue|溫暖產區白酒常見
+香瓜(蜜瓜)|melon|melon|
+百香果|passion fruit|fruit de la passion|白蘇維濃（尤其紐西蘭）常見
+鳳梨(菠蘿)|pineapple|ananas|溫暖產區的夏多內常見
+`],
+  [1, '紅色水果', 'Red fruit', `
+紅醋栗|redcurrant|groseille|酸度高、顏色亮紅
+蔓越莓|cranberry|canneberge|
+覆盆子|raspberry|framboise|黑皮諾、格那希常見
+草莓|strawberry|fraise|黑皮諾、粉紅酒常見
+紅櫻桃|red cherry|cerise|桑嬌維塞、黑皮諾常見
+紅李|red plum|prune|
+`],
+  [1, '黑色水果', 'Black fruit', `
+黑加侖|blackcurrant|cassis|卡本內蘇維濃的典型香氣；cassis 也是黑加侖利口酒的名字
+黑莓|blackberry|mûre|
+野黑莓|bramble|ronce|比黑莓更野、更帶草本感
+藍莓|blueberry|myrtille|
+黑櫻桃|black cherry|cerise noire|
+黑李|black plum|prune noire|?
+`],
+  [1, '草本植物', 'Herbaceous', `
+青椒|green bell pepper|poivron vert|卡本內蘇維濃、卡本內弗朗未熟時常見
+青草|grass|herbe coupée|剛割過的草；白蘇維濃常見
+蕃茄葉|tomato leaf|feuille de tomate|
+蘆筍|asparagus|asperge|白蘇維濃、部分未熟紅酒
+黑加侖葉|blackcurrant leaf|bourgeon de cassis|法文說「黑加侖芽」，白蘇維濃常用的形容|?
+`],
+  [1, '香草植物', 'Herbal', `
+尤加利樹|eucalyptus|eucalyptus|澳洲庫那瓦拉、加州那帕的卡本內常被提到
+薄荷|mint|menthe|常和尤加利並列，帶清涼感
+茴香|fennel|fenouil|
+蒔蘿|dill|aneth|美國橡木桶陳年的酒（如傳統里奧哈）有時會有
+乾燥香料|dried herbs|herbes séchées|課本用字「乾燥香料」，英文原意是乾燥香草
+薰衣草|lavender|lavande|
+藥味|medicinal|médicinal|
+`],
+  [1, '香料', 'Pungent spice', `
+黑／白胡椒|black/white pepper|poivre noir / poivre blanc|黑胡椒：希哈；白胡椒：綠維特利納
+甘草|liquorice|réglisse|常見於希哈等部分紅酒
+`],
+  [1, '水果成熟度', 'Fruit ripeness', `
+未熟水果|under-ripe fruit|fruit pas mûr|偏青、偏酸
+成熟水果|ripe fruit|fruit mûr|
+水果乾|dried fruit|fruits secs|
+煮熟的水果|cooked fruit|fruits cuits|溫暖或過熟年份常見
+烘烤／燉煮水果|baked/stewed fruit|fruits cuits|
+蜜餞水果|preserved fruit|fruits confits|
+無花果|fig|figue|
+西梅乾|prune|pruneau|英文 prune 是乾的李子；法文 prune 是新鮮李子，乾的才叫 pruneau
+葡萄乾|raisin|raisin sec|法文要加 sec 才是乾的
+蘇丹娜葡萄乾|sultana|—|無籽的淺色葡萄乾
+櫻桃酒|kirsch|kirsch|櫻桃蒸餾酒，形容濃縮的櫻桃味
+果醬感|jamminess|confituré|形容詞：像果醬般濃縮偏甜
+`],
+  [1, '其他', 'Other', `
+濕石頭|wet stones|pierre mouillée|礦物感的一種說法
+糖果|candy|bonbon|常見於二氧化碳浸漬的酒（薄酒萊）
+燧石|flint|pierre à fusil|羅亞爾河白蘇維濃（如普依芙美）、夏布利常被形容
+濕羊毛|wet wool|laine mouillée|希濃白（Chenin Blanc）常被形容
+`],
+  [1, '課本外補充', 'Extra', `
+橙花|orange blossom|fleur d'oranger|比橙皮更甜、更香的花香
+野草莓|wild strawberry|fraise des bois|黑皮諾常被形容|?
+黑橄欖|black olive|olive noire|北隆河希哈常見
+鹽味|saline|salin|像海風、淡淡鹹感；常被拿來形容夏布利、曼薩尼亞|?
+礦物|mineral|minéral|不是真的吃到石頭，是一種乾淨、石質的印象
+粉筆|chalk|craie|常被形容香檳與石灰質土壤的酒|?
+牡蠣殼|oyster shell|coquille d'huître|夏布利常被形容|?
+黑松露|black truffle|truffe noire|陳年勃根地、皮埃蒙特紅酒常被提到|?
+茉莉|jasmine|jasmin|白花香；麝香、芳香型白酒常見
+椴花|linden|tilleul|法文 tilleul 也是椴花茶；羅亞爾河、阿爾薩斯白酒常見|?
+桂花|osmanthus|osmanthus|常被拿來形容荔枝系芳香白酒（如格烏茲塔明那）|?
+青蘋果|green apple|pomme verte|高酸、涼爽產區白酒的典型印象
+石榴|pomegranate|grenade|偏酸的紅色水果印象
+鉛筆芯|pencil shavings|mine de crayon|波雅克、梅多克的卡本內蘇維濃常被形容|?
+百里香|thyme|thym|
+迷迭香|rosemary|romarin|
+月桂葉|bay leaf|laurier|
+南法灌木叢|garrigue|garrigue|普羅旺斯、隆河南部乾燥灌木與香草的總稱；法文酒評常用
+檸檬草|lemongrass|citronnelle|
+八角|star anise|anis étoilé|
+紅茶|black tea|thé noir|常用來形容單寧的質地與乾澀感
+海藻|seaweed|algue|帶海味、碘味的聯想
+`],
+  [2, '課本外補充', 'Extra', `
+可可|cocoa|cacao|橡木或烘烤帶來；也常見於濃厚紅酒
+黑巧克力|dark chocolate|chocolat noir|比牛奶巧克力更苦、更濃
+煙燻培根|smoked bacon|lard fumé|北隆河希哈常被形容
+`],
+  [3, '課本外補充', 'Extra', `
+薑餅|gingerbread|pain d'épices|陳年麗絲玲、希濃白常被形容；法文 pain d'épices＝香料麵包
+`],
+  [2, '酵母', 'Yeast', `
+餅乾|biscuit|biscuit|酒渣接觸、酵母自溶帶來；香檳常見
+酥皮點心|pastry|viennoiserie|法文 viennoiserie 指可頌類點心
+麵包|bread|pain|
+烤麵包|toast|pain grillé|
+麵包麵糰|bread dough|pâte à pain|
+布里歐許|brioche|brioche|香檳與傳統法氣泡酒的典型香氣
+起司|cheese|fromage|
+優格|yogurt|yaourt|
+`],
+  [2, '蘋果酸乳酸轉化', 'Malolactic', `
+奶油|butter|beurre|橡木桶夏多內、經過蘋果酸乳酸轉化的酒常見
+鮮奶油|cream|crème|
+`],
+  [2, '橡木', 'Oak', `
+香草|vanilla|vanille|新橡木桶的典型香氣
+丁香|clove|clou de girofle|
+椰子|coconut|noix de coco|美國橡木桶較明顯
+雪松|cedar|cèdre|陳年波爾多紅酒常被形容
+焦炭|charred wood|bois brûlé|桶子烘烤程度高時出現|?
+煙燻|smoke|fumé|橡木烘烤帶來；與野火煙燻汙染不同
+巧克力|chocolate|chocolat|
+咖啡|coffee|café|
+肉豆蔻|nutmeg|noix de muscade|
+奶油糖|butterscotch|—|
+烤吐司|toasted oak|toasté|橡木桶烘烤的味道
+樹脂味|resinous|résineux|
+`],
+  [3, '紅酒陳年', 'Red wine ageing', `
+皮革|leather|cuir|陳年波爾多、內比歐露常見
+泥土|earth|terre|
+蘑菇|mushroom|champignon|陳年黑皮諾、勃根地典型
+肉味|meaty|viandé|
+煙草|tobacco|tabac|陳年波爾多、內比歐露常見
+濕樹葉|wet leaves|feuilles mouillées|
+森林地表|forest floor|sous-bois|法文 sous-bois 是陳年紅酒很常用的形容
+焦糖|caramel|caramel|
+野味|game|gibier|
+農莊味|farmyard|—|有人視為風土特色，也和 Brettanomyces 有關|?
+植物菜蔬味|vegetal|végétal|
+鹹香味|savoury|—|
+焦油|tar|goudron|陳年內比歐露（巴羅洛）常見
+黑莓乾|dried blackberry|mûre séchée|
+蔓越莓乾|dried cranberry|canneberge séchée|
+煮熟黑莓|cooked blackberry|mûre cuite|
+煮熟紅李|cooked red plum|prune cuite|
+`],
+  [3, '白酒陳年', 'White wine ageing', `
+橘子果醬|marmalade|marmelade d'orange|
+汽油|petrol|pétrole|陳年麗絲玲的典型香氣
+煤油|kerosene|—|和汽油類似的說法
+肉桂|cinnamon|cannelle|
+生薑|ginger|gingembre|
+堅果味|nutty|—|
+乾草|hay|foin|
+蜂蜜|honey|miel|貴腐甜酒、陳年白酒常見
+杏桃乾|dried apricot|abricot sec|
+蘋果乾|dried apple|pomme séchée|
+香蕉乾|dried banana|banane séchée|
+`],
+  [3, '刻意氧化', 'Deliberate oxidation', `
+杏仁|almond|amande|雪莉（Fino 類）、陳年白酒常見
+榛果|hazelnut|noisette|
+核桃|walnut|noix|氧化型雪莉（Oloroso）、茶色波特常見
+杏仁膏|marzipan|pâte d'amande|
+太妃糖|toffee|—|
+`],
+];
+
+const VOCAB_B_SRC = [
+  ['外觀與香氣', `
+澄清度|clarity|limpidité|酒液清不清澈
+顏色深度|colour intensity|intensité de la robe|淡、中、深
+顏色|colour|robe|法文品酒常說酒的「robe」（禮服）
+純淨度|clean|net / franc|沒有異味、缺陷；法文 netteté 是純淨度
+香氣|aroma / nose|nez|法文 nez（鼻子）泛指聞到的整體
+一類香氣|primary aromas|arômes primaires|來自葡萄品種與酒精發酵
+二類香氣|secondary aromas|arômes secondaires|來自釀造過程（酵母、橡木、蘋果酸乳酸轉化）
+三類香氣|tertiary aromas|arômes tertiaires|來自陳年；法文常合稱 bouquet
+香氣濃度|aroma intensity|intensité aromatique|
+發展程度|development|évolution|年輕、發展中、充分發展、已衰退
+`],
+  ['口感結構', `
+甜度|sweetness|douceur / sucrosité|干到甜
+酸度|acidity|acidité|嚐起來會流口水、舌兩側發酸
+單寧|tannin|tanin|讓口腔乾澀、收斂的感覺
+酒精|alcohol|alcool|酒精度高會有溫熱感
+酒體|body|corps|輕盈到飽滿，像牛奶與鮮奶油的差別
+風味濃度|flavour intensity|intensité aromatique en bouche|
+氣泡|mousse|mousse|氣泡的綿密度與細緻度
+礦物感|minerality|minéralité|沒有嚴格定義，常指乾淨、石質、鹹鮮的印象
+圓潤|round|rond|單寧柔順、不尖銳
+柔順|supple|souple|口感順、不生硬
+緊實|tight / firm|serré|酸度或單寧收得很緊
+肥厚|fat / unctuous|gras|口感豐腴、帶油脂感
+骨架|structure|structure|酸度、單寧、酒精、酒體組成的整體架構
+青澀|green / unripe|vert|單寧或酸度不成熟的生硬感
+`],
+  ['品質與評價', `
+餘味|finish|finale / longueur|吞下後還留多久；法文常說 longueur（長度）
+平衡|balance|équilibre|酸、甜、單寧、酒精彼此不搶
+複雜度|complexity|complexité|香氣與味道有多層次、會變化
+濃縮度|concentration|concentration|
+陳年潛力|ageing potential|potentiel de garde|法文 vin de garde＝適合久放的酒
+適飲期|drinking window|apogée|apogée 指酒的最佳狀態
+品質水平|quality level|niveau de qualité|有缺陷、差、可接受、好、很好、極好
+`],
+  ['釀造與工序', `
+蘋果酸乳酸轉化|malolactic fermentation (MLF)|fermentation malolactique|酸味較尖的蘋果酸轉成較柔的乳酸，帶來奶油感
+酒渣|lees|lies|發酵後沉澱的死酵母
+酒渣攪拌|lees stirring|bâtonnage|定期攪動酒渣，增加圓潤與厚度
+酒渣陳釀|ageing on lees|élevage sur lies|
+酵母自溶|autolysis|autolyse|酵母死亡分解，帶來餅乾、麵包香；傳統法氣泡酒的關鍵
+傳統法|traditional method|méthode traditionnelle|瓶中二次發酵（香檳的做法）
+二氧化碳浸漬|carbonic maceration|macération carbonique|整串葡萄入槽發酵，果味鮮明；薄酒萊的特色
+浸皮|maceration|macération|皮和汁泡在一起，萃取顏色、單寧與香氣
+橡木|oak|chêne|
+橡木桶|barrel / barrique|barrique / fût|barrique 通常指 225 公升的桶子
+貴腐|noble rot|pourriture noble|灰黴菌讓葡萄脫水，濃縮糖與風味；蘇玳、托凱的特色
+冰酒|ice wine|vin de glace|凍結的葡萄壓榨，酒汁甜而濃縮；德國稱 Eiswein
+風乾|dried grapes|passerillage|葡萄風乾濃縮；義大利稱 appassimento|?
+加烈|fortified|muté / fortifié|發酵中加入烈酒，保留甜味（波特）
+風土|terroir|terroir|土壤、氣候、地形、人為的總和
+年份|vintage|millésime|
+`],
+  ['缺陷與狀態', `
+軟木塞味|cork taint (TCA)|goût de bouchon|像濕紙箱、發霉地下室的味道；酒莊說 bouchonné
+還原味|reduction|réduction|臭雞蛋、火柴、橡膠味；醒酒後常會散去
+氧化|oxidised|oxydé|蘋果泥、核桃、顏色變褐；除非是刻意氧化的風格
+揮發酸|volatile acidity (VA)|acidité volatile|醋酸、指甲油味
+醒酒|decanting|carafage / décantation|倒進醒酒器，讓酒接觸空氣或去除沉澱
+飲用溫度|serving temperature|température de service|
+`],
+];
+
+/* C 酒標與菜單術語（原文|中文意思|使用提示|讀音（參考）|旗標）。[id, 分組名, 語言標籤, 資料] */
+const VOCAB_C_SRC = [
+  ['fr', '法國', '法文', `
+AOC / AOP|法定產區（原產地命名管制）|標示酒來自該法定產區並符合規定；AOP 是歐盟的同義制度名稱|阿歐塞 / 阿歐沛|
+IGP|地理標示保護|舊稱 Vin de Pays；規定比 AOC 寬鬆，南法常見|伊熱沛|
+Vin de France|法國餐酒|不限產區，可標品種與年份；有些酒莊故意用這級來自由創作|萬 德 弗宏斯|
+Brut Nature / Pas Dosé / Dosage Zéro|零添糖（最乾）|氣泡酒：每公升約 0–3 克糖，沒有補糖漿|布呂特 納圖爾 / 帕 多賽|
+Extra Brut|極乾|氣泡酒：約 0–6 克/公升|艾克斯特拉 布呂特|
+Brut|乾|氣泡酒最常見的等級，約 12 克/公升以下，喝起來是「乾」|布呂特|
+Extra Dry / Extra Sec|微乾（其實帶點甜）|名字有 Dry，但比 Brut 甜，約 12–17 克/公升|艾克斯特拉 塞克|
+Sec|氣泡酒：微甜；靜態酒：乾|氣泡酒上看到 Sec 別當成「很乾」|塞克|
+Demi-Sec|半甜|氣泡酒約 32–50 克/公升，適合搭甜點|德米 塞克|
+Doux|甜|最甜的氣泡酒等級，約 50 克/公升以上|杜|
+Blanc de Blancs|白中白|只用白葡萄釀成（香檳多半是夏多內）|布朗 德 布朗|
+Blanc de Noirs|黑中白|用黑葡萄（黑皮諾、莫尼耶）釀成的白酒|布朗 德 諾瓦|
+Rouge / Blanc / Rosé|紅／白／粉紅|酒單上最基本的顏色分類|胡居 / 布朗 / 羅賽|
+Cuvée|特調（批次）|原指一桶或一槽酒；現在多指某個調配或批次，本身不代表等級|居維|
+Millésime|年份|香檳上看到 Millésime，是單一年份香檳|米雷吉姆|
+NV / Sans Année (SA)|無年份|多個年份調配而成，維持一致的廠牌風格||
+Champagne|香檳|只有香檳區產的氣泡酒才能叫這個名字|香檳|
+Crémant|法國傳統法氣泡酒（非香檳區）|如 Crémant d'Alsace／de Loire／de Bourgogne，性價比高|克雷芒|
+Méthode Traditionnelle|傳統法（瓶中二次發酵）|非香檳區用這個詞，不能寫 Méthode Champenoise|梅托德 特拉迪西翁內爾|
+Pétillant Naturel (Pét-Nat)|自然微氣泡（祖傳法）|瓶中發酵未結束就封瓶，常混濁、風格奔放|佩蒂揚 納圖雷|?
+Mousseux / Pétillant|氣泡酒 / 微氣泡|Mousseux 泛指氣泡酒|穆瑟 / 佩蒂揚|
+Domaine|酒莊（自有葡萄園）|勃根地、隆河、阿爾薩斯常見|多梅恩|
+Château|城堡＝酒莊|波爾多最常見，名字不一定真有城堡|夏朵|
+Maison|酒商／品牌|香檳、勃根地的酒商廠牌常用|梅松|
+Négociant|酒商|向農民買葡萄或酒，自己調配裝瓶|內戈西昂|
+RM / NM / CM|香檳身分代號|RM＝自種自釀、NM＝酒商、CM＝合作社；印在瓶標小字上||
+Mis en bouteille au château / au domaine / à la propriété|酒莊裝瓶|表示在酒莊自己裝瓶，不是外購酒裝瓶|米 札恩 布戴伊 歐 夏朵|
+Grand Cru|特級（園）|勃根地、阿爾薩斯、香檳最高等級；波爾多聖愛美濃另有自己的定義|格蘭 克呂|
+Premier Cru (1er Cru)|一級（園）|勃根地等級在 Grand Cru 之下；香檳也有一級村|普勒米耶 克呂|
+Village / Villages|村莊級|勃根地金字塔：區域級 < 村莊級 < 一級園 < 特級園|維拉吉|
+Cru Classé|列級酒莊|波爾多的分級（1855、聖愛美濃、格拉夫等），各區制度不同|克呂 克拉塞|
+Cru Bourgeois|中級酒莊|梅多克的分級，在列級酒莊之下|克呂 布爾茹瓦|?
+Climat|勃根地的地塊（氣候園）|勃根地用名稱劃出來的特定葡萄園地塊|克里馬|
+Lieu-dit|有名字的地塊|比村莊小的命名地塊，標在酒標上|呂 迪|
+Vieilles Vignes|老藤|樹齡高、產量低，通常更濃縮；沒有法定的最低樹齡|維耶 維涅|
+Élevé en fût de chêne|橡木桶培養|表示有經過橡木桶陳釀|艾勒維 昂 菲 德 申|
+Barrique|225 公升橡木桶|波爾多型標準橡木桶|巴希克|
+Sur Lie / Sur Lies|酒渣陳釀|羅亞爾河 Muscadet 最常見，口感更細膩帶酵母感|須 里|
+Réserve|珍藏|法國沒有統一法規，由酒廠自訂|雷澤爾弗|
+Moelleux|微甜至半甜|羅亞爾河（Vouvray 等）常用：Sec < Demi-Sec < Moelleux < Doux|穆勒|
+Liquoreux|濃甜（貴腐類）|如蘇玳（Sauternes）這類濃甜白酒|利克勒|
+Vendange Tardive (VT)|晚摘|阿爾薩斯，晚採收，較甜或較濃縮|旺當日 塔迪夫|
+Sélection de Grains Nobles (SGN)|貴腐粒精選|阿爾薩斯，比 VT 更甜更稀有|塞萊克西翁 德 格蘭 諾勃勒|
+Vin Doux Naturel (VDN)|天然甜酒（加烈）|發酵中途加酒精保留甜味，如 Banyuls、Muscat de Beaumes-de-Venise|萬 杜 納圖雷|
+Vin Jaune|黃酒|侏羅（Jura）氧化風格，桶中久陳，如 Château-Chalon|萬 戎|?
+Vin de Paille|稻草酒|侏羅的風乾葡萄甜酒|萬 德 帕伊|?
+Cépage|葡萄品種|酒標上標示的品種|塞帕吉|
+Assemblage|調配|多品種調配，波爾多最典型|阿桑布拉吉|
+Biologique / Bio / AB|有機|有機認證（AB 是法國標章）|比奧洛吉克|
+Biodynamie|自然動力法|常見認證名為 Demeter|比奧迪那米|
+Sans soufre ajouté|無添加二氧化硫|多見於自然酒|桑 蘇弗 阿茹戴|
+`],
+  ['menu', '餐廳酒單', '中英法', `
+Carte des vins|酒單（法）|餐廳遞給你的酒單|卡特 德 萬|
+Vin au verre / By the glass|單杯酒|不用開整瓶，點一杯|萬 歐 維爾|
+Bouteille / Bottle|整瓶（750 毫升）|||
+Demi-bouteille / Half bottle|半瓶（375 毫升）|兩人少量點酒很方便|德米 布戴伊|
+Magnum|1.5 公升大瓶|相當於兩瓶|馬格南|
+Accord mets et vins / Pairing|餐酒搭配|酒單上的搭配建議|阿柯 梅 艾 萬|
+Apéritif|餐前酒|通常是氣泡酒或輕盈白酒|阿佩里蒂夫|
+Digestif|餐後酒|如白蘭地、渣釀、加烈酒|迪傑斯提夫|
+Sommelier|侍酒師|餐廳負責酒單與服務的人|索梅利耶|
+Caviste|酒商（賣酒的店員）|法國的專賣酒店老闆或店員|卡維斯特|
+Vigneron|種葡萄也釀酒的農人|自種自釀的酒莊主人|維涅宏|
+Cave|酒窖／酒莊地窖|也指酒專賣店|卡夫|
+Vendange|採收|秋天採葡萄的季節|旺當日|
+House wine / Vin de la maison|店家招牌酒|通常是店裡最基本、好入口的款|萬 德 拉 梅松|
+Corkage|開瓶費|自帶酒到餐廳要付的服務費||
+`],
+  ['it', '義大利', '義文', `
+DOCG|保證法定產區|義大利最高分級，要通過官方品評；如 Barolo、Chianti Classico|多克吉|
+DOC|法定產區|有產區範圍與品種規定|多克|
+IGT|地理標示典型酒（IGP）|規定較寬鬆，超托斯卡尼（Super Tuscan）許多是這級|伊吉堤|
+Vino|日常餐酒|最基本的一級，過去叫 Vino da Tavola|維諾|
+Classico|傳統（核心）產區|指該產區最早、最核心的範圍，如 Chianti Classico|克拉西科|
+Riserva|珍藏（陳年更久）|依各產區規定陳年更久，細節不同|里塞爾瓦|
+Superiore|較高等級|通常酒精度略高或條件略嚴，依產區而異|蘇佩里奧雷|
+Gran Selezione|大精選|Chianti Classico 的最高等級|格蘭 塞萊齊奧內|
+Spumante|氣泡酒（氣泡足）||斯普曼泰|
+Frizzante|微氣泡|氣泡壓力比 Spumante 低，如部分 Prosecco|弗里贊泰|
+Metodo Classico|傳統法（瓶中二次發酵）|如 Franciacorta、Trento|梅托多 克拉西科|
+Prosecco|普洛賽克|Glera 品種釀的氣泡酒，多為槽式發酵、果香輕快|普羅塞可|
+Secco / Asciutto|乾||塞科 / 阿修托|
+Abboccato|微甜||阿博卡托|
+Amabile|半甜||阿馬比雷|
+Dolce|甜||多爾切|
+Passito|風乾葡萄酒|用風乾葡萄釀成，多為甜酒|帕西托|
+Appassimento|葡萄風乾工序|Amarone 等酒的做法|阿帕西門托|
+Amarone (della Valpolicella)|阿馬羅內（風乾葡萄紅酒）|酒體飽滿、酒精高、濃厚|阿馬羅內|
+Ripasso|二次浸渣|用 Amarone 的酒渣再發酵，風格介於 Valpolicella 與 Amarone 之間|里帕索|
+Recioto|風乾甜酒|如 Recioto della Valpolicella|雷喬托|
+Vin Santo|聖酒|托斯卡尼風乾葡萄、小桶久陳的甜酒|維因 桑托|
+Vendemmia Tardiva|晚摘||文堂米亞 塔爾迪瓦|?
+Bianco / Rosso / Rosato|白／紅／粉紅||比安科 / 羅索 / 羅薩托|
+Cantina|酒廠／酒窖||坎提納|
+Azienda Agricola|農場酒莊（自種自釀）||阿齊恩達 阿格里科拉|
+Tenuta|莊園||特努塔|
+Fattoria / Podere / Cascina|農莊（托斯卡尼／皮埃蒙特）|托斯卡尼多說 Fattoria、Podere；皮埃蒙特常見 Cascina||
+Vigna|葡萄園（單一園名）|酒標上接在園名前面|維尼亞|
+Vecchie Vigne|老藤||維凱 維涅|
+Imbottigliato all'origine|原產地裝瓶|相當於酒莊裝瓶||
+Annata|年份||安納塔|
+`],
+  ['es', '西班牙', '西文', `
+DO|法定產區|西班牙基本的法定產區等級|德歐|
+DOCa / DOQ|特級法定產區|只有里奧哈（Rioja）、普里奧拉（Priorat）等少數產區|德歐卡|
+Vino de la Tierra (VT)|地區餐酒|相當於 IGP||
+Joven|年輕|沒有或極短橡木桶陳年，趁新鮮喝|侯本|
+Crianza|培養級|陳年要求最低的一級；細節依產區而異|克里安薩|?
+Reserva|珍藏|陳年比 Crianza 更久|雷塞爾瓦|?
+Gran Reserva|大珍藏|陳年要求最高，只在好年份推出；以里奧哈最嚴格|格蘭 雷塞爾瓦|?
+Cava|卡瓦|西班牙傳統法氣泡酒（瓶中二次發酵）|卡瓦|
+Brut Nature / Brut / Seco / Semiseco / Dulce|乾度等級|由最乾到最甜：Brut Nature、Brut、Seco（微乾）、Semiseco（半乾）、Dulce（甜）||?
+Fino|菲諾（最乾的雪莉）|酒花（flor）覆蓋下的生物陳年，清爽、帶杏仁|菲諾|
+Manzanilla|曼薩尼亞|聖盧卡爾產的 Fino 類型，帶鹹鮮海風感|曼薩尼亞|?
+Amontillado|阿蒙提亞多|先生物陳年、後氧化陳年，堅果與乾燥風味|阿蒙提亞多|
+Oloroso|歐洛羅索|氧化陳年，深色、核桃與乾果；可乾可偏甜|歐洛羅索|
+Palo Cortado|帕洛科爾塔多|介於 Amontillado 與 Oloroso 之間|帕洛 科爾塔多|
+Pedro Ximénez (PX)|佩德羅希梅內斯|極甜的黑糖漿般甜酒||
+Cream|奶油雪莉|加甜的 Oloroso 類，偏甜||
+Solera|索雷拉系統|分層混合陳年系統，讓酒保持穩定風格|索雷拉|
+Sobre Lías|酒渣陳釀||索布雷 利亞斯|?
+Bodega|酒莊／酒窖||波德加|
+Viña / Viñedo|葡萄園||比尼亞 / 比涅多|
+Tinto / Blanco / Rosado / Clarete|紅／白／粉紅／淡紅||廷托 / 布蘭科 / 羅薩多 / 克拉雷特|
+Cosecha / Vendimia|年份／採收|酒標的年份可能寫成 Cosecha 或 Vendimia|科塞查 / 班迪米亞|
+Viñas Viejas|老藤||比尼亞斯 維耶哈斯|
+Roble|橡木（短期桶陳）|常指在橡木桶只放很短時間的年輕款，如 Ribera del Duero Roble|羅布雷|
+Espumoso|氣泡酒||埃斯普莫索|
+Embotellado en origen|原產地裝瓶|相當於酒莊裝瓶||
+`],
+  ['de', '德國／奧地利', '德文', `
+Trocken|乾|殘糖很低；德國酒標上最常見的乾型標示|特羅肯|
+Halbtrocken|半乾|有一點點甜意|哈布特羅肯|
+Feinherb|近半乾|非官方用詞，大約介於半乾與微甜之間|范赫普|?
+Lieblich|微甜||利布利希|
+Süß|甜||絮斯|
+Qualitätswein|優質酒|一般的法定優質酒（舊稱 QbA）|瓜利泰茨維因|
+Prädikatswein|特級優質酒|依葡萄採收時的成熟度分級，含下面 Kabinett 到 TBA|普雷迪卡茨維因|
+Kabinett|珍藏級|最輕盈的 Prädikat，可乾可微甜，酒精度通常較低|卡比內特|
+Spätlese|晚摘|比 Kabinett 更熟，風味更濃|施佩特雷澤|
+Auslese|精選|挑選過熟的葡萄串，較濃厚，常偏甜|奧斯雷澤|
+Beerenauslese (BA)|粒選|挑選過熟或貴腐的葡萄粒，甜酒|貝倫奧斯雷澤|
+Trockenbeerenauslese (TBA)|乾粒貴腐精選|最甜、最稀有的甜酒（不是乾型，Trocken 在這裡指葡萄乾縮）|特羅肯貝倫奧斯雷澤|
+Eiswein|冰酒|凍結的葡萄壓榨|艾斯維因|
+Sekt|德國氣泡酒||澤克特|
+Winzersekt|酒農氣泡酒|酒農用自家葡萄、傳統法釀的氣泡酒|溫澤澤克特|?
+VDP|德國優質酒莊協會|瓶頸有鷹的標誌；有自己的分級|法德佩|
+Grosses Gewächs (GG)|特級園乾型酒|VDP 最高等級的乾型酒|格羅瑟斯 格韋克斯|
+Erste Lage / Grosse Lage|一級園 / 特級園|VDP 的園區分級|埃爾斯特 拉格|
+Ortswein / Gutswein|村莊級 / 酒莊基本款|VDP 金字塔較低的等級||
+Weingut|酒莊||維因古特|
+Weißwein / Rotwein / Rosé|白／紅／粉紅||威斯維因 / 羅特維因|
+Weißherbst|單一品種粉紅酒|德國的粉紅酒標示，用單一品種||
+Spätburgunder|黑皮諾（德文）||施佩特布根德|
+Grauburgunder / Weißburgunder|灰皮諾 / 白皮諾（德文）|||
+Erzeugerabfüllung|酒莊裝瓶|||
+Jahrgang|年份||雅爾岡|
+Alte Reben|老藤||阿爾特 雷本|
+Einzellage|單一葡萄園|||
+Ried|單一葡萄園（奧地利）|奧地利的園名標示|里德|
+DAC|奧地利產區法定（Districtus Austriae Controllatus）|以產區風格與品種為準|達克|
+Smaragd|最濃厚成熟的一級（瓦豪）|瓦豪（Wachau）三級：Smaragd > Federspiel > Steinfeder|斯瑪拉格特|
+Federspiel|中等（瓦豪）|酒精度中等的一級|費德爾史匹爾|
+Steinfeder|最輕（瓦豪）|最輕盈清淡的一級|施泰因費德爾|
+`],
+  ['pt', '葡萄牙', '葡文', `
+DOC / DOP|法定產區|葡萄牙的法定產區等級||
+Vinho Regional|地區餐酒|相當於 IGP|維紐 雷吉奧納爾|
+Vinho Verde|綠酒|產區名，酒款多輕盈清爽、酒精低、帶一點氣泡感|維紐 維爾德|
+Colheita|年份；單一年份茶色波特|寫在波特酒上是指單一年份的 Tawny|柯利埃塔|
+Reserva|珍藏|通常酒精度略高、品質條件稍嚴|雷塞爾瓦|?
+Garrafeira|特選窖藏|長期瓶陳的珍藏，品質標示|加拉費拉|?
+Porto / Port|波特酒|杜羅河谷的加烈甜紅酒|波爾圖|
+Ruby|寶石紅波特|年輕、果味強、色深紅|魯比|
+Tawny|茶色波特|木桶久陳，焦糖、堅果、乾果風味|陶尼|
+Late Bottled Vintage (LBV)|晚裝瓶年份波特|單一年份、桶陳較久後才裝瓶||
+Vintage Port|年份波特|只在好年份出的波特，瓶中久陳||
+Madeira|馬德拉|馬德拉島加烈、加熱陳年的酒，很耐放|馬德拉|
+Sercial / Verdelho / Boal / Malmsey|馬德拉四種風格|從最乾到最甜：Sercial、Verdelho、Boal、Malmsey||?
+Quinta|莊園|杜羅河谷等地的酒莊／農場名稱|金塔|
+Adega|酒窖／酒廠||阿德加|
+Tinto / Branco / Rosé|紅／白／粉紅||廷圖 / 布朗庫|
+Seco / Doce|乾 / 甜||塞庫 / 多塞|
+Espumante|氣泡酒||埃斯普蒙特|
+Vinhas Velhas|老藤||維紐斯 維拉斯|
+Engarrafado na origem|原產地裝瓶|相當於酒莊裝瓶||
+`],
+  ['nw', '新世界與通用', '英文', `
+Reserve / Reserva|珍藏|美國、澳洲通常沒有法定意義，只是廠牌自訂；智利、阿根廷有最低標準||
+Gran Reserva (Chile)|大珍藏（智利）|智利對陳年與酒精度有最低要求，細節待核對||?
+Old Vine|老藤|沒有統一的法定樹齡；通常產量低、風味更濃縮||
+Single Vineyard|單一葡萄園|酒款只用某一塊園的葡萄||
+Estate Bottled|莊園裝瓶|葡萄來自自有或自管葡萄園並在當地裝瓶（美國有法規定義）||
+Late Harvest|晚摘|比一般晚採收，較甜或較濃縮||
+Noble Late Harvest (NLH)|貴腐晚摘|南非、紐西蘭常見的貴腐甜酒標示||
+Vintage / NV|年份 / 無年份|NV＝Non-Vintage，多年份調配||
+Meritage|梅里塔吉|美國的波爾多式調配，是註冊的名稱|梅里塔吉|
+GSM|格那希–希哈–慕維得爾調配|澳洲、加州常見的隆河式調配||
+Proprietary Blend|自創調配名|酒廠自己取名的調配酒，品種不一定寫在酒標上||
+AVA|美國葡萄種植區|如 Napa Valley AVA；是產區範圍，不保證品質||
+GI|地理標示（澳洲）|如 Barossa Valley、Margaret River||
+WO|產地認證（南非）|Wine of Origin||
+MCC (Méthode Cap Classique)|南非傳統法氣泡酒|南非的傳統法氣泡酒標示|梅托德 卡普 克拉西克|
+Sparkling Shiraz|氣泡希哈|澳洲特色，紅色氣泡酒||
+Cool Climate|冷涼氣候|酒標上常見，暗示酸度較高、風味較細緻||
+Unoaked / Oaked|未過橡木 / 過橡木|夏多內酒標常見：Unoaked 清爽，Oaked 帶奶油香草感||
+`],
+];
+
+
+/* ---- 資料解析 ---- */
+const VOCAB_C_GROUPS = VOCAB_C_SRC.map(g => ({ id: g[0], label: g[1], lang: g[2] }));
+const VOC_ITEMS = [];
+(function () {
+  const lines = txt => txt.split('\n').map(s => s.trim()).filter(Boolean).map(s => s.split('|'));
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  VOCAB_A_SRC.forEach(([layer, group, cl, txt]) => lines(txt).forEach(f => VOC_ITEMS.push({ id: 'A:' + f[0], cat: 'A', layer, group, cl, zh: f[0], en: f[1] || '', fr: f[2] === '—' ? '' : (f[2] || ''), hint: f[3] || '', chk: f[4] === '?', extra: group === '課本外補充' })));
+  VOCAB_B_SRC.forEach(([group, txt]) => lines(txt).forEach(f => VOC_ITEMS.push({ id: 'B:' + f[0], cat: 'B', group, zh: f[0], en: f[1] || '', fr: f[2] === '—' ? '' : (f[2] || ''), hint: f[3] || '', chk: f[4] === '?' })));
+  VOCAB_C_SRC.forEach(([cid, label, lang, txt]) => lines(txt).forEach(f => VOC_ITEMS.push({ id: 'C:' + cid + ':' + f[0], cat: 'C', cid, group: label, lang, orig: f[0], zh: f[1] || '', hint: f[2] || '', pron: f[3] || '', chk: f[4] === '?' })));
+  VOC_ITEMS.forEach(it => { it.sr = norm([it.zh, it.en, it.fr, it.orig, it.hint, it.pron, it.group, it.lang].join(' ')); });
+})();
+const VOC_BY_ID = new Map(VOC_ITEMS.map(it => [it.id, it]));
+const vNorm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const VOC_CATS = [['all', '全部'], ['A', '香氣與風味'], ['B', '品鑑術語'], ['C', '酒標與菜單'], ['weak', '不熟']];
+
+/* ---- 本機狀態：不熟標記、今天複習張數（存 IndexedDB meta「vocab」；只有 weak 進備份）---- */
+let VM = { weak: {}, day: '', n: 0 };
+async function loadVocabMeta() {
+  try { const o = await Store.get('meta', 'vocab'); if (o && typeof o === 'object') { VM.weak = (o.weak && typeof o.weak === 'object') ? o.weak : {}; VM.day = o.day || ''; VM.n = Number(o.n) || 0; } } catch (e) {}
+}
+function saveVocabMeta() { Store.put('meta', { k: 'vocab', weak: VM.weak, day: VM.day, n: VM.n }); }
+const vmToday = () => { if (VM.day !== today()) { VM.day = today(); VM.n = 0; } return VM.n; };
+const isWeak = id => !!VM.weak[id];
+function setWeak(id, on) { if (on) VM.weak[id] = Date.now(); else delete VM.weak[id]; saveVocabMeta(); }
+const weakCount = () => Object.keys(VM.weak).filter(id => VOC_BY_ID.has(id)).length;
+function vmCount() { vmToday(); VM.n++; saveVocabMeta(); }
+/* 備份：只放「不熟」標記（id→時間），不放詞庫本身 */
+function vocabExportWeak() { const o = {}; Object.keys(VM.weak).forEach(id => { if (VOC_BY_ID.has(id)) o[id] = VM.weak[id]; }); return o; }
+function vocabImportWeak(src) {
+  let n = 0; if (!src || typeof src !== 'object') return 0;
+  for (const id in src) { const t = Number(src[id]); if (!VOC_BY_ID.has(id) || !isFinite(t) || t <= 0) continue; if (!VM.weak[id] || t > VM.weak[id]) { if (!VM.weak[id]) n++; VM.weak[id] = t; } }
+  if (n) saveVocabMeta(); return n;
+}
+
+/* ---- 篩選狀態（離開詞庫再回來還在）---- */
+const VU_DEF = () => ({ cat: 'all', layer: 0, group: '', cid: '', fr: false, q: '' });
+let VU = VU_DEF();
+let VFC = null;   /* 閃卡這一輪 */
+let VQZ = null;  /* 小測驗這一輪 */
+function vocabFiltered() {
+  const q = vNorm(VU.q.trim());
+  return VOC_ITEMS.filter(it => {
+    if (VU.cat === 'weak') { if (!isWeak(it.id)) return false; }
+    else if (VU.cat !== 'all' && it.cat !== VU.cat) return false;
+    if (VU.cat === 'A') { if (VU.layer && it.layer !== VU.layer) return false; if (VU.group && it.group !== VU.group) return false; }
+    if (VU.cat === 'B' && VU.group && it.group !== VU.group) return false;
+    if (VU.cat === 'C' && VU.cid && it.cid !== VU.cid) return false;
+    if (VU.fr) { if (it.cat === 'C' ? it.cid !== 'fr' : !it.fr) return false; }
+    if (q && !it.sr.includes(q)) return false;
+    return true;
+  });
+}
+/* 品鑑勾選的香氣詞：長按（或電腦右鍵）直接跳到詞庫卡片 */
+function vocabJump(zh) { VU = VU_DEF(); VU.q = stripP(zh); go('/ref/vocab'); }
+
+function vocabCard(it, onFlag) {
+  const wk = isWeak(it.id);
+  const flag = h('button', { type: 'button', class: 'vflag', 'aria-pressed': String(wk), 'aria-label': (wk ? '取消不熟標記：' : '標記為不熟：') + (it.orig || it.zh), onclick: () => {
+    const on = !isWeak(it.id); setWeak(it.id, on); flag.setAttribute('aria-pressed', String(on)); flag.textContent = on ? '已標不熟' : '標不熟';
+    flag.setAttribute('aria-label', (on ? '取消不熟標記：' : '標記為不熟：') + (it.orig || it.zh)); card.classList.toggle('weak', on); if (onFlag) onFlag();
+  } }, wk ? '已標不熟' : '標不熟');
+  let main;
+  if (it.cat === 'C') {
+    main = h('div', { class: 'vcm' }, h('div', { class: 'vt' }, h('b', { lang: it.cid === 'fr' ? 'fr' : it.cid === 'it' ? 'it' : it.cid === 'es' ? 'es' : it.cid === 'de' ? 'de' : it.cid === 'pt' ? 'pt' : 'en' }, it.orig)),
+      h('div', null, it.zh),
+      it.hint ? h('div', { class: 'vh' }, it.hint) : null,
+      it.pron ? h('div', { class: 'vpr' }, '讀音（參考）：' + it.pron) : null,
+      it.chk ? h('div', { class: 'vpr' }, h('span', { class: 'pill warn' }, '待核對')) : null);
+  } else {
+    main = h('div', { class: 'vcm' }, h('div', { class: 'vt' }, h('b', null, it.zh), it.en ? h('span', { class: 'ven', lang: 'en' }, it.en) : null, it.fr ? h('span', { class: 'vfr', lang: 'fr' }, it.fr) : null),
+      it.hint ? h('div', { class: 'vh' }, it.hint) : null,
+      (it.chk || it.extra) ? h('div', { class: 'vpr' }, it.extra ? h('span', { class: 'pill info' }, '課本外補充') : null, it.chk ? h('span', { class: 'pill warn' }, '待核對') : null) : null);
+  }
+  const card = h('div', { class: 'vcard' + (wk ? ' weak' : ''), 'data-id': it.id }, main, flag);
+  return card;
+}
+
+function viewVocab(app, sub) {
+  if (sub === 'cards') return viewVocabCards(app);
+  if (sub === 'quiz') return viewVocabQuiz(app);
+  const st = h('div', { class: 'stack' });
+  const cnt = c => VOC_ITEMS.filter(i => i.cat === c).length;
+  st.append(h('div', { class: 'note info small' }, h('b', null, 'AI 整理，待核對。'), '原創整理的中英法對照，不是教材原文；中文用台灣用語。沒把握的標「待核對」，讀音是中文近似音（參考）。收錄：香氣與風味 ' + cnt('A') + '、品鑑術語 ' + cnt('B') + '、酒標與菜單 ' + cnt('C') + '。'));
+  const q = h('input', { type: 'search', id: 'vq', placeholder: '搜尋中文、English、Français、原文（如 薄荷、mint、Brut）', 'aria-label': '搜尋詞庫', value: VU.q, style: 'margin:0' });
+  const catZone = h('div', { class: 'chips', role: 'group', 'aria-label': '類別' });
+  const subZone = h('div', { class: 'stack', style: 'gap:8px' });
+  const actZone = h('div', { class: 'btnrow' });
+  const info = h('div', { class: 'small muted', role: 'status', id: 'vinfo' });
+  const list = h('div', { class: 'stack', id: 'vlist' });
+  const redrawAll = () => { drawCat(); drawSub(); drawList(); };
+  const drawCat = () => {
+    catZone.innerHTML = '';
+    VOC_CATS.forEach(([k, l]) => catZone.append(h('button', { type: 'button', class: 'chip' + (VU.cat === k ? ' on' : ''), 'aria-pressed': String(VU.cat === k), 'data-cat': k, onclick: () => { VU.cat = k; VU.layer = 0; VU.group = ''; VU.cid = ''; redrawAll(); } }, l + (k === 'weak' ? '（' + weakCount() + '）' : ''))));
+  };
+  const drawSub = () => {
+    subZone.innerHTML = '';
+    const chipRow = (items, cur, set, label) => h('div', { class: 'chips', role: 'group', 'aria-label': label }, items.map(([k, l]) => h('button', { type: 'button', class: 'chip' + (cur === k ? ' on' : ''), 'aria-pressed': String(cur === k), onclick: () => { set(k); drawSub(); drawList(); } }, l)));
+    if (VU.cat === 'A') {
+      subZone.append(chipRow([[0, '全部'], [1, '一類'], [2, '二類'], [3, '三類']], VU.layer, k => { VU.layer = k; VU.group = ''; }, '香氣類別'));
+      const gs = [...new Set(VOC_ITEMS.filter(i => i.cat === 'A' && (!VU.layer || i.layer === VU.layer)).map(i => i.group))];
+      subZone.append(h('select', { id: 'vgroup', 'aria-label': '分組', onchange: e => { VU.group = e.target.value; drawList(); } }, h('option', { value: '' }, '全部分組'), gs.map(g => h('option', { value: g, selected: VU.group === g }, g))));
+    } else if (VU.cat === 'B') {
+      const gs = [...new Set(VOC_ITEMS.filter(i => i.cat === 'B').map(i => i.group))];
+      subZone.append(h('select', { id: 'vgroup', 'aria-label': '分組', onchange: e => { VU.group = e.target.value; drawList(); } }, h('option', { value: '' }, '全部分組'), gs.map(g => h('option', { value: g, selected: VU.group === g }, g))));
+    } else if (VU.cat === 'C') {
+      subZone.append(chipRow([['', '全部']].concat(VOCAB_C_GROUPS.map(g => [g.id, g.label])), VU.cid, k => { VU.cid = k; }, '國家或語言'));
+    }
+    subZone.append(h('div', { class: 'chips' }, h('button', { type: 'button', class: 'chip' + (VU.fr ? ' on' : ''), id: 'vfr', 'aria-pressed': String(VU.fr), onclick: () => { VU.fr = !VU.fr; drawSub(); drawList(); } }, '只看有法文')));
+  };
+  const drawList = () => {
+    const items = vocabFiltered(); list.innerHTML = '';
+    info.textContent = '共 ' + items.length + ' 條' + (VU.q.trim() ? '（搜尋「' + VU.q.trim() + '」）' : '');
+    actZone.innerHTML = '';
+    const cItems = items.filter(i => i.cat === 'C');
+    actZone.append(h('button', { type: 'button', class: 'btn primary', id: 'vstart', disabled: !items.length, onclick: () => startCards(items, VU.cat === 'weak' ? '不熟' : (VOC_CATS.find(c => c[0] === VU.cat) || [0, '全部'])[1]) }, '閃卡複習（' + items.length + ' 張）'));
+    if (VU.cat !== 'weak' && weakCount()) actZone.append(h('button', { type: 'button', class: 'btn', id: 'vstartweak', onclick: () => startCards(VOC_ITEMS.filter(i => isWeak(i.id)), '不熟') }, '只複習不熟（' + weakCount() + '）'));
+    if (cItems.length >= 4) actZone.append(h('button', { type: 'button', class: 'btn', id: 'vquiz', onclick: () => startQuiz(cItems) }, '看菜單小測驗'));
+    if (!items.length) {
+      list.append(h('div', { class: 'note' }, VU.cat === 'weak' ? '還沒有標記不熟的詞。在詞條右邊按「標不熟」，或在閃卡裡按「不熟」，就會出現在這裡。' : '找不到符合的詞。換個關鍵字，或把篩選放寬看看。'));
+      return;
+    }
+    const sec = (title, arr2, sub2) => { if (!arr2.length) return; list.append(h('section', { class: 'sec vsec' }, h('h2', null, title, h('small', null, arr2.length + ' 條' + (sub2 ? '・' + sub2 : ''))), h('div', { class: 'vgrid' }, arr2.map(it => vocabCard(it, refreshCounts))))); };
+    const A = items.filter(i => i.cat === 'A'), B = items.filter(i => i.cat === 'B'), C = items.filter(i => i.cat === 'C');
+    [1, 2, 3].forEach(L => { const la = A.filter(i => i.layer === L); if (!la.length) return; const gs = [...new Set(la.map(i => i.group))]; list.append(h('div', { class: 'vlayer' }, LAYER_TITLE[L - 1])); gs.forEach(g => sec(g, la.filter(i => i.group === g), la.find(i => i.group === g).cl)); });
+    [...new Set(B.map(i => i.group))].forEach(g => sec('品鑑術語・' + g, B.filter(i => i.group === g)));
+    VOCAB_C_GROUPS.forEach(g => sec('酒標與菜單・' + g.label, C.filter(i => i.cid === g.id), g.lang));
+  };
+  const refreshCounts = () => { const b = catZone.querySelector('[data-cat="weak"]'); if (b) b.textContent = '不熟（' + weakCount() + '）'; };
+  let qt = null;
+  q.addEventListener('input', () => { VU.q = q.value; clearTimeout(qt); qt = setTimeout(drawList, 120); });
+  st.append(q, catZone, subZone, actZone, info, list);
+  app.append(st); redrawAll();
+}
+
+/* ---- 閃卡 ---- */
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function startCards(items, label) {
+  if (!items.length) { toast('這個範圍沒有詞'); return; }
+  VFC = { ids: shuffle(items.map(i => i.id)), i: 0, flipped: false, dir: (VFC && VFC.dir) || 'zh', dirs: {}, ok: 0, weak: 0, weakIds: [], label, done: false };
+  go('/ref/vocab/cards');
+}
+function viewVocabCards(app) {
+  if (!VFC || !VFC.ids.length) { const items = vocabFiltered(); if (!items.length) { go('/ref/vocab'); return; } VFC = { ids: shuffle(items.map(i => i.id)), i: 0, flipped: false, dir: 'zh', dirs: {}, ok: 0, weak: 0, weakIds: [], label: '目前篩選', done: false }; }
+  const box = h('div', { class: 'stack', id: 'fcBox' });
+  const back = () => h('button', { type: 'button', class: 'btn sm', id: 'fcBack', onclick: () => go('/ref/vocab') }, '← 回詞庫');
+  const draw = () => {
+    box.innerHTML = '';
+    if (VFC.done || VFC.i >= VFC.ids.length) { drawEnd(); return; }
+    const it = VOC_BY_ID.get(VFC.ids[VFC.i]); if (!it) { VFC.i++; draw(); return; }
+    const isC = it.cat === 'C';
+    let d = VFC.dir; if (d === 'rand') { if (!(VFC.i in VFC.dirs)) VFC.dirs[VFC.i] = Math.random() < 0.5 ? 'zh' : 'x'; d = VFC.dirs[VFC.i]; }
+    const nameX = isC ? '原文' : '英法';
+    box.append(h('div', { class: 'fchead' }, back(), h('span', { class: 'pill info', id: 'fcPos' }, '第 ' + (VFC.i + 1) + ' / ' + VFC.ids.length + ' 張'), h('span', { class: 'pill', id: 'fcToday' }, '今天已複習 ' + vmToday() + ' 張')));
+    box.append(h('div', { class: 'chips', role: 'group', 'aria-label': '出題方向' }, [['zh', '看中文猜' + nameX], ['x', '看' + nameX + '猜中文'], ['rand', '隨機']].map(([k, l]) => h('button', { type: 'button', class: 'chip' + (VFC.dir === k ? ' on' : ''), 'aria-pressed': String(VFC.dir === k), 'data-dir': k, onclick: () => { VFC.dir = k; draw(); } }, l))));
+    box.append(h('div', { class: 'fcbar', 'aria-hidden': 'true' }, h('i', { style: 'width:' + Math.round(VFC.i / VFC.ids.length * 100) + '%' })));
+    const front = [], backk = [];
+    const sub = (t, c) => h('div', { class: 'fsub' + (c ? ' ' + c : '') }, t);
+    if (isC) {
+      if (d === 'zh') { front.push(h('div', { class: 'big sm' }, it.zh), sub(it.group + (it.cid === 'menu' ? '' : '（' + it.lang + '）'))); backk.push(h('div', { class: 'big', lang: it.cid }, it.orig), it.pron ? sub('讀音（參考）：' + it.pron) : null, it.hint ? sub(it.hint, 'hint') : null); }
+      else { front.push(h('div', { class: 'big', lang: it.cid }, it.orig), it.pron ? sub('讀音（參考）：' + it.pron) : null); backk.push(h('div', { class: 'big sm' }, it.zh), it.hint ? sub(it.hint, 'hint') : null); }
+    } else {
+      const xs = () => [it.en ? h('div', { class: 'big', lang: 'en' }, it.en) : null, it.fr ? h('div', { class: 'big fr', lang: 'fr' }, it.fr) : null];
+      if (d === 'zh') { front.push(h('div', { class: 'big' }, it.zh), sub(it.cat === 'A' ? LAYER_TITLE[it.layer - 1].replace(/（.*/, '') + '・' + it.group : it.group)); backk.push(xs(), it.hint ? sub(it.hint, 'hint') : null); }
+      else { front.push(xs(), it.fr ? null : sub('（沒有常用法文）')); backk.push(h('div', { class: 'big sm' }, it.zh), it.hint ? sub(it.hint, 'hint') : null); }
+    }
+    const card = h('button', { type: 'button', class: 'fc' + (VFC.flipped ? ' back' : ''), id: 'fcCard', 'aria-label': VFC.flipped ? '答案面，點一下翻回題目' : '題目面，點一下看答案', onclick: () => { VFC.flipped = !VFC.flipped; draw(); } }, VFC.flipped ? backk : front,
+      h('div', { class: 'fsub tap' }, VFC.flipped ? '答案（點一下翻回）' : '點一下看答案'));
+    box.append(card);
+    if (!VFC.flipped) box.append(h('button', { type: 'button', class: 'btn primary fbig', id: 'fcFlip', onclick: () => { VFC.flipped = true; draw(); } }, '翻面'));
+    else box.append(h('div', { class: 'fa' },
+      h('button', { type: 'button', class: 'btn fbig', id: 'fcWeak', onclick: () => answer(it, false) }, '不熟'),
+      h('button', { type: 'button', class: 'btn primary fbig', id: 'fcOk', onclick: () => answer(it, true) }, '會了')));
+    box.append(h('div', { class: 'small muted' }, '範圍：' + VFC.label + '・「不熟」會存在這台裝置，之後可只複習不熟的；「會了」會取消不熟標記。'));
+  };
+  const answer = (it, ok) => {
+    if (ok) { VFC.ok++; if (isWeak(it.id)) setWeak(it.id, false); } else { VFC.weak++; VFC.weakIds.push(it.id); setWeak(it.id, true); }
+    vmCount(); VFC.i++; VFC.flipped = false; draw(); window.scrollTo(0, 0);
+  };
+  const drawEnd = () => {
+    VFC.done = true;
+    box.append(h('div', { class: 'sec', id: 'fcEnd' }, h('h2', null, '這一輪完成'),
+      h('div', null, '範圍：' + VFC.label + '，共 ' + VFC.ids.length + ' 張：會了 ', h('b', null, String(VFC.ok)), ' 張、不熟 ', h('b', null, String(VFC.weak)), ' 張。今天累計複習 ', h('b', null, String(vmToday())), ' 張。'),
+      h('div', { class: 'btnrow' },
+        VFC.weakIds.length ? h('button', { type: 'button', class: 'btn primary', id: 'fcAgainWeak', onclick: () => startCards(VFC.weakIds.filter((x, i, a) => a.indexOf(x) === i).map(id => VOC_BY_ID.get(id)).filter(Boolean), '這輪不熟的') }, '再練這輪不熟的（' + VFC.weakIds.filter((x, i, a) => a.indexOf(x) === i).length + '）') : null,
+        h('button', { type: 'button', class: 'btn', id: 'fcRestart', onclick: () => startCards(VFC.ids.map(id => VOC_BY_ID.get(id)).filter(Boolean), VFC.label) }, '重來一輪'),
+        h('button', { type: 'button', class: 'btn', onclick: () => go('/ref/vocab') }, '回詞庫'))));
+  };
+  app.append(box); draw();
+}
+
+/* ---- 看菜單小測驗（酒標與菜單術語選意思）---- */
+function startQuiz(cItems) {
+  const pool = shuffle(cItems.filter(i => i.zh)).slice(0, 10);
+  if (pool.length < 4) { toast('題目不夠，換個範圍'); return; }
+  VQZ = { qs: pool.map(i => i.id), i: 0, score: 0, picked: null, wrong: [], scope: cItems.map(i => i.id) };
+  go('/ref/vocab/quiz');
+}
+function viewVocabQuiz(app) {
+  if (!VQZ) { go('/ref/vocab'); return; }
+  const box = h('div', { class: 'stack', id: 'qzBox' });
+  const draw = () => {
+    box.innerHTML = '';
+    if (VQZ.i >= VQZ.qs.length) {
+      box.append(h('div', { class: 'sec', id: 'qzEnd' }, h('h2', null, '小測驗結果'), h('div', null, '共 ' + VQZ.qs.length + ' 題，答對 ', h('b', null, String(VQZ.score)), ' 題。' + (VQZ.wrong.length ? '答錯的 ' + VQZ.wrong.length + ' 個已自動標成「不熟」，可到詞庫「不熟」分頁複習。' : '全對！')),
+        VQZ.wrong.length ? h('div', { class: 'stack', style: 'gap:8px' }, VQZ.wrong.map(id => VOC_BY_ID.get(id)).filter(Boolean).map(it => h('div', { class: 'vcard' }, h('div', { class: 'vcm' }, h('div', { class: 'vt' }, h('b', null, it.orig)), h('div', null, it.zh), it.hint ? h('div', { class: 'vh' }, it.hint) : null)))) : null,
+        h('div', { class: 'btnrow' }, h('button', { type: 'button', class: 'btn primary', id: 'qzAgain', onclick: () => startQuiz(VQZ.scope.map(id => VOC_BY_ID.get(id)).filter(Boolean)) }, '再測一輪'), h('button', { type: 'button', class: 'btn', onclick: () => go('/ref/vocab') }, '回詞庫'))));
+      return;
+    }
+    const it = VOC_BY_ID.get(VQZ.qs[VQZ.i]);
+    if (!VQZ.opts || VQZ.opts.i !== VQZ.i) {
+      const same = VOC_ITEMS.filter(x => x.cat === 'C' && x.id !== it.id && x.zh !== it.zh && x.cid === it.cid), other = VOC_ITEMS.filter(x => x.cat === 'C' && x.id !== it.id && x.zh !== it.zh && x.cid !== it.cid);
+      const seen = new Set([it.zh]), wrong = [];
+      for (const x of shuffle(same).concat(shuffle(other))) { if (wrong.length >= 3) break; if (seen.has(x.zh)) continue; seen.add(x.zh); wrong.push(x); }
+      VQZ.opts = { i: VQZ.i, list: shuffle([it].concat(wrong)).map(x => x.id) };
+    }
+    box.append(h('div', { class: 'fchead' }, h('button', { type: 'button', class: 'btn sm', id: 'qzBack', onclick: () => go('/ref/vocab') }, '← 回詞庫'), h('span', { class: 'pill info', id: 'qzPos' }, '第 ' + (VQZ.i + 1) + ' / ' + VQZ.qs.length + ' 題'), h('span', { class: 'pill' }, '答對 ' + VQZ.score)));
+    box.append(h('div', { class: 'fc static', id: 'qzQ' }, h('div', { class: 'fsub' }, '這個菜單／酒標用語是什麼意思？'), h('div', { class: 'big', lang: it.cid }, it.orig), it.pron ? h('div', { class: 'fsub' }, '讀音（參考）：' + it.pron) : null));
+    const done = VQZ.picked != null;
+    box.append(h('div', { class: 'stack', style: 'gap:8px', role: 'group', 'aria-label': '選項' }, VQZ.opts.list.map(id => {
+      const o = VOC_BY_ID.get(id), right = id === it.id, mine = VQZ.picked === id;
+      return h('button', { type: 'button', class: 'qopt' + (done ? (right ? ' right' : (mine ? ' bad' : '')) : ''), 'data-id': id, disabled: done, onclick: () => pick(it, id) }, o.zh);
+    })));
+    if (done) {
+      const ok = VQZ.picked === it.id;
+      box.append(h('div', { class: 'note ' + (ok ? 'ok' : 'err'), role: 'status', id: 'qzFb' }, h('b', null, ok ? '答對了。' : '不是這個。'), ' ', it.orig + '＝' + it.zh + (it.hint ? '。' + it.hint : '')),
+        h('button', { type: 'button', class: 'btn primary fbig', id: 'qzNext', onclick: () => { VQZ.i++; VQZ.picked = null; draw(); window.scrollTo(0, 0); } }, VQZ.i + 1 >= VQZ.qs.length ? '看結果' : '下一題'));
+    }
+  };
+  const pick = (it, id) => {
+    VQZ.picked = id; vmCount();
+    if (id === it.id) VQZ.score++; else { VQZ.wrong.push(it.id); setWeak(it.id, true); }
+    draw();
+  };
+  app.append(box); draw();
+}
+
+/*VOCAB_END*/
 
 /*QR_START*/
 /* 第九輪：QR code（離線內嵌 SVG 路徑，由 Python segno 1.6.6 產生，容錯等級 M；n＝每邊模組數；不連網、不載入任何程式庫）。
@@ -4066,7 +4832,7 @@ function shareSettingsSection() {
 async function buildExport() {
   const phs = await Store.all('photos'); const photos = [];
   for (const p of phs) { try { photos.push({ id: p.id, dataUrl: await blobToDataURL(p.blob) }); } catch (e) {} }
-  return { app: APP_ID, schemaVersion: SCHEMA, exportedAt: new Date().toISOString(), settings: { mode: S.mode, l3Vocab: !!S.l3Vocab, l3Cat: S.l3Cat || {}, showTodo: S.showTodo !== false, defLvl: S.defLvl || 2 }, vintageOverrides: JSON.parse(JSON.stringify(refOv)), wines: JSON.parse(JSON.stringify(wines)), photos };
+  return { app: APP_ID, schemaVersion: SCHEMA, exportedAt: new Date().toISOString(), settings: { mode: S.mode, l3Vocab: !!S.l3Vocab, l3Cat: S.l3Cat || {}, showTodo: S.showTodo !== false, defLvl: S.defLvl || 2 }, vintageOverrides: JSON.parse(JSON.stringify(refOv)), vocabWeak: vocabExportWeak(), wines: JSON.parse(JSON.stringify(wines)), photos };
 }
 async function doImport(text) {
   const data = JSON.parse(text);
@@ -4084,7 +4850,8 @@ async function doImport(text) {
     for (const k in data.vintageOverrides) { const o = data.vintageOverrides[k]; if (o && typeof o === 'object' && (!refOv[k] || (o.at || 0) > (refOv[k].at || 0))) { refOv[k] = o; ov++; } }
     if (ov) await saveRefOv();
   }
-  return { added, updated, skipped, ov };
+  const vw = vocabImportWeak(data.vocabWeak);
+  return { added, updated, skipped, ov, vw };
 }
 /* 設定頁：Gemini API 區（金鑰、模型、接地、測試、同意） */
 function gapiSection() {
@@ -4236,7 +5003,7 @@ function viewSettings(app) {
     out));
   const paste = h('textarea', { class: 'mono', id: 'impin', placeholder: '或把備份文字貼在這裡', 'aria-label': '貼上備份文字' });
   const impMsg = h('div', { class: 'small', id: 'impmsg' });
-  const runImport = async text => { try { const r = await doImport(text); impMsg.textContent = `匯入完成：新增 ${r.added}、更新 ${r.updated}、略過 ${r.skipped}（較舊的不覆蓋）` + (r.ov ? `；年份參考表修改 ${r.ov} 格` : ''); toast('匯入完成'); } catch (e) { impMsg.textContent = '匯入失敗：' + e.message; } };
+  const runImport = async text => { try { const r = await doImport(text); impMsg.textContent = `匯入完成：新增 ${r.added}、更新 ${r.updated}、略過 ${r.skipped}（較舊的不覆蓋）` + (r.ov ? `；年份參考表修改 ${r.ov} 格` : '') + (r.vw ? `；詞庫「不熟」標記新增 ${r.vw} 個` : ''); toast('匯入完成'); } catch (e) { impMsg.textContent = '匯入失敗：' + e.message; } };
   st.append(h('section', { class: 'sec' }, h('h2', null, '匯入'),
     h('div', { class: 'small muted' }, '以酒款編號合併，只用較新的一筆，不會刪掉現有資料。'),
     h('input', { type: 'file', accept: 'application/json,.json', id: 'impfile', 'aria-label': '選擇備份檔', onchange: async e => { const f = e.target.files[0]; if (f) runImport(await f.text()); e.target.value = ''; } }),
@@ -4294,6 +5061,7 @@ async function boot() {
   await Store.init();
   try { await loadSettings(); } catch (e) {}
   try { await GAPI.load(); } catch (e) {}
+  try { await loadVocabMeta(); } catch (e) {}
   if (!S.l3Cat || typeof S.l3Cat !== 'object') S.l3Cat = {};
   if (!S.api || typeof S.api !== 'object') S.api = {};
   try { const o = await Store.get('meta', 'refOverrides'); if (o && o.data && typeof o.data === 'object') refOv = o.data; } catch (e) {}
